@@ -150,8 +150,9 @@ func publishSpec(vargs API) error {
 	}
 	if success {
 		fmt.Printf("successfully published spec file: %s\n", vargs.Spec)
+		return nil
 	}
-	return nil
+	return errors.New("unable to publish specs after 3 attempts")
 }
 
 func makeRequest(r *http.Request) (*http.Response, error) {
