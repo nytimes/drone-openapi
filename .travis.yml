@@ -12,6 +12,7 @@ env:
 script:
   - go test
   - go build -ldflags "-s -w -X main.build=$TRAVIS_BUILD_NUMBER -X main.rev=$TRAVIS_COMMIT" -a -tags netgo
+  - cp /etc/ssl/certs/ca-certificates.crt .
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
