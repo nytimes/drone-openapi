@@ -8,6 +8,12 @@
   revision = "d6109f644c5935c22620081b4c234bb2263743c7"
 
 [[projects]]
+  name = "github.com/ghodss/yaml"
+  packages = ["."]
+  revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -22,6 +28,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c8725aa801f4e9599a9268aa4de71e5c79e393132ad0a2b2c690752928274cb9"
+  inputs-digest = "c8586a9d233d687e91640f8330b4d05208ae8dca054df0c1e1c5ed04b7962d29"
   solver-name = "gps-cdcl"
   solver-version = 1

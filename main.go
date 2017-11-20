@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,9 +13,8 @@ import (
 	"strings"
 	"time"
 
-	yaml "gopkg.in/yaml.v2"
-
 	"github.com/drone/drone-plugin-go/plugin"
+	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 )
 
@@ -160,17 +158,12 @@ func convertToJSON(pth string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "unable to read spec file")
 	}
-	// parse YAML
-	var spec map[string]interface{}
-	err = yaml.Unmarshal(dat, &spec)
+
+	out, err := yaml.YAMLToJSON(dat)
 	if err != nil {
-		return "", errors.Wrap(err, "unable parse spec's YAML")
+		return "", errors.Wrap(err, "unable to convert spec file to JSON")
 	}
-	// generate JSON
-	out, err := json.Marshal(spec)
-	if err != nil {
-		return "", errors.Wrap(err, "unable to generate JSON")
-	}
+
 	outName := strings.Replace(pth, filepath.Ext(pth), ".json", 1)
 	err = ioutil.WriteFile(outName, out, os.ModePerm)
 	return outName, errors.Wrap(err, "unable to write spec file")
