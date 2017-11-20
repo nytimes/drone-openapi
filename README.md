@@ -18,7 +18,7 @@ For Drone 0.6+, the plugin expects credentials in the `OPENAPI_API_KEY` environm
 ### Basic example config to publish the puzzles.yaml spec file under the games team:
 
 	notify:
-	  openapi-publisher:
+	  openapi:
         team: games
         spec: puzzles.yaml
 	    key: $$OPENAPI_KEY
