@@ -99,6 +99,8 @@ func publishSpec(vargs API) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to open spec file")
 	}
+	defer spec.Close()
+
 	_, err = io.Copy(fw, spec)
 	if err != nil {
 		return errors.Wrap(err, "unable to write multipart form")
