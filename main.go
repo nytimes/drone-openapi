@@ -119,6 +119,7 @@ func publishSpec(vargs API) error {
 
 	// grabbing body in case we need to retry
 	payload := body.Bytes()
+	var success bool
 	// make request with timeouts & retries
 	for attempt := 1; attempt < 4; attempt++ {
 		fmt.Printf("attempting to publish spec file: %s\n", vargs.Spec)
@@ -129,14 +130,17 @@ func publishSpec(vargs API) error {
 		}
 		resp, err := makeRequest(r)
 		if err == nil || resp.StatusCode == http.StatusOK {
-			continue
+			success = true
+			break
 		}
 		fmt.Printf("problems publishing spec on attempt %d: %s\nsleeping for 1s", attempt, err)
 		if attempt < 3 {
 			time.Sleep(1 * time.Second)
 		}
 	}
-	fmt.Printf("successfully published spec file: %s\n", vargs.Spec)
+	if success {
+		fmt.Printf("successfully published spec file: %s\n", vargs.Spec)
+	}
 	return nil
 }
 
