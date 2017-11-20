@@ -1,4 +1,4 @@
-# drone-openapi-publisher
+# drone-openapi
 
 ### Publish Open API spec files from a Drone pipeline
 
