@@ -91,7 +91,7 @@ func publishSpec(vargs API) error {
 	w := multipart.NewWriter(&body)
 
 	// add file to request
-	fw, err := w.CreateFormFile("file", vargs.Spec)
+	fw, err := w.CreateFormFile("file", path.Base(vargs.Spec))
 	if err != nil {
 		return errors.Wrap(err, "unable to init multipart form file")
 	}
