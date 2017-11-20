@@ -154,7 +154,6 @@ func publishSpec(vargs API) error {
 		fmt.Printf("successfully published spec file: %s\n", vargs.Spec)
 		return nil
 	}
-	fmt.Printf("failed to post body:\n\n%q\n\n", string(payload))
 	return errors.New("unable to publish specs after 3 attempts")
 }
 
