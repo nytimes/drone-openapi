@@ -131,14 +131,18 @@ func publishSpec(vargs API) error {
 		}
 		resp, err := makeRequest(r)
 		if err == nil && resp != nil && resp.StatusCode == http.StatusOK {
+			resp.Body.Close()
 			success = true
 			break
 		}
+
 		if err != nil {
-			fmt.Printf("problems publishing spec on attempt %d: %s\nsleeping for 1s", attempt, err)
+			fmt.Printf("problems publishing spec on attempt %d: %s\nsleeping for 1s\n", attempt, err)
 		} else {
-			fmt.Printf("problems publishing spec on attempt %d: uploader returned with bad status of %d\nsleeping for 1s",
-				attempt, resp.StatusCode)
+			respBod, _ := ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+			fmt.Printf("problems publishing spec on attempt %d: uploader returned with bad status of %d - %s\nsleeping for 1s\n",
+				attempt, resp.StatusCode, string(respBod))
 		}
 		if attempt < 3 {
 			time.Sleep(1 * time.Second)
