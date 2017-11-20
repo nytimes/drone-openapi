@@ -120,6 +120,7 @@ func publishSpec(vargs API) error {
 
 	// grabbing body in case we need to retry
 	payload := body.Bytes()
+	contentType := w.FormDataContentType()
 	var success bool
 	// make request with timeouts & retries
 	for attempt := 1; attempt < 4; attempt++ {
@@ -129,6 +130,7 @@ func publishSpec(vargs API) error {
 		if err != nil {
 			return errors.Wrap(err, "unable to create request")
 		}
+		r.Header.Set("Content-Type", contentType)
 		resp, err := makeRequest(r)
 		if err == nil && resp != nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
