@@ -75,7 +75,7 @@ func wrapMain() error {
 	vargs.Key = strings.TrimSpace(vargs.Key)
 
 	// point to file in workspace
-	vargs.Spec = filepath.Join(*workspace, vargs.Spec)
+	vargs.Spec = filepath.Join(workspace, vargs.Spec)
 
 	// check spec ext to see if we need to convert YAML => JSON
 	if ext := filepath.Ext(vargs.Spec); ext == ".yaml" || ext == ".yml" {
