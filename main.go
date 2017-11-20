@@ -48,7 +48,7 @@ func wrapMain() error {
 		rev = "[unknown]"
 	}
 
-	fmt.Printf("Drone apis.nyt.net Plugin built from %s\n", rev)
+	fmt.Printf("Drone Open API Plugin built from %s\n", rev)
 
 	vargs := API{}
 	workspace := ""
@@ -121,6 +121,7 @@ func publishSpec(vargs API) error {
 	payload := body.Bytes()
 	// make request with timeouts & retries
 	for attempt := 1; attempt < 4; attempt++ {
+		fmt.Printf("attempting to publish spec file: %s\n", vargs.Spec)
 		r, err := http.NewRequest(http.MethodPost, vargs.UploaderURL+"?key="+vargs.Key,
 			bytes.NewBuffer(payload))
 		if err != nil {
@@ -135,6 +136,7 @@ func publishSpec(vargs API) error {
 			time.Sleep(1 * time.Second)
 		}
 	}
+	fmt.Printf("successfully published spec file: %s\n", vargs.Spec)
 	return nil
 }
 
