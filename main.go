@@ -121,7 +121,8 @@ func publishSpec(vargs API) error {
 	payload := body.Bytes()
 	// make request with timeouts & retries
 	for attempt := 1; attempt < 4; attempt++ {
-		r, err := http.NewRequest(http.MethodPost, vargs.UploaderURL, bytes.NewBuffer(payload))
+		r, err := http.NewRequest(http.MethodPost, vargs.UploaderURL+"?key="+vargs.Key,
+			bytes.NewBuffer(payload))
 		if err != nil {
 			return errors.Wrap(err, "unable to create request")
 		}
