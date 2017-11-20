@@ -10,7 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -74,8 +74,11 @@ func wrapMain() error {
 	// Trim whitespace, to forgive the vagaries of YAML parsing.
 	vargs.Key = strings.TrimSpace(vargs.Key)
 
+	// point to file in workspace
+	vargs.Spec = filepath.Join(*workspace, vargs.Spec)
+
 	// check spec ext to see if we need to convert YAML => JSON
-	if ext := path.Ext(vargs.Spec); ext == ".yaml" || ext == ".yml" {
+	if ext := filepath.Ext(vargs.Spec); ext == ".yaml" || ext == ".yml" {
 		vargs.Spec, err = convertToJSON(vargs.Spec)
 		if err != nil {
 			return err
@@ -91,7 +94,7 @@ func publishSpec(vargs API) error {
 	w := multipart.NewWriter(&body)
 
 	// add file to request
-	fw, err := w.CreateFormFile("file", path.Base(vargs.Spec))
+	fw, err := w.CreateFormFile("file", filepath.Base(vargs.Spec))
 	if err != nil {
 		return errors.Wrap(err, "unable to init multipart form file")
 	}
@@ -168,7 +171,7 @@ func convertToJSON(pth string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "unable to generate JSON")
 	}
-	outName := strings.Replace(pth, path.Ext(pth), ".json", 1)
+	outName := strings.Replace(pth, filepath.Ext(pth), ".json", 1)
 	err = ioutil.WriteFile(outName, out, os.ModePerm)
 	return outName, errors.Wrap(err, "unable to write spec file")
 }
