@@ -22,6 +22,6 @@ For Drone 0.6+, the plugin expects credentials in the `OPENAPI_API_KEY` environm
         team: games
         spec: puzzles.yaml
 	    key: $$OPENAPI_KEY
-		uploader_url: https://apis.nyt.net/uploader
+		uploader_url: https://openapi-repo.example.com/uploader
 	    when:
 	      event: tag
