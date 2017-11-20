@@ -159,7 +159,7 @@ func publishSpec(vargs API) error {
 }
 
 func makeRequest(r *http.Request) (*http.Response, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	r = r.WithContext(ctx)
 	return http.DefaultClient.Do(r)
