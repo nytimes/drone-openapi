@@ -27,6 +27,8 @@ type API struct {
 	Key string `json:"key"`
 	// UploaderURL points to the service currently accepting spec file publishes.
 	UploaderURL string `json:"uploader_url"`
+
+	workspace string
 }
 
 var (
@@ -49,16 +51,15 @@ func wrapMain() error {
 	fmt.Printf("Drone Open API Plugin built from %s\n", rev)
 
 	vargs := API{}
-	workspace := ""
 
 	// Check what drone version we're running on
 	if os.Getenv("DRONE_WORKSPACE") == "" { // 0.4
-		err := configFromStdin(&vargs, &workspace)
+		err := configFromStdin(&vargs)
 		if err != nil {
 			return err
 		}
 	} else { // 0.5+
-		err := configFromEnv(&vargs, &workspace)
+		err := configFromEnv(&vargs)
 		if err != nil {
 			return err
 		}
@@ -73,7 +74,7 @@ func wrapMain() error {
 	vargs.Key = strings.TrimSpace(vargs.Key)
 
 	// point to file in workspace
-	vargs.Spec = filepath.Join(workspace, vargs.Spec)
+	vargs.Spec = filepath.Join(vargs.workspace, vargs.Spec)
 
 	// check spec ext to see if we need to convert YAML => JSON
 	if ext := filepath.Ext(vargs.Spec); ext == ".yaml" || ext == ".yml" {
@@ -118,50 +119,60 @@ func publishSpec(vargs API) error {
 		return errors.Wrap(err, "unable to close multipart payload")
 	}
 
-	// grabbing body in case we need to retry
+	var success bool
 	payload := body.Bytes()
 	contentType := w.FormDataContentType()
-	var success bool
 	// make request with timeouts & retries
 	for attempt := 1; attempt < 4; attempt++ {
 		fmt.Printf("attempting to publish spec file: %s\n", vargs.Spec)
-		r, err := http.NewRequest(http.MethodPost, vargs.UploaderURL+"?key="+vargs.Key,
-			bytes.NewBuffer(payload))
-		if err != nil {
-			return errors.Wrap(err, "unable to create request")
-		}
-		r.Header.Set("Content-Type", contentType)
-		resp, err := makeRequest(r)
-		if err == nil && resp != nil && resp.StatusCode == http.StatusOK {
-			resp.Body.Close()
+		status, resp, err := makeRequest(
+			vargs.UploaderURL+"?key="+vargs.Key,
+			contentType,
+			payload)
+		if err == nil && status == http.StatusOK {
 			success = true
 			break
 		}
-
 		if err != nil {
-			fmt.Printf("problems publishing spec on attempt %d: %s\nsleeping for 1s\n", attempt, err)
+			fmt.Printf("problems publishing spec on attempt %d: %s\n", attempt, err)
 		} else {
-			respBod, _ := ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
-			fmt.Printf("problems publishing spec on attempt %d: uploader returned with bad status of %d - %s\nsleeping for 1s\n",
-				attempt, resp.StatusCode, string(respBod))
+			fmt.Printf("problems publishing spec on attempt %d: %d - %s\n",
+				attempt, status, resp)
 		}
 		if attempt < 3 {
-			time.Sleep(1 * time.Second)
+			dur := time.Duration(attempt) * time.Second
+			fmt.Printf("sleeping for %s\n", dur)
+			time.Sleep(dur)
 		}
 	}
 	if success {
-		fmt.Printf("successfully published spec file: %s\n", vargs.Spec)
+		fmt.Println("successfully published spec file")
 		return nil
 	}
 	return errors.New("unable to publish specs after 3 attempts")
 }
 
-func makeRequest(r *http.Request) (*http.Response, error) {
+func makeRequest(url, contentType string, payload []byte) (int, []byte, error) {
+	r, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
+	if err != nil {
+		return 0, nil, errors.Wrap(err, "unable to create request")
+	}
+	r.Header.Set("Content-Type", contentType)
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	r = r.WithContext(ctx)
-	return http.DefaultClient.Do(r)
+
+	resp, err := http.DefaultClient.Do(r)
+	if err != nil {
+		return 0, nil, errors.Wrap(err, "unable to make publish request")
+	}
+	defer resp.Body.Close()
+
+	bod, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return resp.StatusCode, nil, errors.Wrap(err, "unable to read publish response")
+	}
+	return resp.StatusCode, bod, nil
 }
 
 func convertToJSON(pth string) (string, error) {
@@ -181,25 +192,25 @@ func convertToJSON(pth string) (string, error) {
 	return outName, errors.Wrap(err, "unable to write spec file")
 }
 
-func configFromStdin(vargs *API, workspace *string) error {
+func configFromStdin(vargs *API) error {
 	// https://godoc.org/github.com/drone/drone-plugin-go/plugin
 	workspaceInfo := plugin.Workspace{}
 	plugin.Param("workspace", &workspaceInfo)
 	plugin.Param("vargs", vargs)
 	// Note this hangs if no cli args or input on STDIN
 	plugin.MustParse()
-	*workspace = workspaceInfo.Path
+	vargs.workspace = workspaceInfo.Path
 	return nil
 }
 
-func configFromEnv(vargs *API, workspace *string) error {
+func configFromEnv(vargs *API) error {
 	// drone plugin input format du jour:
 	// http://readme.drone.io/plugins/plugin-parameters/
 	vargs.Spec = os.Getenv("PLUGIN_SPEC")
 	vargs.Team = os.Getenv("PLUGIN_TEAM")
 	vargs.Key = os.Getenv("OPENAPI_API_KEY")
 	vargs.UploaderURL = os.Getenv("PLUGIN_UPLOADER_URL")
-	*workspace = os.Getenv("DRONE_WORKSPACE")
+	vargs.workspace = os.Getenv("DRONE_WORKSPACE")
 	return nil
 }
 
