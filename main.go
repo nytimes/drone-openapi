@@ -141,7 +141,7 @@ func publishSpec(vargs API) error {
 		}
 		if attempt < 3 {
 			dur := time.Duration(attempt) * time.Second
-			fmt.Sprintln("sleeping for %s", dur)
+			fmt.Printf("sleeping for %s\n", dur)
 			time.Sleep(dur)
 		}
 	}
