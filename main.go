@@ -153,8 +153,7 @@ func publishSpec(vargs API) error {
 }
 
 func makeRequest(url, contentType string, payload []byte) (int, []byte, error) {
-	r, err := http.NewRequest(http.MethodPost, url,
-		bytes.NewBuffer(payload))
+	r, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
 	if err != nil {
 		return 0, nil, errors.Wrap(err, "unable to create request")
 	}
