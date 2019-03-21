@@ -16,6 +16,7 @@ import (
 	"github.com/drone/drone-plugin-go/plugin"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
+	"golang.org/x/oauth2/google"
 )
 
 type API struct {
@@ -23,6 +24,9 @@ type API struct {
 	Spec string `json:"spec"`
 	// Team is the team name to publish the spec under.
 	Team string `json:"team"`
+	// GoogleCredentials can be used to authorize spec uploads. This can optionally be
+	// used instead of an API key.
+	GoogleCredentials string `json:"google_credentials"`
 	// Key is the API key for access to the spec uploader.
 	Key string `json:"key"`
 	// UploaderURL points to the service currently accepting spec file publishes.
@@ -126,7 +130,7 @@ func publishSpec(vargs API) error {
 	for attempt := 1; attempt < 4; attempt++ {
 		fmt.Printf("attempting to publish spec file: %s\n", vargs.Spec)
 		status, resp, err := makeRequest(
-			vargs.UploaderURL+"?key="+vargs.Key,
+			vargs.UploaderURL, vargs.Key, vargs.GoogleCredentials,
 			contentType,
 			payload)
 		if err == nil && status == http.StatusOK {
@@ -152,17 +156,33 @@ func publishSpec(vargs API) error {
 	return errors.New("unable to publish specs after 3 attempts")
 }
 
-func makeRequest(url, contentType string, payload []byte) (int, []byte, error) {
+func makeRequest(url, key, creds, contentType string, payload []byte) (int, []byte, error) {
+	if key != "" {
+		url += "?key=" + key
+	}
 	r, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(payload))
 	if err != nil {
 		return 0, nil, errors.Wrap(err, "unable to create request")
 	}
 	r.Header.Set("Content-Type", contentType)
+
+	hc := http.DefaultClient
+	if creds != "" {
+		cfg, err := google.JWTConfigFromJSON([]byte(creds))
+		if err != nil {
+			return 0, nil, errors.Wrap(err, "unable to get JWT config from GCP creds")
+		}
+		cfg.PrivateClaims = map[string]interface{}{
+			"target_audience": r.URL.Scheme + "://" + r.URL.Host}
+		cfg.UseIDToken = true
+		hc = cfg.Client(context.Background())
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	r = r.WithContext(ctx)
 
-	resp, err := http.DefaultClient.Do(r)
+	resp, err := hc.Do(r)
 	if err != nil {
 		return 0, nil, errors.Wrap(err, "unable to make publish request")
 	}
@@ -209,14 +229,15 @@ func configFromEnv(vargs *API) error {
 	vargs.Spec = os.Getenv("PLUGIN_SPEC")
 	vargs.Team = os.Getenv("PLUGIN_TEAM")
 	vargs.Key = os.Getenv("OPENAPI_API_KEY")
+	vargs.GoogleCredentials = os.Getenv("GOOGLE_CREDENTIALS")
 	vargs.UploaderURL = os.Getenv("PLUGIN_UPLOADER_URL")
 	vargs.workspace = os.Getenv("DRONE_WORKSPACE")
 	return nil
 }
 
 func validateVargs(vargs API) error {
-	if vargs.Key == "" {
-		return fmt.Errorf("missing required param: key")
+	if vargs.Key == "" && vargs.GoogleCredentials == "" {
+		return fmt.Errorf("missing required params: key or google_credentials")
 	}
 	if vargs.Spec == "" {
 		return fmt.Errorf("missing required param: spec")
