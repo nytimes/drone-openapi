@@ -1,14 +1,15 @@
 language: go
-
+cache:
+  directories:
+    - $GOPATH/pkg
 services:
   - docker
-
 go:
-  - 1.9
-
+  - 1.x
 env:
-  - CGO_ENABLED=0
-
+  global:
+    - GO111MODULE=on
+    - CGO_ENABLED=0
 script:
   - go test
   - go build -ldflags "-s -w -X main.build=$TRAVIS_BUILD_NUMBER -X main.rev=$TRAVIS_COMMIT" -a -tags netgo
