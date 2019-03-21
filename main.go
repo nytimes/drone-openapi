@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -171,7 +170,7 @@ func makeRequest(url, key, creds, contentType string, payload []byte) (int, []by
 	if creds != "" {
 		cfg, err := google.JWTConfigFromJSON([]byte(creds))
 		if err != nil {
-			log.Fatal(errors.Wrap(err, "unable to get creds from creds"))
+			return 0, nil, errors.Wrap(err, "unable to get JWT config from GCP creds")
 		}
 		cfg.PrivateClaims = map[string]interface{}{
 			"target_audience": r.URL.Scheme + "://" + r.URL.Host}
