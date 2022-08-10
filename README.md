@@ -12,7 +12,7 @@ The example below is for secrets in the Drone 1.0+ format, where the GCP Service
 
 
 ### Basic example config to publish the swagger.yaml spec file:
-```
+```yaml
   - name: publish-openapi
     image: nytimes/drone-openapi
     settings:
@@ -31,7 +31,7 @@ The example below is for secrets in the Drone 1.0+ format, where the GCP Service
 
 To publish all yamls in a given directory:
 
-```
+```yaml
   - name: publish-openapi
     image: nytimes/drone-openapi
     settings:

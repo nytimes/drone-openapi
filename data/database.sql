@@ -1,0 +1,11317 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 14.3
+-- Dumped by pg_dump version 14.3
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: category; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.category AS ENUM (
+    'CANCEL_THE_CANCEL',
+    'PRODUCT_CHANGE',
+    'STS',
+    'ACQUISITION'
+);
+
+
+ALTER TYPE public.category OWNER TO postgres;
+
+--
+-- Name: channel; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.channel AS ENUM (
+    'ACCOUNT',
+    'CARE',
+    'LANDING_PAGE',
+    'ONLINE_CANCEL',
+    'MARKETING_DRIVEN',
+    'SUBSCRIBER_ADVOCACY'
+);
+
+
+ALTER TYPE public.channel OWNER TO postgres;
+
+--
+-- Name: hd_product_code; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.hd_product_code AS ENUM (
+    'DS',
+    'MF',
+    'FS',
+    'SS',
+    'SO',
+    'ST',
+    'SW',
+    'SR',
+    '2+',
+    '3+',
+    '5+',
+    '6+',
+    '7+',
+    'S+',
+    'BR',
+    'SF',
+    'DC',
+    'DN',
+    'DO',
+    '7N',
+    '71',
+    '74',
+    'SN',
+    'S1',
+    'S4',
+    'LT',
+    'TA',
+    'TF',
+    'TN',
+    'FN'
+);
+
+
+ALTER TYPE public.hd_product_code OWNER TO postgres;
+
+--
+-- Name: history_event; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.history_event AS ENUM (
+    'CREATE',
+    'MODIFY',
+    'PROMOTE'
+);
+
+
+ALTER TYPE public.history_event OWNER TO postgres;
+
+--
+-- Name: region; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.region AS ENUM (
+    'NA',
+    'NE',
+    'ND'
+);
+
+
+ALTER TYPE public.region OWNER TO postgres;
+
+--
+-- Name: status; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.status AS ENUM (
+    'ACTIVE',
+    'EXPIRED',
+    'PENDING',
+    'WITHDRAWN'
+);
+
+
+ALTER TYPE public.status OWNER TO postgres;
+
+--
+-- Name: sub_type; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.sub_type AS ENUM (
+    'ATHLETIC',
+    'PREMIUM',
+    'BACK_COPY',
+    'GIFT',
+    'REFERRAL',
+    'MESSAGE',
+    'MAIL_SUBSCRIPTION',
+    'IHT',
+    'IHD',
+    'BOOK_REVIEW',
+    'LARGE_PRINT',
+    'UPSELL',
+    'BAU'
+);
+
+
+ALTER TYPE public.sub_type OWNER TO postgres;
+
+--
+-- Name: type; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.type AS ENUM (
+    'DIGITAL',
+    'HD'
+);
+
+
+ALTER TYPE public.type OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: action_iqs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.action_iqs (
+    action_iq character varying NOT NULL
+);
+
+
+ALTER TABLE public.action_iqs OWNER TO postgres;
+
+--
+-- Name: bundles; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.bundles (
+    code character varying NOT NULL
+);
+
+
+ALTER TABLE public.bundles OWNER TO postgres;
+
+--
+-- Name: offer_bundles; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offer_bundles (
+    offer_id uuid NOT NULL,
+    bundle_code character varying NOT NULL
+);
+
+
+ALTER TABLE public.offer_bundles OWNER TO postgres;
+
+--
+-- Name: offer_categories; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offer_categories (
+    offer_id uuid NOT NULL,
+    category public.category NOT NULL
+);
+
+
+ALTER TABLE public.offer_categories OWNER TO postgres;
+
+--
+-- Name: offer_channels; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offer_channels (
+    offer_id uuid NOT NULL,
+    channel public.channel NOT NULL
+);
+
+
+ALTER TABLE public.offer_channels OWNER TO postgres;
+
+--
+-- Name: offer_hd_products; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offer_hd_products (
+    offer_id uuid NOT NULL,
+    hd_product_code public.hd_product_code NOT NULL,
+    region public.region NOT NULL
+);
+
+
+ALTER TABLE public.offer_hd_products OWNER TO postgres;
+
+--
+-- Name: offer_history; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offer_history (
+    id integer NOT NULL,
+    offer_id uuid NOT NULL,
+    user_id integer,
+    modify_date timestamp without time zone DEFAULT now() NOT NULL,
+    event public.history_event NOT NULL,
+    note character varying,
+    trace character varying
+);
+
+
+ALTER TABLE public.offer_history OWNER TO postgres;
+
+--
+-- Name: offer_history_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.offer_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.offer_history_id_seq OWNER TO postgres;
+
+--
+-- Name: offer_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.offer_history_id_seq OWNED BY public.offer_history.id;
+
+
+--
+-- Name: offer_segments; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offer_segments (
+    offer_id uuid NOT NULL,
+    action_iq_id character varying NOT NULL
+);
+
+
+ALTER TABLE public.offer_segments OWNER TO postgres;
+
+--
+-- Name: offer_sub_types; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offer_sub_types (
+    offer_id uuid NOT NULL,
+    sub_type public.sub_type NOT NULL
+);
+
+
+ALTER TABLE public.offer_sub_types OWNER TO postgres;
+
+--
+-- Name: short_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.short_id_seq
+    START WITH 11000
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.short_id_seq OWNER TO postgres;
+
+--
+-- Name: offers; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offers (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    short_id character varying DEFAULT ('OM-'::text || nextval('public.short_id_seq'::regclass)) NOT NULL,
+    type public.type NOT NULL,
+    name character varying NOT NULL,
+    status public.status NOT NULL,
+    chain_id bigint,
+    promo_id character varying,
+    billing_frequency_in_weeks integer,
+    expiring boolean NOT NULL,
+    start_date timestamp without time zone DEFAULT now() NOT NULL,
+    end_date timestamp without time zone,
+    version character varying NOT NULL
+);
+
+
+ALTER TABLE public.offers OWNER TO postgres;
+
+--
+-- Name: offers_schema_migrations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.offers_schema_migrations (
+    version bigint NOT NULL,
+    dirty boolean NOT NULL
+);
+
+
+ALTER TABLE public.offers_schema_migrations OWNER TO postgres;
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    email character varying NOT NULL
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.users_id_seq OWNER TO postgres;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: offer_history id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_history ALTER COLUMN id SET DEFAULT nextval('public.offer_history_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Data for Name: action_iqs; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.action_iqs (action_iq) FROM stdin;
+262953
+119635
+119651
+119661
+119683
+119630
+119631
+119634
+119645
+119646
+119650
+119657
+119658
+119660
+119642
+999999
+262952
+217488
+217491
+217469
+217470
+217472
+217489
+217548
+217549
+217551
+217576
+217577
+217582
+173523
+217477
+217487
+217492
+217494
+217495
+217466
+217498
+217467
+217500
+217502
+217503
+217468
+126986
+126988
+126993
+126980
+126985
+126995
+126983
+126991
+126996
+119636
+119652
+119662
+119643
+119638
+119639
+119716
+119724
+119718
+119723
+119725
+119717
+268352
+173527
+127001
+127005
+173540
+173519
+130368
+130378
+130400
+130414
+130369
+130370
+130375
+130376
+130379
+130380
+130382
+130383
+130401
+130402
+130404
+130405
+130416
+130418
+130420
+130421
+130386
+130393
+130408
+124408
+124421
+130384
+130391
+130406
+130422
+130423
+130424
+173535
+124397
+124406
+124411
+124418
+124422
+217490
+217471
+173520
+173532
+173530
+130389
+130390
+130396
+130397
+130411
+130412
+217479
+217505
+217531
+217532
+217533
+217534
+217538
+217540
+217545
+217554
+217556
+217557
+217558
+217563
+217568
+217570
+217572
+217574
+217580
+217555
+217560
+217561
+217564
+217569
+217565
+173536
+129995
+129999
+130005
+130017
+130020
+130025
+129983
+129980
+129981
+129998
+130002
+130003
+130019
+130023
+130027
+129987
+129982
+130008
+130009
+130011
+130010
+130014
+130015
+130029
+130030
+130032
+130033
+130035
+130036
+129989
+129990
+119731
+119735
+119764
+119768
+119773
+119730
+119734
+119763
+119767
+119772
+129984
+129986
+129996
+129997
+130000
+130001
+130006
+130018
+130021
+130022
+130026
+119775
+119729
+119733
+119762
+119766
+119770
+173390
+173528
+217473
+217474
+217475
+217476
+217478
+217480
+217481
+217482
+217483
+217484
+217485
+217486
+217504
+217506
+217507
+217508
+217536
+217542
+217546
+217550
+217493
+217496
+217497
+217499
+217501
+173522
+173526
+173539
+173531
+173396
+173533
+152968
+152967
+130367
+130377
+130385
+130392
+130398
+130407
+130413
+130425
+130387
+130394
+130409
+130004
+130016
+130024
+129979
+127010
+173394
+268353
+173529
+119681
+173395
+126999
+127002
+127006
+12345 add here
+second segemnt
+third segment
+173534
+123
+456
+\.
+
+
+--
+-- Data for Name: bundles; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bundles (code) FROM stdin;
+X
+XPASS
+CR
+ADA
+MAX_ADA_CR_CK
+ADA_no_shares
+CK
+MAX_ADA_PLUS_ACQ
+MAX_ADA_PLUS_RET
+ADA_CR
+MAX_ADA_CR
+ADA_PLUS_ACQ
+A
+S
+WC
+MAX_ADA_PLUS_FAM
+MAX_ADA
+B
+\.
+
+
+--
+-- Data for Name: offer_bundles; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offer_bundles (offer_id, bundle_code) FROM stdin;
+033d3303-de4b-11ea-a319-6320d3f2fb09	X
+034a69ad-d0d7-11ea-ad31-6380fc00472d	XPASS
+03552c9c-55d7-11eb-ae62-ee80a113c273	CR
+0461584d-af6a-11ec-9421-5a740a103fd6	XPASS
+04d08681-cda9-11ea-b464-e4d44f10848e	X
+04d70792-b856-11e9-b8ef-27f7ec03ccac	X
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	XPASS
+052f6daa-0a29-11ea-906e-925cd985ab3d	X
+059f1452-d0ed-11ea-ad31-6380fc00472d	X
+05e63469-d036-11ea-a072-340cee6a52b6	X
+06d93d03-d039-11ea-aff7-6ff2a1213fc4	XPASS
+08016838-0a34-11ea-906e-925cd985ab3d	X
+0967ccde-f6b4-11ea-86ee-6b82e87912c1	ADA
+099edc98-0a35-11ea-906e-925cd985ab3d	XPASS
+0a3ff9f6-e940-11ea-873f-74f46cae88b8	MAX_ADA_CR_CK
+0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	ADA_no_shares
+0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	CK
+0fd0fb67-cdae-11ea-b464-e4d44f10848e	MAX_ADA_PLUS_ACQ
+0fd8cf46-d029-11ea-a072-340cee6a52b6	XPASS
+107ef951-a403-11e9-b054-57354076a64c	ADA
+107ef951-a403-11e9-b054-57354076a64c	CK
+107ef951-a403-11e9-b054-57354076a64c	CR
+120ad7dc-cda8-11ea-b464-e4d44f10848e	CR
+1215fdec-a405-11e9-9b37-8232a257eff4	X
+1281e5fc-d028-11ea-a072-340cee6a52b6	XPASS
+1397b922-bfb9-11eb-b23b-9ac57c61bc8b	CR
+14d76c02-e641-11ea-88ad-572ccad7258d	ADA
+15e8baa0-cac0-11ea-8f53-5e33337a53ad	MAX_ADA_PLUS_ACQ
+16106c3e-ebd9-11ea-a5d4-0e3f852a5fd7	X
+170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	ADA_no_shares
+1836d5c0-aa0b-11ec-8de1-96d53f801633	ADA_no_shares
+18689d2d-ef0c-11eb-a542-97973f1f4bd8	CK
+1904c3a1-324d-11ea-a70d-8a8989bb29aa	CR
+1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	CK
+1a55c799-0a2a-11ea-906e-925cd985ab3d	XPASS
+1a81898a-d0e2-11ea-ad31-6380fc00472d	XPASS
+1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	MAX_ADA_PLUS_RET
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	CR
+1fc731ee-2919-11eb-888e-7775a2a63ef9	CR
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	CK
+203cc375-a94e-11ec-b2de-ce44c8f6c5cb	ADA_no_shares
+2051e481-d0ea-11ea-ad31-6380fc00472d	ADA_CR
+209a4678-bf11-11eb-93f5-024cda8b295f	CR
+20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	CK
+2240d7ed-7e7d-11ea-aba8-ebb789216ef1	XPASS
+22a4e2d9-f218-11ea-890e-e07cb89de251	MAX_ADA_CR
+22df322a-cda9-11ea-b464-e4d44f10848e	X
+2314003e-0775-11ec-8cc0-ec7300fce8a8	XPASS
+2396092c-2b71-11eb-9088-e65d3b6c1fba	MAX_ADA_PLUS_RET
+247ff222-4785-11ea-bc06-273bd7be5b42	XPASS
+248bb918-b854-11e9-b8ef-27f7ec03ccac	ADA_CR
+25a6ee78-d0ec-11ea-ad31-6380fc00472d	CR
+2657293f-ebd2-11ea-933b-690094bd8ad3	XPASS
+267e1bd6-7e7f-11ea-aba8-ebb789216ef1	XPASS
+2712ea42-dc00-11ea-9596-859e83a0873f	ADA_PLUS_ACQ
+27a90e97-bccf-11ec-abcb-b2200e125161	ADA_no_shares
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	ADA_no_shares
+29470968-cd23-11ea-a987-5cfa3cfcb595	CK
+2a63601e-b856-11e9-b8ef-27f7ec03ccac	X
+2ac880fe-d036-11ea-a072-340cee6a52b6	ADA_CR
+2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	ADA_no_shares
+2e11e39d-6abd-11e9-8dc5-f7410aee3f10	X
+2f240ecc-d0cb-11ea-ad31-6380fc00472d	MAX_ADA_CR
+2f61cfb5-cdaa-11ea-b464-e4d44f10848e	X
+308e98dd-cc18-11ea-8798-a88ae0f89479	MAX_ADA_PLUS_RET
+35502ba4-d1a6-11ea-adee-46f743f2255f	ADA
+35a42b17-d0d1-11ea-ad31-6380fc00472d	XPASS
+368c20e0-ebd0-11ea-933b-690094bd8ad3	MAX_ADA_CR
+3778bf6c-c058-11ea-9fdc-62535fa6b94d	ADA
+38ac9cd3-d028-11ea-a072-340cee6a52b6	XPASS
+3a6ebc75-324c-11ea-b065-caa26301f1d5	CR
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	XPASS
+3bca9b12-e975-11eb-b8d5-738bc22ed287	ADA_no_shares
+3c196b87-bf12-11eb-8a2c-97ac9d3345e4	CK
+3dafbc9f-324d-11ea-a70d-8a8989bb29aa	CR
+3e53d189-e0d6-11eb-a95f-d82c366b6d5b	MAX_ADA_CR
+3ff386eb-eb98-11ea-8511-474d7bc12993	ADA
+42120255-e93b-11ea-873f-74f46cae88b8	X
+42459d57-bfbc-11eb-93f5-024cda8b295f	MAX_ADA_CR
+429c0cfd-6d96-11ec-b727-98a0485555b6	ADA_no_shares
+436dd75e-1b7b-11ea-8a1a-54900ccd666e	XPASS
+45200554-2b72-11eb-9e03-1d27ccbcdf62	X
+45a4681d-b853-11e9-b8ef-27f7ec03ccac	XPASS
+47bb3f72-d0eb-11ea-ad31-6380fc00472d	ADA_CR
+4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	MAX_ADA_PLUS_RET
+4c6cd9dd-d1d9-11ea-b100-0199b90aa60b	X
+4dd2029f-b856-11e9-b8ef-27f7ec03ccac	X
+4e22b692-d0ec-11ea-ad31-6380fc00472d	ADA_CR
+4e479351-de4a-11ea-a319-6320d3f2fb09	XPASS
+4f38029a-cda9-11ea-b464-e4d44f10848e	ADA_CR
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	XPASS
+50ca652f-ef0c-11eb-9f4f-540712121ab7	CR
+5122dd81-dc02-11ea-9596-859e83a0873f	ADA_CR
+515a960e-b854-11e9-b8ef-27f7ec03ccac	ADA_CR
+516bff0a-2919-11eb-a40a-b3af9c52a8f2	CR
+534a79b9-d0d1-11ea-ad31-6380fc00472d	XPASS
+544c7675-0a37-11ea-906e-925cd985ab3d	XPASS
+5552207f-eed8-11ea-8f09-c856356c0be4	ADA
+55a35de4-0a35-11ea-906e-925cd985ab3d	XPASS
+565fb28e-d0e7-11ea-ad31-6380fc00472d	CR
+58056667-d0e6-11ea-ad31-6380fc00472d	ADA
+582565ce-2b71-11eb-a8a3-0715bbac1279	XPASS
+58539053-e7c2-11ea-baa4-0cfa41e0bffc	MAX_ADA_CR
+58c3646b-e298-11ec-8877-e2cdefee7572	ADA_no_shares
+590d51cf-b05a-11ec-9421-5a740a103fd6	CR
+5a565718-3edc-11ea-8bf8-f059e0f9b984	A
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	CR
+5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	XPASS
+5bd51d4c-2b71-11eb-a8a3-0715bbac1279	X
+5c0dcc5d-432f-11ec-acc7-73e898f2ac94	XPASS
+5c293251-dbff-11ea-9596-859e83a0873f	X
+5c2fef60-e881-11ea-bee3-410e24c0cdb9	XPASS
+5c6a9743-aa12-11ec-a49b-769203a1d08a	ADA_no_shares
+5c6b8d5a-a94e-11ec-84c9-227543ace765	ADA_no_shares
+5c850a25-e87f-11ea-a5df-5346faa6bcb7	XPASS
+5e9a4d79-324d-11ea-a70d-8a8989bb29aa	CK
+5f50cdc7-194d-11eb-b57b-b9c0d214283d	XPASS
+604d1be4-ac79-11ec-9421-5a740a103fd6	ADA_no_shares
+62c54692-cdaa-11ea-b464-e4d44f10848e	CK
+64962017-e7c0-11ea-be14-d34dfa7bd272	S
+64a6e699-aba6-11ec-bcb5-4233b15e0448	ADA_no_shares
+64bc1a58-d0ed-11ea-ad31-6380fc00472d	ADA_CR
+65828107-5519-11eb-b599-1505d28e525c	MAX_ADA_CR
+6594c1de-d029-11ea-a072-340cee6a52b6	CR
+66651496-bfbc-11eb-b23b-9ac57c61bc8b	MAX_ADA_CR
+667dfeb9-dc00-11ea-9596-859e83a0873f	ADA_PLUS_ACQ
+66a28488-80dc-11ea-899a-9e8b392bde36	XPASS
+66c962e2-de8a-11eb-b49a-35894272850a	ADA_no_shares
+6755354e-dbf0-11ea-899e-ed02528c3365	X
+69278d6c-cdad-11ea-b464-e4d44f10848e	MAX_ADA_PLUS_ACQ
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	ADA_no_shares
+6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	CR
+6d6821b7-d0d0-11ea-ad31-6380fc00472d	X
+6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	XPASS
+6ea4c546-e337-11eb-ae55-07d21b98ddbc	WC
+6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	CK
+6f165148-dc01-11ea-9596-859e83a0873f	X
+7048b896-a94d-11ec-94dd-2e703e69da05	ADA_no_shares
+7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	CR
+70ec00db-e629-11ea-b70c-97aab6e4ac95	ADA
+71042ec9-1b7d-11ea-8a1a-54900ccd666e	XPASS
+71449056-8dc0-11ec-965b-cde51f46b2d6	XPASS
+71596e90-cda9-11ea-b464-e4d44f10848e	ADA_CR
+72e0de71-2919-11eb-85d7-4740316b64e2	CR
+730b6989-d0c9-11ea-ad31-6380fc00472d	XPASS
+73ebb309-8506-11ec-b4a3-a06520f34676	WC
+74378c55-29d7-11eb-ad8b-d81e98ea3135	MAX_ADA_CR
+74c1a2da-0775-11ec-b463-73f0d48bb750	XPASS
+74cf5b85-b056-11ec-b67a-4e702bf88b98	XPASS
+74eb355f-e66c-11ec-9b4c-0e61161d4688	XPASS
+754b88f0-d0e0-11ea-ad31-6380fc00472d	XPASS
+76bfc608-432e-11ec-bf86-3d750e8c1023	XPASS
+76dc82d6-324c-11ea-bb74-b9723fd1deda	CR
+76e85568-d0d4-11ea-ad31-6380fc00472d	XPASS
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	XPASS
+7b461697-1b7c-11ea-8a1a-54900ccd666e	MAX_ADA_CR
+7bc27083-c290-11e9-ae0f-61baa9da25b1	CR
+7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	MAX_ADA_PLUS_RET
+7c29a852-d0ce-11ea-ad31-6380fc00472d	MAX_ADA_PLUS_FAM
+7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	XPASS
+7cf756f0-d026-11ea-aff7-6ff2a1213fc4	X
+7f141a97-e93d-11ea-873f-74f46cae88b8	MAX_ADA_CR
+7f741ea3-dbff-11ea-9596-859e83a0873f	X
+808d9699-bfbb-11eb-b23b-9ac57c61bc8b	CK
+814970c7-8d7d-11eb-9847-7ad3a1d1918b	ADA_no_shares
+8210708c-b059-11ec-9421-5a740a103fd6	XPASS
+83501585-caaf-11ea-885c-7597bf29c330	XPASS
+840e8a3a-e943-11ea-873f-74f46cae88b8	MAX_ADA_CR
+862eac9b-512d-11ec-a1a4-d2106f159c00	XPASS
+8680619d-ac4d-11ec-a49b-769203a1d08a	ADA_no_shares
+869e33f2-dc00-11ea-9596-859e83a0873f	ADA_PLUS_ACQ
+8777f4a9-cdad-11ea-b464-e4d44f10848e	MAX_ADA_CR
+877a6042-2b72-11eb-9088-e65d3b6c1fba	X
+87916632-d831-11eb-a5e5-2e4b1ed90277	XPASS
+890c814c-e940-11ea-873f-74f46cae88b8	X
+89b0b3e7-b055-11ec-960d-f6a5017568cc	XPASS
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	ADA_no_shares
+8c8a8e99-0a34-11ea-906e-925cd985ab3d	XPASS
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	CR
+8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	MAX_ADA_CR
+91ad7778-dc01-11ea-9596-859e83a0873f	ADA_CR
+9267744b-dc02-11ea-9596-859e83a0873f	ADA_CR
+92b79d34-a1e7-11eb-9219-4b84622d27a3	XPASS
+92e4cd4e-5519-11eb-92da-76a777a98c72	MAX_ADA_CR
+93b6b147-bcc9-11ec-a0df-26852448f13d	ADA_no_shares
+94780c98-cda8-11ea-b464-e4d44f10848e	ADA_CR
+948e7ade-de4d-11ea-a319-6320d3f2fb09	X
+95544d50-bfbc-11eb-93f5-024cda8b295f	MAX_ADA_CR
+97499a49-b057-11ec-960d-f6a5017568cc	CK
+9787a5e8-0a37-11ea-906e-925cd985ab3d	XPASS
+97cc2802-dbf1-11ea-899e-ed02528c3365	X
+98cf7b4f-324d-11ea-a70d-8a8989bb29aa	CK
+99e3a764-ebd6-11ea-ba6a-bd981f8d0c12	X
+9a208028-0a2a-11ea-906e-925cd985ab3d	X
+9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	ADA_no_shares
+9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	MAX_ADA_PLUS_RET
+9c03eeab-de4a-11ea-a319-6320d3f2fb09	XPASS
+9ccd528d-e87e-11ea-a5df-5346faa6bcb7	MAX_ADA_CR
+9d33088f-b852-11e9-b8ef-27f7ec03ccac	ADA
+9d9c6742-e93c-11ea-873f-74f46cae88b8	XPASS
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	ADA_no_shares
+a0f08632-88b7-11eb-9411-340419648ff7	XPASS
+a1be5b8f-c290-11e9-ae0f-61baa9da25b1	CR
+a26fe6e3-e881-11ea-bee3-410e24c0cdb9	MAX_ADA_CR_CK
+a4312602-d035-11ea-a072-340cee6a52b6	X
+a597e111-cdad-11ea-b464-e4d44f10848e	MAX_ADA_PLUS_ACQ
+a5a8674b-e880-11ea-a5df-5346faa6bcb7	MAX_ADA_CR
+aa05adbb-ebd2-11ea-933b-690094bd8ad3	XPASS
+aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	X
+aae877fb-d0d0-11ea-ad31-6380fc00472d	XPASS
+acb2fa48-ebd3-11ea-933b-690094bd8ad3	XPASS
+acb88d80-e949-11ea-8832-81de4b8e7104	ADA_CR
+acbf354c-cda9-11ea-b464-e4d44f10848e	X
+ad96f259-b059-11ec-b67a-4e702bf88b98	CK
+ae4a399a-0a35-11ea-906e-925cd985ab3d	XPASS
+ae666bd5-aa06-11ec-84c9-227543ace765	ADA_no_shares
+b14f8307-d026-11ea-aff7-6ff2a1213fc4	X
+b188c2a2-de54-11ea-b5d0-ab6d8c68419e	ADA_CR
+b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	ADA
+b2640f83-e337-11eb-ae55-07d21b98ddbc	WC
+b2dc229a-73cb-11ec-8218-3e2991ada43e	CR
+b498ce2c-e7c1-11ea-bd65-b233ccf61790	ADA_CR
+b4ab70bb-b055-11ec-9421-5a740a103fd6	XPASS
+b4e376f5-d027-11ea-a072-340cee6a52b6	MAX_ADA_CR
+b7370271-dbff-11ea-9596-859e83a0873f	ADA_CR
+b8201ff3-d0ca-11ea-ad31-6380fc00472d	ADA_CR
+b93ced0f-d028-11ea-a072-340cee6a52b6	MAX_ADA_CR
+b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	MAX_ADA_CR
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	MAX_ADA_CR
+bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	ADA
+bc331e82-d0d3-11ea-ad31-6380fc00472d	MAX_ADA_CR
+bc758b50-1b7b-11ea-8a1a-54900ccd666e	XPASS
+bc81c3f5-bfbc-11eb-93f5-024cda8b295f	MAX_ADA_CR
+be261562-7fe4-11ea-b471-6dc5734f4dbe	XPASS
+c1004dd7-ac7f-11ec-b67a-4e702bf88b98	ADA_no_shares
+c1c8d412-cdaa-11ea-b464-e4d44f10848e	X
+c26531b8-5519-11eb-a9bd-2a1463bca0c4	MAX_ADA_CR
+c2782227-29d7-11eb-bf59-f6803518039b	MAX_ADA_CR
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	XPASS
+c2960d43-fdad-11ea-8b15-1f99be60a2b7	X
+c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	X
+c3e7bccf-de4a-11ea-a319-6320d3f2fb09	CK
+c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	CR
+c5b5a709-bcd1-11ec-a0df-26852448f13d	ADA_no_shares
+c650dbeb-d1de-11ea-8e1a-26ceed7cecea	ADA
+c67e3b35-bccd-11ec-abcb-b2200e125161	ADA_no_shares
+c8452658-e62a-11ea-bbd2-cd4f6999a1a1	XPASS
+c88a9327-e943-11ea-873f-74f46cae88b8	MAX_ADA_CR
+c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	MAX_ADA_PLUS_ACQ
+c896742d-b852-11e9-b8ef-27f7ec03ccac	XPASS
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	XPASS
+c9c5e161-c290-11e9-ae0f-61baa9da25b1	CR
+c9de1579-324c-11ea-92fa-eb8955b7c3dd	CK
+ca4c371c-db29-11ea-9d62-7a958c5d7319	CK
+cba20597-afe3-11ea-9f79-0838ef53fe29	CR
+cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	XPASS
+d0760d16-bfba-11eb-93f5-024cda8b295f	CK
+d159fbe2-e93d-11ea-873f-74f46cae88b8	S
+d1a95c49-8506-11ec-8037-4f3e27e4d492	WC
+d22818b8-dc00-11ea-9596-859e83a0873f	X
+d2615176-dc02-11ea-9596-859e83a0873f	X
+d45078b9-d035-11ea-a072-340cee6a52b6	X
+d5c0e892-f94f-11eb-a8d7-c491e9cc8136	CK
+d5fb6c43-cda8-11ea-b464-e4d44f10848e	ADA
+d6880dc7-de49-11ea-a319-6320d3f2fb09	ADA
+d7f26490-d0ca-11ea-ad31-6380fc00472d	ADA_CR
+d8bf6c5b-0a37-11ea-906e-925cd985ab3d	XPASS
+d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	MAX_ADA_CR
+d9080372-d026-11ea-aff7-6ff2a1213fc4	CR
+da971b00-e7bf-11ea-af4f-2e30bb3b6d1a	XPASS
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	CK
+e00f5bbd-d0d0-11ea-ad31-6380fc00472d	X
+e0aa30ad-d027-11ea-a072-340cee6a52b6	XPASS
+e0c6a064-0775-11ec-b463-73f0d48bb750	XPASS
+e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	CR
+e232c385-73cb-11ec-8aab-240fce94ef66	CR
+e2a24b17-cda9-11ea-b464-e4d44f10848e	ADA_CR
+e4b4a8cb-d028-11ea-a072-340cee6a52b6	XPASS
+e563a0de-e7ba-11ea-82f3-296e0f812249	X
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	XPASS
+e71bb09d-2b71-11eb-a8a3-0715bbac1279	XPASS
+e7287228-cdad-11ea-b464-e4d44f10848e	X
+e7b2759c-d0cc-11ea-ad31-6380fc00472d	XPASS
+e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	CR
+e8eb9f76-d0d6-11ea-ad31-6380fc00472d	XPASS
+e9a18630-1b7b-11ea-8a1a-54900ccd666e	MAX_ADA_CR
+ea9d77f9-a401-11e9-b054-57354076a64c	X
+ee582df8-a94d-11ec-94dd-2e703e69da05	ADA_no_shares
+eebd99d5-cc8f-11ec-831a-c27d9c4b082d	XPASS
+ef2515ab-eec5-11ea-997f-2cc0a4e691d2	XPASS
+effcb663-c35d-11e9-acaf-889c68f5a76b	ADA
+f03c648a-e880-11ea-b93e-180f500cdc79	XPASS
+f05944cb-e93c-11ea-873f-74f46cae88b8	MAX_ADA_CR
+f099b17d-5519-11eb-b599-1505d28e525c	MAX_ADA_CR
+f0b817dc-e7c0-11ea-be14-d34dfa7bd272	X
+f0f1043c-a402-11e9-b054-57354076a64c	ADA
+f0f1043c-a402-11e9-b054-57354076a64c	CR
+f18d8314-ebd3-11ea-ba6a-bd981f8d0c12	MAX_ADA_CR
+f2b953ab-e881-11ea-bee3-410e24c0cdb9	X
+f4b31d01-324c-11ea-92fa-eb8955b7c3dd	CR
+f6493ba3-d1de-11ea-8e1a-26ceed7cecea	CR
+f73d506d-b853-11e9-b8ef-27f7ec03ccac	X
+f75b12db-0a27-11ea-906e-925cd985ab3d	X
+f7f963e2-bc2e-11ec-a0df-26852448f13d	XPASS
+f855e284-80dc-11ea-899a-9e8b392bde36	XPASS
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	X
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	MAX_ADA
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	B
+f9bc8bc9-e62a-11ea-aeb8-762344d797b1	MAX_ADA_CR
+fa814cce-2918-11eb-9045-ad3b27c47ff3	CR
+fb92a7ad-88b6-11eb-bb87-85374f6d40e3	XPASS
+fbc1d51a-bfba-11eb-93f5-024cda8b295f	CK
+fdc68ddc-f94f-11eb-a943-ad23dd917b98	CR
+fe600d4f-d0e5-11ea-ad31-6380fc00472d	ADA
+fe864333-b059-11ec-9421-5a740a103fd6	CK
+fecb388a-0a35-11ea-906e-925cd985ab3d	XPASS
+ff0ad67c-432e-11ec-bf86-3d750e8c1023	XPASS
+fff7805b-6d95-11ec-9acc-7243aa5b9be8	ADA_no_shares
+\.
+
+
+--
+-- Data for Name: offer_categories; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offer_categories (offer_id, category) FROM stdin;
+029007c6-5762-11eb-9147-c71d2095ad3f	STS
+033d3303-de4b-11ea-a319-6320d3f2fb09	ACQUISITION
+034a69ad-d0d7-11ea-ad31-6380fc00472d	ACQUISITION
+03552c9c-55d7-11eb-ae62-ee80a113c273	ACQUISITION
+0461584d-af6a-11ec-9421-5a740a103fd6	STS
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	STS
+04d08681-cda9-11ea-b464-e4d44f10848e	ACQUISITION
+04d70792-b856-11e9-b8ef-27f7ec03ccac	STS
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	STS
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	ACQUISITION
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	PRODUCT_CHANGE
+052f6daa-0a29-11ea-906e-925cd985ab3d	STS
+059f1452-d0ed-11ea-ad31-6380fc00472d	ACQUISITION
+05e63469-d036-11ea-a072-340cee6a52b6	ACQUISITION
+06d93d03-d039-11ea-aff7-6ff2a1213fc4	ACQUISITION
+08016838-0a34-11ea-906e-925cd985ab3d	STS
+0967ccde-f6b4-11ea-86ee-6b82e87912c1	ACQUISITION
+099edc98-0a35-11ea-906e-925cd985ab3d	STS
+0a3ff9f6-e940-11ea-873f-74f46cae88b8	ACQUISITION
+0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	ACQUISITION
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	STS
+0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	STS
+0fd0fb67-cdae-11ea-b464-e4d44f10848e	ACQUISITION
+0fd8cf46-d029-11ea-a072-340cee6a52b6	STS
+107ef951-a403-11e9-b054-57354076a64c	STS
+120ad7dc-cda8-11ea-b464-e4d44f10848e	ACQUISITION
+120ad7dc-cda8-11ea-b464-e4d44f10848e	PRODUCT_CHANGE
+1215fdec-a405-11e9-9b37-8232a257eff4	STS
+1281e5fc-d028-11ea-a072-340cee6a52b6	ACQUISITION
+1281e5fc-d028-11ea-a072-340cee6a52b6	PRODUCT_CHANGE
+1281e5fc-d028-11ea-a072-340cee6a52b6	STS
+1397b922-bfb9-11eb-b23b-9ac57c61bc8b	STS
+14269461-d8c7-11ea-96df-09ccd10d7717	ACQUISITION
+14269461-d8c7-11ea-96df-09ccd10d7717	PRODUCT_CHANGE
+14d76c02-e641-11ea-88ad-572ccad7258d	ACQUISITION
+15e8baa0-cac0-11ea-8f53-5e33337a53ad	ACQUISITION
+16106c3e-ebd9-11ea-a5d4-0e3f852a5fd7	ACQUISITION
+170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	ACQUISITION
+170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	PRODUCT_CHANGE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	STS
+1836d5c0-aa0b-11ec-8de1-96d53f801633	ACQUISITION
+1836d5c0-aa0b-11ec-8de1-96d53f801633	PRODUCT_CHANGE
+18689d2d-ef0c-11eb-a542-97973f1f4bd8	STS
+18689d2d-ef0c-11eb-a542-97973f1f4bd8	CANCEL_THE_CANCEL
+1904c3a1-324d-11ea-a70d-8a8989bb29aa	STS
+1904c3a1-324d-11ea-a70d-8a8989bb29aa	PRODUCT_CHANGE
+1904c3a1-324d-11ea-a70d-8a8989bb29aa	ACQUISITION
+1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	ACQUISITION
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	STS
+1a55c799-0a2a-11ea-906e-925cd985ab3d	STS
+1a81898a-d0e2-11ea-ad31-6380fc00472d	ACQUISITION
+1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	PRODUCT_CHANGE
+1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	ACQUISITION
+1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	STS
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	STS
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	CANCEL_THE_CANCEL
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	STS
+1fc731ee-2919-11eb-888e-7775a2a63ef9	ACQUISITION
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	STS
+203cc375-a94e-11ec-b2de-ce44c8f6c5cb	ACQUISITION
+203cc375-a94e-11ec-b2de-ce44c8f6c5cb	PRODUCT_CHANGE
+2051e481-d0ea-11ea-ad31-6380fc00472d	ACQUISITION
+209a4678-bf11-11eb-93f5-024cda8b295f	STS
+20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	ACQUISITION
+20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	STS
+2240d7ed-7e7d-11ea-aba8-ebb789216ef1	STS
+22a4e2d9-f218-11ea-890e-e07cb89de251	ACQUISITION
+22df322a-cda9-11ea-b464-e4d44f10848e	ACQUISITION
+2314003e-0775-11ec-8cc0-ec7300fce8a8	ACQUISITION
+2396092c-2b71-11eb-9088-e65d3b6c1fba	STS
+247ff222-4785-11ea-bc06-273bd7be5b42	STS
+247ff222-4785-11ea-bc06-273bd7be5b42	ACQUISITION
+247ff222-4785-11ea-bc06-273bd7be5b42	CANCEL_THE_CANCEL
+247ff222-4785-11ea-bc06-273bd7be5b42	PRODUCT_CHANGE
+248bb918-b854-11e9-b8ef-27f7ec03ccac	STS
+24b7de5a-5762-11eb-8740-dfb6b15824e5	STS
+25a6ee78-d0ec-11ea-ad31-6380fc00472d	ACQUISITION
+2657293f-ebd2-11ea-933b-690094bd8ad3	ACQUISITION
+267e1bd6-7e7f-11ea-aba8-ebb789216ef1	STS
+2712ea42-dc00-11ea-9596-859e83a0873f	ACQUISITION
+27a90e97-bccf-11ec-abcb-b2200e125161	ACQUISITION
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	ACQUISITION
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	STS
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	STS
+28da0792-2b7b-11eb-a8a3-0715bbac1279	STS
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	STS
+29470968-cd23-11ea-a987-5cfa3cfcb595	ACQUISITION
+29470968-cd23-11ea-a987-5cfa3cfcb595	PRODUCT_CHANGE
+2a63601e-b856-11e9-b8ef-27f7ec03ccac	STS
+2ac880fe-d036-11ea-a072-340cee6a52b6	ACQUISITION
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	ACQUISITION
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	PRODUCT_CHANGE
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	STS
+2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	ACQUISITION
+2e11e39d-6abd-11e9-8dc5-f7410aee3f10	STS
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	ACQUISITION
+2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	PRODUCT_CHANGE
+2f240ecc-d0cb-11ea-ad31-6380fc00472d	ACQUISITION
+2f61cfb5-cdaa-11ea-b464-e4d44f10848e	ACQUISITION
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	STS
+308e98dd-cc18-11ea-8798-a88ae0f89479	ACQUISITION
+308e98dd-cc18-11ea-8798-a88ae0f89479	PRODUCT_CHANGE
+3159074c-1de0-11eb-9a88-1e812b8dd455	STS
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	STS
+328b82cd-0286-11eb-b789-fd537ec536af	ACQUISITION
+339ad763-d590-11ea-9001-bc80ca56468d	ACQUISITION
+34b69151-3966-11eb-9995-5fa4d68055de	ACQUISITION
+35502ba4-d1a6-11ea-adee-46f743f2255f	ACQUISITION
+35502ba4-d1a6-11ea-adee-46f743f2255f	PRODUCT_CHANGE
+35a42b17-d0d1-11ea-ad31-6380fc00472d	ACQUISITION
+35f28e96-f8ef-11ea-aca5-1c2b82b39a01	ACQUISITION
+368c20e0-ebd0-11ea-933b-690094bd8ad3	ACQUISITION
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	STS
+37127982-0328-11eb-a043-4ecfbb3db7bb	ACQUISITION
+3778bf6c-c058-11ea-9fdc-62535fa6b94d	ACQUISITION
+3778bf6c-c058-11ea-9fdc-62535fa6b94d	PRODUCT_CHANGE
+38ac9cd3-d028-11ea-a072-340cee6a52b6	ACQUISITION
+38ac9cd3-d028-11ea-a072-340cee6a52b6	STS
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	ACQUISITION
+3a6ebc75-324c-11ea-b065-caa26301f1d5	STS
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	ACQUISITION
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	STS
+3bca9b12-e975-11eb-b8d5-738bc22ed287	ACQUISITION
+3bca9b12-e975-11eb-b8d5-738bc22ed287	STS
+3c196b87-bf12-11eb-8a2c-97ac9d3345e4	STS
+3c196b87-bf12-11eb-8a2c-97ac9d3345e4	ACQUISITION
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	ACQUISITION
+3dafbc9f-324d-11ea-a70d-8a8989bb29aa	STS
+3dafbc9f-324d-11ea-a70d-8a8989bb29aa	PRODUCT_CHANGE
+3dafbc9f-324d-11ea-a70d-8a8989bb29aa	ACQUISITION
+3e53d189-e0d6-11eb-a95f-d82c366b6d5b	PRODUCT_CHANGE
+3e53d189-e0d6-11eb-a95f-d82c366b6d5b	ACQUISITION
+3e53d189-e0d6-11eb-a95f-d82c366b6d5b	STS
+3e5b7e25-988f-11eb-8c98-100c795c8520	ACQUISITION
+3ff386eb-eb98-11ea-8511-474d7bc12993	ACQUISITION
+42120255-e93b-11ea-873f-74f46cae88b8	ACQUISITION
+42459d57-bfbc-11eb-93f5-024cda8b295f	STS
+429c0cfd-6d96-11ec-b727-98a0485555b6	ACQUISITION
+436dd75e-1b7b-11ea-8a1a-54900ccd666e	STS
+45200554-2b72-11eb-9e03-1d27ccbcdf62	STS
+45a4681d-b853-11e9-b8ef-27f7ec03ccac	STS
+45a4681d-b853-11e9-b8ef-27f7ec03ccac	PRODUCT_CHANGE
+45a4681d-b853-11e9-b8ef-27f7ec03ccac	ACQUISITION
+46b99aab-d8c4-11ea-96df-09ccd10d7717	STS
+47bb3f72-d0eb-11ea-ad31-6380fc00472d	ACQUISITION
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	ACQUISITION
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	PRODUCT_CHANGE
+4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	STS
+4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	PRODUCT_CHANGE
+4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	ACQUISITION
+4c6cd9dd-d1d9-11ea-b100-0199b90aa60b	ACQUISITION
+4c6cd9dd-d1d9-11ea-b100-0199b90aa60b	PRODUCT_CHANGE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	STS
+4dd2029f-b856-11e9-b8ef-27f7ec03ccac	STS
+4e22b692-d0ec-11ea-ad31-6380fc00472d	ACQUISITION
+4e479351-de4a-11ea-a319-6320d3f2fb09	ACQUISITION
+4f38029a-cda9-11ea-b464-e4d44f10848e	ACQUISITION
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	STS
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	STS
+50ca652f-ef0c-11eb-9f4f-540712121ab7	STS
+50ca652f-ef0c-11eb-9f4f-540712121ab7	CANCEL_THE_CANCEL
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	STS
+5122dd81-dc02-11ea-9596-859e83a0873f	ACQUISITION
+515a960e-b854-11e9-b8ef-27f7ec03ccac	STS
+516bff0a-2919-11eb-a40a-b3af9c52a8f2	ACQUISITION
+534a79b9-d0d1-11ea-ad31-6380fc00472d	ACQUISITION
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	ACQUISITION
+544c7675-0a37-11ea-906e-925cd985ab3d	STS
+5552207f-eed8-11ea-8f09-c856356c0be4	ACQUISITION
+55a35de4-0a35-11ea-906e-925cd985ab3d	STS
+565fb28e-d0e7-11ea-ad31-6380fc00472d	ACQUISITION
+58056667-d0e6-11ea-ad31-6380fc00472d	ACQUISITION
+582565ce-2b71-11eb-a8a3-0715bbac1279	STS
+58539053-e7c2-11ea-baa4-0cfa41e0bffc	ACQUISITION
+58838288-eba5-11ea-ad18-35b6d1b87db1	STS
+58c3646b-e298-11ec-8877-e2cdefee7572	ACQUISITION
+590d51cf-b05a-11ec-9421-5a740a103fd6	STS
+5a4a811c-ec81-11ea-a052-cb28611c7be8	STS
+5a565718-3edc-11ea-8bf8-f059e0f9b984	STS
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	STS
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	CANCEL_THE_CANCEL
+5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	STS
+5bd51d4c-2b71-11eb-a8a3-0715bbac1279	STS
+5c0dcc5d-432f-11ec-acc7-73e898f2ac94	ACQUISITION
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	ACQUISITION
+5c293251-dbff-11ea-9596-859e83a0873f	ACQUISITION
+5c293251-dbff-11ea-9596-859e83a0873f	PRODUCT_CHANGE
+5c2fef60-e881-11ea-bee3-410e24c0cdb9	ACQUISITION
+5c6a9743-aa12-11ec-a49b-769203a1d08a	PRODUCT_CHANGE
+5c6b8d5a-a94e-11ec-84c9-227543ace765	ACQUISITION
+5c6b8d5a-a94e-11ec-84c9-227543ace765	PRODUCT_CHANGE
+5c850a25-e87f-11ea-a5df-5346faa6bcb7	ACQUISITION
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	STS
+5e9a4d79-324d-11ea-a70d-8a8989bb29aa	STS
+5e9a4d79-324d-11ea-a70d-8a8989bb29aa	PRODUCT_CHANGE
+5e9a4d79-324d-11ea-a70d-8a8989bb29aa	ACQUISITION
+5f50cdc7-194d-11eb-b57b-b9c0d214283d	ACQUISITION
+5f50cdc7-194d-11eb-b57b-b9c0d214283d	STS
+604d1be4-ac79-11ec-9421-5a740a103fd6	ACQUISITION
+60e1d710-1ddf-11eb-b628-125d5786ccee	STS
+62c54692-cdaa-11ea-b464-e4d44f10848e	ACQUISITION
+62c54692-cdaa-11ea-b464-e4d44f10848e	PRODUCT_CHANGE
+64962017-e7c0-11ea-be14-d34dfa7bd272	ACQUISITION
+64a6e699-aba6-11ec-bcb5-4233b15e0448	ACQUISITION
+64bc1a58-d0ed-11ea-ad31-6380fc00472d	ACQUISITION
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	STS
+6521393d-e0b2-11eb-90b6-d4808be41804	STS
+65828107-5519-11eb-b599-1505d28e525c	ACQUISITION
+6594c1de-d029-11ea-a072-340cee6a52b6	ACQUISITION
+6594c1de-d029-11ea-a072-340cee6a52b6	PRODUCT_CHANGE
+66651496-bfbc-11eb-b23b-9ac57c61bc8b	STS
+667dfeb9-dc00-11ea-9596-859e83a0873f	ACQUISITION
+66a28488-80dc-11ea-899a-9e8b392bde36	STS
+66c962e2-de8a-11eb-b49a-35894272850a	PRODUCT_CHANGE
+6755354e-dbf0-11ea-899e-ed02528c3365	ACQUISITION
+69075f1f-619c-11eb-a623-5fbb489147f9	ACQUISITION
+69278d6c-cdad-11ea-b464-e4d44f10848e	ACQUISITION
+6929d115-3962-11eb-8781-6119ce7d1b1e	ACQUISITION
+69b57424-9891-11eb-8a0c-b14e9a417941	ACQUISITION
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	STS
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	ACQUISITION
+6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	ACQUISITION
+6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	PRODUCT_CHANGE
+6c78f773-1b0f-11ec-8a3b-392104367073	ACQUISITION
+6d6821b7-d0d0-11ea-ad31-6380fc00472d	ACQUISITION
+6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	ACQUISITION
+6ea4c546-e337-11eb-ae55-07d21b98ddbc	ACQUISITION
+6ea4c546-e337-11eb-ae55-07d21b98ddbc	STS
+6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	ACQUISITION
+6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	STS
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	ACQUISITION
+6f165148-dc01-11ea-9596-859e83a0873f	ACQUISITION
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	STS
+7048b896-a94d-11ec-94dd-2e703e69da05	ACQUISITION
+7048b896-a94d-11ec-94dd-2e703e69da05	PRODUCT_CHANGE
+7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	STS
+70ec00db-e629-11ea-b70c-97aab6e4ac95	ACQUISITION
+71042ec9-1b7d-11ea-8a1a-54900ccd666e	STS
+71042ec9-1b7d-11ea-8a1a-54900ccd666e	ACQUISITION
+71042ec9-1b7d-11ea-8a1a-54900ccd666e	PRODUCT_CHANGE
+71449056-8dc0-11ec-965b-cde51f46b2d6	ACQUISITION
+71596e90-cda9-11ea-b464-e4d44f10848e	ACQUISITION
+71e35717-5520-11eb-a9bd-2a1463bca0c4	ACQUISITION
+71e35717-5520-11eb-a9bd-2a1463bca0c4	STS
+72e0de71-2919-11eb-85d7-4740316b64e2	ACQUISITION
+730b6989-d0c9-11ea-ad31-6380fc00472d	ACQUISITION
+73ebb309-8506-11ec-b4a3-a06520f34676	STS
+74378c55-29d7-11eb-ad8b-d81e98ea3135	ACQUISITION
+74c1a2da-0775-11ec-b463-73f0d48bb750	ACQUISITION
+74cf5b85-b056-11ec-b67a-4e702bf88b98	STS
+74eb355f-e66c-11ec-9b4c-0e61161d4688	ACQUISITION
+750d6814-1dec-11eb-93fa-e4ace959c4d0	STS
+754b88f0-d0e0-11ea-ad31-6380fc00472d	ACQUISITION
+767f9555-e0a4-11ea-8339-305368a984f6	PRODUCT_CHANGE
+76994efc-9d30-11eb-9576-41852d2a4367	PRODUCT_CHANGE
+76bfc608-432e-11ec-bf86-3d750e8c1023	ACQUISITION
+76dc82d6-324c-11ea-bb74-b9723fd1deda	STS
+76e85568-d0d4-11ea-ad31-6380fc00472d	ACQUISITION
+78665232-988f-11eb-8ca8-db53b31f008c	ACQUISITION
+79878181-d908-11ea-94d3-9a1933fc44f2	STS
+79878181-d908-11ea-94d3-9a1933fc44f2	PRODUCT_CHANGE
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	STS
+79f8db95-3964-11eb-bf58-da4ba1647a90	ACQUISITION
+7b461697-1b7c-11ea-8a1a-54900ccd666e	STS
+7b461697-1b7c-11ea-8a1a-54900ccd666e	PRODUCT_CHANGE
+7b461697-1b7c-11ea-8a1a-54900ccd666e	ACQUISITION
+7bc27083-c290-11e9-ae0f-61baa9da25b1	STS
+7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	STS
+7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	PRODUCT_CHANGE
+7c29a852-d0ce-11ea-ad31-6380fc00472d	ACQUISITION
+7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	ACQUISITION
+7c9f75d3-2a76-11eb-8401-a637f878566f	STS
+7cf756f0-d026-11ea-aff7-6ff2a1213fc4	ACQUISITION
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	STS
+7f141a97-e93d-11ea-873f-74f46cae88b8	ACQUISITION
+7f741ea3-dbff-11ea-9596-859e83a0873f	PRODUCT_CHANGE
+7f741ea3-dbff-11ea-9596-859e83a0873f	ACQUISITION
+808d9699-bfbb-11eb-b23b-9ac57c61bc8b	STS
+812218b9-fe9a-11ea-ab6c-3301e5e23406	ACQUISITION
+814970c7-8d7d-11eb-9847-7ad3a1d1918b	ACQUISITION
+814970c7-8d7d-11eb-9847-7ad3a1d1918b	PRODUCT_CHANGE
+8210708c-b059-11ec-9421-5a740a103fd6	STS
+83501585-caaf-11ea-885c-7597bf29c330	ACQUISITION
+83501585-caaf-11ea-885c-7597bf29c330	PRODUCT_CHANGE
+83501585-caaf-11ea-885c-7597bf29c330	STS
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	STS
+840e8a3a-e943-11ea-873f-74f46cae88b8	ACQUISITION
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	ACQUISITION
+862eac9b-512d-11ec-a1a4-d2106f159c00	ACQUISITION
+866243b1-d8c3-11ea-96df-09ccd10d7717	ACQUISITION
+8680619d-ac4d-11ec-a49b-769203a1d08a	ACQUISITION
+869e33f2-dc00-11ea-9596-859e83a0873f	ACQUISITION
+8777f4a9-cdad-11ea-b464-e4d44f10848e	ACQUISITION
+8777f4a9-cdad-11ea-b464-e4d44f10848e	PRODUCT_CHANGE
+877a6042-2b72-11eb-9088-e65d3b6c1fba	STS
+87916632-d831-11eb-a5e5-2e4b1ed90277	PRODUCT_CHANGE
+879f3c2f-d90b-11ea-94d3-9a1933fc44f2	PRODUCT_CHANGE
+879f3c2f-d90b-11ea-94d3-9a1933fc44f2	ACQUISITION
+890c814c-e940-11ea-873f-74f46cae88b8	ACQUISITION
+89b0b3e7-b055-11ec-960d-f6a5017568cc	STS
+8a807b8a-d590-11ea-9001-bc80ca56468d	ACQUISITION
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	STS
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	ACQUISITION
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	STS
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	CANCEL_THE_CANCEL
+8c8a8e99-0a34-11ea-906e-925cd985ab3d	STS
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	STS
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	ACQUISITION
+8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	STS
+8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	PRODUCT_CHANGE
+8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	ACQUISITION
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	STS
+91ad7778-dc01-11ea-9596-859e83a0873f	ACQUISITION
+9267744b-dc02-11ea-9596-859e83a0873f	ACQUISITION
+9267744b-dc02-11ea-9596-859e83a0873f	PRODUCT_CHANGE
+92b79d34-a1e7-11eb-9219-4b84622d27a3	ACQUISITION
+92e4cd4e-5519-11eb-92da-76a777a98c72	ACQUISITION
+92e4cd4e-5519-11eb-92da-76a777a98c72	PRODUCT_CHANGE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	STS
+93b6b147-bcc9-11ec-a0df-26852448f13d	ACQUISITION
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	STS
+94780c98-cda8-11ea-b464-e4d44f10848e	ACQUISITION
+948e7ade-de4d-11ea-a319-6320d3f2fb09	ACQUISITION
+95544d50-bfbc-11eb-93f5-024cda8b295f	STS
+97499a49-b057-11ec-960d-f6a5017568cc	STS
+9787a5e8-0a37-11ea-906e-925cd985ab3d	STS
+97cc2802-dbf1-11ea-899e-ed02528c3365	ACQUISITION
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	STS
+98cf7b4f-324d-11ea-a70d-8a8989bb29aa	STS
+98cf7b4f-324d-11ea-a70d-8a8989bb29aa	PRODUCT_CHANGE
+98cf7b4f-324d-11ea-a70d-8a8989bb29aa	ACQUISITION
+99e3a764-ebd6-11ea-ba6a-bd981f8d0c12	ACQUISITION
+9a208028-0a2a-11ea-906e-925cd985ab3d	STS
+9a842058-0285-11eb-b789-fd537ec536af	ACQUISITION
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	STS
+9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	ACQUISITION
+9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	PRODUCT_CHANGE
+9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	STS
+9c03eeab-de4a-11ea-a319-6320d3f2fb09	ACQUISITION
+9ccd528d-e87e-11ea-a5df-5346faa6bcb7	ACQUISITION
+9d33088f-b852-11e9-b8ef-27f7ec03ccac	STS
+9d9c6742-e93c-11ea-873f-74f46cae88b8	ACQUISITION
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	STS
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	PRODUCT_CHANGE
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	ACQUISITION
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	STS
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	ACQUISITION
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	STS
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	PRODUCT_CHANGE
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	ACQUISITION
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	STS
+a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	PRODUCT_CHANGE
+a0f08632-88b7-11eb-9411-340419648ff7	STS
+a1be5b8f-c290-11e9-ae0f-61baa9da25b1	STS
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	PRODUCT_CHANGE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	ACQUISITION
+a26fe6e3-e881-11ea-bee3-410e24c0cdb9	ACQUISITION
+a4312602-d035-11ea-a072-340cee6a52b6	ACQUISITION
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	ACQUISITION
+a597e111-cdad-11ea-b464-e4d44f10848e	ACQUISITION
+a597e111-cdad-11ea-b464-e4d44f10848e	PRODUCT_CHANGE
+a5a8674b-e880-11ea-a5df-5346faa6bcb7	ACQUISITION
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	STS
+aa05adbb-ebd2-11ea-933b-690094bd8ad3	ACQUISITION
+aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	STS
+aae877fb-d0d0-11ea-ad31-6380fc00472d	ACQUISITION
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	STS
+ac495996-9d30-11eb-889c-da2dfe0352a8	PRODUCT_CHANGE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	STS
+acb2fa48-ebd3-11ea-933b-690094bd8ad3	ACQUISITION
+acb88d80-e949-11ea-8832-81de4b8e7104	ACQUISITION
+acbf354c-cda9-11ea-b464-e4d44f10848e	ACQUISITION
+ad86d341-d8c4-11ea-96df-09ccd10d7717	STS
+ad96f259-b059-11ec-b67a-4e702bf88b98	STS
+ae4a399a-0a35-11ea-906e-925cd985ab3d	STS
+ae666bd5-aa06-11ec-84c9-227543ace765	ACQUISITION
+ae666bd5-aa06-11ec-84c9-227543ace765	PRODUCT_CHANGE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	STS
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	ACQUISITION
+b14f8307-d026-11ea-aff7-6ff2a1213fc4	ACQUISITION
+b188c2a2-de54-11ea-b5d0-ab6d8c68419e	ACQUISITION
+b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	STS
+b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	ACQUISITION
+b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	PRODUCT_CHANGE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	ACQUISITION
+b2640f83-e337-11eb-ae55-07d21b98ddbc	ACQUISITION
+b2640f83-e337-11eb-ae55-07d21b98ddbc	STS
+b2dc229a-73cb-11ec-8218-3e2991ada43e	ACQUISITION
+b2dc229a-73cb-11ec-8218-3e2991ada43e	STS
+b41c09a1-f789-11ea-86c3-636811e7072d	ACQUISITION
+b498ce2c-e7c1-11ea-bd65-b233ccf61790	ACQUISITION
+b4ab70bb-b055-11ec-9421-5a740a103fd6	STS
+b4e376f5-d027-11ea-a072-340cee6a52b6	ACQUISITION
+b4e376f5-d027-11ea-a072-340cee6a52b6	PRODUCT_CHANGE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	STS
+b7370271-dbff-11ea-9596-859e83a0873f	ACQUISITION
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	STS
+b8201ff3-d0ca-11ea-ad31-6380fc00472d	ACQUISITION
+b873b3f3-0291-11eb-b789-fd537ec536af	ACQUISITION
+b8870d52-3efc-11eb-919b-4b09b3d24981	PRODUCT_CHANGE
+b9075636-ee25-11ea-8a86-0bd413f6e205	STS
+b93ced0f-d028-11ea-a072-340cee6a52b6	ACQUISITION
+b93ced0f-d028-11ea-a072-340cee6a52b6	PRODUCT_CHANGE
+b93ced0f-d028-11ea-a072-340cee6a52b6	STS
+b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	STS
+b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	PRODUCT_CHANGE
+b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	ACQUISITION
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	STS
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	STS
+bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	STS
+bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	PRODUCT_CHANGE
+bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	ACQUISITION
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	STS
+bc331e82-d0d3-11ea-ad31-6380fc00472d	ACQUISITION
+bc331e82-d0d3-11ea-ad31-6380fc00472d	PRODUCT_CHANGE
+bc758b50-1b7b-11ea-8a1a-54900ccd666e	STS
+bc758b50-1b7b-11ea-8a1a-54900ccd666e	PRODUCT_CHANGE
+bc758b50-1b7b-11ea-8a1a-54900ccd666e	ACQUISITION
+bc81c3f5-bfbc-11eb-93f5-024cda8b295f	STS
+be261562-7fe4-11ea-b471-6dc5734f4dbe	STS
+be9adb2f-027f-11eb-9124-925109a1a627	ACQUISITION
+c1004dd7-ac7f-11ec-b67a-4e702bf88b98	ACQUISITION
+c1004dd7-ac7f-11ec-b67a-4e702bf88b98	STS
+c1c8d412-cdaa-11ea-b464-e4d44f10848e	ACQUISITION
+c23f4ec4-988e-11eb-8c98-100c795c8520	ACQUISITION
+c26531b8-5519-11eb-a9bd-2a1463bca0c4	ACQUISITION
+c2782227-29d7-11eb-bf59-f6803518039b	ACQUISITION
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	STS
+c2960d43-fdad-11ea-8b15-1f99be60a2b7	ACQUISITION
+c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	STS
+c3e7bccf-de4a-11ea-a319-6320d3f2fb09	ACQUISITION
+c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	STS
+c5b5a709-bcd1-11ec-a0df-26852448f13d	ACQUISITION
+c5b5a709-bcd1-11ec-a0df-26852448f13d	STS
+c650dbeb-d1de-11ea-8e1a-26ceed7cecea	ACQUISITION
+c650dbeb-d1de-11ea-8e1a-26ceed7cecea	PRODUCT_CHANGE
+c67e3b35-bccd-11ec-abcb-b2200e125161	ACQUISITION
+c8452658-e62a-11ea-bbd2-cd4f6999a1a1	ACQUISITION
+c88a9327-e943-11ea-873f-74f46cae88b8	ACQUISITION
+c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	STS
+c896742d-b852-11e9-b8ef-27f7ec03ccac	STS
+c896742d-b852-11e9-b8ef-27f7ec03ccac	PRODUCT_CHANGE
+c896742d-b852-11e9-b8ef-27f7ec03ccac	ACQUISITION
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	STS
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	STS
+c9c5e161-c290-11e9-ae0f-61baa9da25b1	STS
+c9de1579-324c-11ea-92fa-eb8955b7c3dd	STS
+c9de1579-324c-11ea-92fa-eb8955b7c3dd	PRODUCT_CHANGE
+c9de1579-324c-11ea-92fa-eb8955b7c3dd	ACQUISITION
+ca4c371c-db29-11ea-9d62-7a958c5d7319	ACQUISITION
+ca4c371c-db29-11ea-9d62-7a958c5d7319	PRODUCT_CHANGE
+cba20597-afe3-11ea-9f79-0838ef53fe29	ACQUISITION
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	STS
+cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	ACQUISITION
+d030caac-3965-11eb-bf58-da4ba1647a90	ACQUISITION
+d0760d16-bfba-11eb-93f5-024cda8b295f	STS
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	STS
+d159fbe2-e93d-11ea-873f-74f46cae88b8	ACQUISITION
+d1a95c49-8506-11ec-8037-4f3e27e4d492	STS
+d22818b8-dc00-11ea-9596-859e83a0873f	ACQUISITION
+d2615176-dc02-11ea-9596-859e83a0873f	ACQUISITION
+d45078b9-d035-11ea-a072-340cee6a52b6	STS
+d544f9bc-f1db-11ea-942b-2b10751285b6	STS
+d5c0e892-f94f-11eb-a8d7-c491e9cc8136	ACQUISITION
+d5fb6c43-cda8-11ea-b464-e4d44f10848e	ACQUISITION
+d6880dc7-de49-11ea-a319-6320d3f2fb09	ACQUISITION
+d7f26490-d0ca-11ea-ad31-6380fc00472d	ACQUISITION
+d8bf6c5b-0a37-11ea-906e-925cd985ab3d	STS
+d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	STS
+d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	PRODUCT_CHANGE
+d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	ACQUISITION
+d9080372-d026-11ea-aff7-6ff2a1213fc4	ACQUISITION
+d9080372-d026-11ea-aff7-6ff2a1213fc4	PRODUCT_CHANGE
+da06f835-1ddb-11eb-95b8-b4165a586460	STS
+da971b00-e7bf-11ea-af4f-2e30bb3b6d1a	ACQUISITION
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	ACQUISITION
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	STS
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	CANCEL_THE_CANCEL
+ddb07933-3964-11eb-bf58-da4ba1647a90	ACQUISITION
+de7fee0b-d590-11ea-9001-bc80ca56468d	ACQUISITION
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	STS
+e00f5bbd-d0d0-11ea-ad31-6380fc00472d	ACQUISITION
+e0aa30ad-d027-11ea-a072-340cee6a52b6	ACQUISITION
+e0aa30ad-d027-11ea-a072-340cee6a52b6	PRODUCT_CHANGE
+e0aa30ad-d027-11ea-a072-340cee6a52b6	STS
+e0c6a064-0775-11ec-b463-73f0d48bb750	ACQUISITION
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	STS
+e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	ACQUISITION
+e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	PRODUCT_CHANGE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	STS
+e232c385-73cb-11ec-8aab-240fce94ef66	ACQUISITION
+e232c385-73cb-11ec-8aab-240fce94ef66	STS
+e2a24b17-cda9-11ea-b464-e4d44f10848e	ACQUISITION
+e3743132-e219-11ea-bd88-1c23e3dcaa84	PRODUCT_CHANGE
+e4b4a8cb-d028-11ea-a072-340cee6a52b6	ACQUISITION
+e4b4a8cb-d028-11ea-a072-340cee6a52b6	PRODUCT_CHANGE
+e4b4a8cb-d028-11ea-a072-340cee6a52b6	STS
+e563a0de-e7ba-11ea-82f3-296e0f812249	ACQUISITION
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	STS
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	PRODUCT_CHANGE
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	ACQUISITION
+e71bb09d-2b71-11eb-a8a3-0715bbac1279	STS
+e7287228-cdad-11ea-b464-e4d44f10848e	ACQUISITION
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	STS
+e7b2759c-d0cc-11ea-ad31-6380fc00472d	ACQUISITION
+e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	STS
+e8eb9f76-d0d6-11ea-ad31-6380fc00472d	ACQUISITION
+e9a18630-1b7b-11ea-8a1a-54900ccd666e	STS
+e9a18630-1b7b-11ea-8a1a-54900ccd666e	PRODUCT_CHANGE
+e9a18630-1b7b-11ea-8a1a-54900ccd666e	ACQUISITION
+ea737858-d908-11ea-94d3-9a1933fc44f2	STS
+ea9d77f9-a401-11e9-b054-57354076a64c	STS
+ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	PRODUCT_CHANGE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	ACQUISITION
+ed1e0b41-1dde-11eb-95b8-b4165a586460	STS
+ee582df8-a94d-11ec-94dd-2e703e69da05	ACQUISITION
+ee582df8-a94d-11ec-94dd-2e703e69da05	PRODUCT_CHANGE
+eebd99d5-cc8f-11ec-831a-c27d9c4b082d	ACQUISITION
+ef2515ab-eec5-11ea-997f-2cc0a4e691d2	STS
+effcb663-c35d-11e9-acaf-889c68f5a76b	STS
+effcb663-c35d-11e9-acaf-889c68f5a76b	PRODUCT_CHANGE
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	PRODUCT_CHANGE
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	STS
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	ACQUISITION
+f03c648a-e880-11ea-b93e-180f500cdc79	ACQUISITION
+f05944cb-e93c-11ea-873f-74f46cae88b8	ACQUISITION
+f099b17d-5519-11eb-b599-1505d28e525c	ACQUISITION
+f0b817dc-e7c0-11ea-be14-d34dfa7bd272	ACQUISITION
+f0f1043c-a402-11e9-b054-57354076a64c	STS
+f18d8314-ebd3-11ea-ba6a-bd981f8d0c12	ACQUISITION
+f1a099ca-fe99-11ea-ab6c-3301e5e23406	ACQUISITION
+f2b953ab-e881-11ea-bee3-410e24c0cdb9	ACQUISITION
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	STS
+f4b31d01-324c-11ea-92fa-eb8955b7c3dd	STS
+f4bdeab0-eba1-11ea-8511-474d7bc12993	STS
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	ACQUISITION
+f6493ba3-d1de-11ea-8e1a-26ceed7cecea	ACQUISITION
+f6493ba3-d1de-11ea-8e1a-26ceed7cecea	PRODUCT_CHANGE
+f73d506d-b853-11e9-b8ef-27f7ec03ccac	STS
+f75b12db-0a27-11ea-906e-925cd985ab3d	STS
+f7f963e2-bc2e-11ec-a0df-26852448f13d	ACQUISITION
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	STS
+f855e284-80dc-11ea-899a-9e8b392bde36	STS
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	STS
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	STS
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	PRODUCT_CHANGE
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	ACQUISITION
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	ACQUISITION
+f9bc8bc9-e62a-11ea-aeb8-762344d797b1	ACQUISITION
+f9bc8bc9-e62a-11ea-aeb8-762344d797b1	PRODUCT_CHANGE
+fa814cce-2918-11eb-9045-ad3b27c47ff3	ACQUISITION
+fb92a7ad-88b6-11eb-bb87-85374f6d40e3	STS
+fbc1d51a-bfba-11eb-93f5-024cda8b295f	STS
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	STS
+fdc68ddc-f94f-11eb-a943-ad23dd917b98	STS
+fe600d4f-d0e5-11ea-ad31-6380fc00472d	ACQUISITION
+fe864333-b059-11ec-9421-5a740a103fd6	STS
+fecb388a-0a35-11ea-906e-925cd985ab3d	STS
+ff0ad67c-432e-11ec-bf86-3d750e8c1023	ACQUISITION
+fff7805b-6d95-11ec-9acc-7243aa5b9be8	ACQUISITION
+c8036ecc-1b72-4cf7-a374-f676311f7811	ACQUISITION
+c8036ecc-1b72-4cf7-a374-f676311f7811	CANCEL_THE_CANCEL
+c8036ecc-1b72-4cf7-a374-f676311f7811	PRODUCT_CHANGE
+c8036ecc-1b72-4cf7-a374-f676311f7811	STS
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	ACQUISITION
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	CANCEL_THE_CANCEL
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	PRODUCT_CHANGE
+\.
+
+
+--
+-- Data for Name: offer_channels; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offer_channels (offer_id, channel) FROM stdin;
+029007c6-5762-11eb-9147-c71d2095ad3f	CARE
+033d3303-de4b-11ea-a319-6320d3f2fb09	LANDING_PAGE
+034a69ad-d0d7-11ea-ad31-6380fc00472d	LANDING_PAGE
+034a69ad-d0d7-11ea-ad31-6380fc00472d	CARE
+03552c9c-55d7-11eb-ae62-ee80a113c273	CARE
+03552c9c-55d7-11eb-ae62-ee80a113c273	LANDING_PAGE
+0461584d-af6a-11ec-9421-5a740a103fd6	CARE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	CARE
+04d08681-cda9-11ea-b464-e4d44f10848e	CARE
+04d70792-b856-11e9-b8ef-27f7ec03ccac	CARE
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	CARE
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	ONLINE_CANCEL
+052f6daa-0a29-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+059f1452-d0ed-11ea-ad31-6380fc00472d	LANDING_PAGE
+05e63469-d036-11ea-a072-340cee6a52b6	CARE
+06d93d03-d039-11ea-aff7-6ff2a1213fc4	LANDING_PAGE
+08016838-0a34-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+0967ccde-f6b4-11ea-86ee-6b82e87912c1	LANDING_PAGE
+099edc98-0a35-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+0a3ff9f6-e940-11ea-873f-74f46cae88b8	LANDING_PAGE
+0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	CARE
+0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	LANDING_PAGE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	CARE
+0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	CARE
+0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	LANDING_PAGE
+0fd0fb67-cdae-11ea-b464-e4d44f10848e	LANDING_PAGE
+0fd8cf46-d029-11ea-a072-340cee6a52b6	SUBSCRIBER_ADVOCACY
+0fd8cf46-d029-11ea-a072-340cee6a52b6	LANDING_PAGE
+0fd8cf46-d029-11ea-a072-340cee6a52b6	CARE
+107ef951-a403-11e9-b054-57354076a64c	CARE
+120ad7dc-cda8-11ea-b464-e4d44f10848e	CARE
+1215fdec-a405-11e9-9b37-8232a257eff4	ONLINE_CANCEL
+1281e5fc-d028-11ea-a072-340cee6a52b6	LANDING_PAGE
+1281e5fc-d028-11ea-a072-340cee6a52b6	CARE
+1281e5fc-d028-11ea-a072-340cee6a52b6	SUBSCRIBER_ADVOCACY
+1397b922-bfb9-11eb-b23b-9ac57c61bc8b	CARE
+1397b922-bfb9-11eb-b23b-9ac57c61bc8b	LANDING_PAGE
+14269461-d8c7-11ea-96df-09ccd10d7717	CARE
+14d76c02-e641-11ea-88ad-572ccad7258d	LANDING_PAGE
+15e8baa0-cac0-11ea-8f53-5e33337a53ad	LANDING_PAGE
+16106c3e-ebd9-11ea-a5d4-0e3f852a5fd7	LANDING_PAGE
+170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	LANDING_PAGE
+170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	SUBSCRIBER_ADVOCACY
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	CARE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	ONLINE_CANCEL
+1836d5c0-aa0b-11ec-8de1-96d53f801633	LANDING_PAGE
+1836d5c0-aa0b-11ec-8de1-96d53f801633	SUBSCRIBER_ADVOCACY
+18689d2d-ef0c-11eb-a542-97973f1f4bd8	CARE
+18689d2d-ef0c-11eb-a542-97973f1f4bd8	ACCOUNT
+18689d2d-ef0c-11eb-a542-97973f1f4bd8	ONLINE_CANCEL
+1904c3a1-324d-11ea-a70d-8a8989bb29aa	CARE
+1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	CARE
+1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	LANDING_PAGE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	CARE
+1a55c799-0a2a-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+1a81898a-d0e2-11ea-ad31-6380fc00472d	LANDING_PAGE
+1a81898a-d0e2-11ea-ad31-6380fc00472d	CARE
+1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	CARE
+1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	ONLINE_CANCEL
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	CARE
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	ACCOUNT
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	ONLINE_CANCEL
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	CARE
+1fc731ee-2919-11eb-888e-7775a2a63ef9	LANDING_PAGE
+1fc731ee-2919-11eb-888e-7775a2a63ef9	CARE
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	CARE
+203cc375-a94e-11ec-b2de-ce44c8f6c5cb	LANDING_PAGE
+203cc375-a94e-11ec-b2de-ce44c8f6c5cb	SUBSCRIBER_ADVOCACY
+2051e481-d0ea-11ea-ad31-6380fc00472d	CARE
+209a4678-bf11-11eb-93f5-024cda8b295f	CARE
+20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	CARE
+20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	ONLINE_CANCEL
+20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	LANDING_PAGE
+20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	ACCOUNT
+2240d7ed-7e7d-11ea-aba8-ebb789216ef1	ONLINE_CANCEL
+22a4e2d9-f218-11ea-890e-e07cb89de251	LANDING_PAGE
+22a4e2d9-f218-11ea-890e-e07cb89de251	CARE
+22df322a-cda9-11ea-b464-e4d44f10848e	LANDING_PAGE
+2314003e-0775-11ec-8cc0-ec7300fce8a8	CARE
+2314003e-0775-11ec-8cc0-ec7300fce8a8	LANDING_PAGE
+2314003e-0775-11ec-8cc0-ec7300fce8a8	ACCOUNT
+2396092c-2b71-11eb-9088-e65d3b6c1fba	CARE
+247ff222-4785-11ea-bc06-273bd7be5b42	CARE
+247ff222-4785-11ea-bc06-273bd7be5b42	ONLINE_CANCEL
+247ff222-4785-11ea-bc06-273bd7be5b42	ACCOUNT
+248bb918-b854-11e9-b8ef-27f7ec03ccac	CARE
+24b7de5a-5762-11eb-8740-dfb6b15824e5	CARE
+25a6ee78-d0ec-11ea-ad31-6380fc00472d	LANDING_PAGE
+2657293f-ebd2-11ea-933b-690094bd8ad3	LANDING_PAGE
+2657293f-ebd2-11ea-933b-690094bd8ad3	SUBSCRIBER_ADVOCACY
+2657293f-ebd2-11ea-933b-690094bd8ad3	CARE
+267e1bd6-7e7f-11ea-aba8-ebb789216ef1	ONLINE_CANCEL
+2712ea42-dc00-11ea-9596-859e83a0873f	LANDING_PAGE
+27a90e97-bccf-11ec-abcb-b2200e125161	ACCOUNT
+27a90e97-bccf-11ec-abcb-b2200e125161	CARE
+27a90e97-bccf-11ec-abcb-b2200e125161	ONLINE_CANCEL
+27a90e97-bccf-11ec-abcb-b2200e125161	LANDING_PAGE
+27a90e97-bccf-11ec-abcb-b2200e125161	SUBSCRIBER_ADVOCACY
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	ACCOUNT
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	CARE
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	ONLINE_CANCEL
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	LANDING_PAGE
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	SUBSCRIBER_ADVOCACY
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	CARE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	CARE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	ONLINE_CANCEL
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	CARE
+29470968-cd23-11ea-a987-5cfa3cfcb595	LANDING_PAGE
+29470968-cd23-11ea-a987-5cfa3cfcb595	CARE
+29470968-cd23-11ea-a987-5cfa3cfcb595	ACCOUNT
+2a63601e-b856-11e9-b8ef-27f7ec03ccac	CARE
+2ac880fe-d036-11ea-a072-340cee6a52b6	LANDING_PAGE
+2ac880fe-d036-11ea-a072-340cee6a52b6	CARE
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	CARE
+2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	CARE
+2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	LANDING_PAGE
+2e11e39d-6abd-11e9-8dc5-f7410aee3f10	ONLINE_CANCEL
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	CARE
+2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	LANDING_PAGE
+2f240ecc-d0cb-11ea-ad31-6380fc00472d	LANDING_PAGE
+2f61cfb5-cdaa-11ea-b464-e4d44f10848e	CARE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	CARE
+308e98dd-cc18-11ea-8798-a88ae0f89479	CARE
+3159074c-1de0-11eb-9a88-1e812b8dd455	CARE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	CARE
+328b82cd-0286-11eb-b789-fd537ec536af	LANDING_PAGE
+339ad763-d590-11ea-9001-bc80ca56468d	CARE
+34b69151-3966-11eb-9995-5fa4d68055de	LANDING_PAGE
+35502ba4-d1a6-11ea-adee-46f743f2255f	CARE
+35a42b17-d0d1-11ea-ad31-6380fc00472d	LANDING_PAGE
+35f28e96-f8ef-11ea-aca5-1c2b82b39a01	LANDING_PAGE
+368c20e0-ebd0-11ea-933b-690094bd8ad3	LANDING_PAGE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	CARE
+37127982-0328-11eb-a043-4ecfbb3db7bb	LANDING_PAGE
+3778bf6c-c058-11ea-9fdc-62535fa6b94d	CARE
+38ac9cd3-d028-11ea-a072-340cee6a52b6	LANDING_PAGE
+38ac9cd3-d028-11ea-a072-340cee6a52b6	SUBSCRIBER_ADVOCACY
+38ac9cd3-d028-11ea-a072-340cee6a52b6	CARE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	CARE
+3a6ebc75-324c-11ea-b065-caa26301f1d5	CARE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	CARE
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	CARE
+3bca9b12-e975-11eb-b8d5-738bc22ed287	CARE
+3bca9b12-e975-11eb-b8d5-738bc22ed287	LANDING_PAGE
+3bca9b12-e975-11eb-b8d5-738bc22ed287	ONLINE_CANCEL
+3c196b87-bf12-11eb-8a2c-97ac9d3345e4	CARE
+3c196b87-bf12-11eb-8a2c-97ac9d3345e4	LANDING_PAGE
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	LANDING_PAGE
+3dafbc9f-324d-11ea-a70d-8a8989bb29aa	CARE
+3e53d189-e0d6-11eb-a95f-d82c366b6d5b	CARE
+3e5b7e25-988f-11eb-8c98-100c795c8520	CARE
+3ff386eb-eb98-11ea-8511-474d7bc12993	LANDING_PAGE
+42120255-e93b-11ea-873f-74f46cae88b8	CARE
+42459d57-bfbc-11eb-93f5-024cda8b295f	CARE
+42459d57-bfbc-11eb-93f5-024cda8b295f	LANDING_PAGE
+429c0cfd-6d96-11ec-b727-98a0485555b6	LANDING_PAGE
+436dd75e-1b7b-11ea-8a1a-54900ccd666e	CARE
+45200554-2b72-11eb-9e03-1d27ccbcdf62	CARE
+45a4681d-b853-11e9-b8ef-27f7ec03ccac	CARE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	CARE
+47bb3f72-d0eb-11ea-ad31-6380fc00472d	CARE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	CARE
+4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	CARE
+4c6cd9dd-d1d9-11ea-b100-0199b90aa60b	CARE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	CARE
+4dd2029f-b856-11e9-b8ef-27f7ec03ccac	CARE
+4e22b692-d0ec-11ea-ad31-6380fc00472d	LANDING_PAGE
+4e479351-de4a-11ea-a319-6320d3f2fb09	LANDING_PAGE
+4f38029a-cda9-11ea-b464-e4d44f10848e	CARE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	CARE
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	CARE
+50ca652f-ef0c-11eb-9f4f-540712121ab7	CARE
+50ca652f-ef0c-11eb-9f4f-540712121ab7	ACCOUNT
+50ca652f-ef0c-11eb-9f4f-540712121ab7	ONLINE_CANCEL
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	CARE
+5122dd81-dc02-11ea-9596-859e83a0873f	LANDING_PAGE
+515a960e-b854-11e9-b8ef-27f7ec03ccac	CARE
+516bff0a-2919-11eb-a40a-b3af9c52a8f2	CARE
+534a79b9-d0d1-11ea-ad31-6380fc00472d	LANDING_PAGE
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	CARE
+544c7675-0a37-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+5552207f-eed8-11ea-8f09-c856356c0be4	LANDING_PAGE
+55a35de4-0a35-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+565fb28e-d0e7-11ea-ad31-6380fc00472d	LANDING_PAGE
+58056667-d0e6-11ea-ad31-6380fc00472d	LANDING_PAGE
+582565ce-2b71-11eb-a8a3-0715bbac1279	CARE
+58539053-e7c2-11ea-baa4-0cfa41e0bffc	LANDING_PAGE
+58838288-eba5-11ea-ad18-35b6d1b87db1	CARE
+58c3646b-e298-11ec-8877-e2cdefee7572	LANDING_PAGE
+58c3646b-e298-11ec-8877-e2cdefee7572	CARE
+58c3646b-e298-11ec-8877-e2cdefee7572	ONLINE_CANCEL
+58c3646b-e298-11ec-8877-e2cdefee7572	ACCOUNT
+58c3646b-e298-11ec-8877-e2cdefee7572	SUBSCRIBER_ADVOCACY
+590d51cf-b05a-11ec-9421-5a740a103fd6	CARE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	CARE
+5a565718-3edc-11ea-8bf8-f059e0f9b984	CARE
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	CARE
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	ACCOUNT
+5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	CARE
+5bd51d4c-2b71-11eb-a8a3-0715bbac1279	CARE
+5c0dcc5d-432f-11ec-acc7-73e898f2ac94	CARE
+5c0dcc5d-432f-11ec-acc7-73e898f2ac94	SUBSCRIBER_ADVOCACY
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	CARE
+5c293251-dbff-11ea-9596-859e83a0873f	LANDING_PAGE
+5c2fef60-e881-11ea-bee3-410e24c0cdb9	LANDING_PAGE
+5c2fef60-e881-11ea-bee3-410e24c0cdb9	SUBSCRIBER_ADVOCACY
+5c2fef60-e881-11ea-bee3-410e24c0cdb9	CARE
+5c6a9743-aa12-11ec-a49b-769203a1d08a	LANDING_PAGE
+5c6a9743-aa12-11ec-a49b-769203a1d08a	SUBSCRIBER_ADVOCACY
+5c6b8d5a-a94e-11ec-84c9-227543ace765	LANDING_PAGE
+5c6b8d5a-a94e-11ec-84c9-227543ace765	SUBSCRIBER_ADVOCACY
+5c850a25-e87f-11ea-a5df-5346faa6bcb7	LANDING_PAGE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	CARE
+5e9a4d79-324d-11ea-a70d-8a8989bb29aa	CARE
+5f50cdc7-194d-11eb-b57b-b9c0d214283d	CARE
+604d1be4-ac79-11ec-9421-5a740a103fd6	LANDING_PAGE
+60e1d710-1ddf-11eb-b628-125d5786ccee	CARE
+62c54692-cdaa-11ea-b464-e4d44f10848e	CARE
+62c54692-cdaa-11ea-b464-e4d44f10848e	LANDING_PAGE
+64962017-e7c0-11ea-be14-d34dfa7bd272	LANDING_PAGE
+64a6e699-aba6-11ec-bcb5-4233b15e0448	LANDING_PAGE
+64bc1a58-d0ed-11ea-ad31-6380fc00472d	LANDING_PAGE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	CARE
+6521393d-e0b2-11eb-90b6-d4808be41804	CARE
+65828107-5519-11eb-b599-1505d28e525c	LANDING_PAGE
+65828107-5519-11eb-b599-1505d28e525c	CARE
+6594c1de-d029-11ea-a072-340cee6a52b6	CARE
+66651496-bfbc-11eb-b23b-9ac57c61bc8b	CARE
+66651496-bfbc-11eb-b23b-9ac57c61bc8b	LANDING_PAGE
+667dfeb9-dc00-11ea-9596-859e83a0873f	LANDING_PAGE
+66a28488-80dc-11ea-899a-9e8b392bde36	CARE
+66c962e2-de8a-11eb-b49a-35894272850a	ACCOUNT
+66c962e2-de8a-11eb-b49a-35894272850a	LANDING_PAGE
+6755354e-dbf0-11ea-899e-ed02528c3365	LANDING_PAGE
+69075f1f-619c-11eb-a623-5fbb489147f9	CARE
+69075f1f-619c-11eb-a623-5fbb489147f9	LANDING_PAGE
+69278d6c-cdad-11ea-b464-e4d44f10848e	LANDING_PAGE
+69278d6c-cdad-11ea-b464-e4d44f10848e	CARE
+6929d115-3962-11eb-8781-6119ce7d1b1e	CARE
+69b57424-9891-11eb-8a0c-b14e9a417941	CARE
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	CARE
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	ONLINE_CANCEL
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	CARE
+6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	LANDING_PAGE
+6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	SUBSCRIBER_ADVOCACY
+6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	CARE
+6c78f773-1b0f-11ec-8a3b-392104367073	LANDING_PAGE
+6c78f773-1b0f-11ec-8a3b-392104367073	CARE
+6d6821b7-d0d0-11ea-ad31-6380fc00472d	CARE
+6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	CARE
+6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	LANDING_PAGE
+6ea4c546-e337-11eb-ae55-07d21b98ddbc	CARE
+6ea4c546-e337-11eb-ae55-07d21b98ddbc	LANDING_PAGE
+6ea4c546-e337-11eb-ae55-07d21b98ddbc	ACCOUNT
+6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	CARE
+6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	ONLINE_CANCEL
+6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	LANDING_PAGE
+6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	ACCOUNT
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	LANDING_PAGE
+6f165148-dc01-11ea-9596-859e83a0873f	SUBSCRIBER_ADVOCACY
+6f165148-dc01-11ea-9596-859e83a0873f	CARE
+6f165148-dc01-11ea-9596-859e83a0873f	LANDING_PAGE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	CARE
+7048b896-a94d-11ec-94dd-2e703e69da05	LANDING_PAGE
+7048b896-a94d-11ec-94dd-2e703e69da05	SUBSCRIBER_ADVOCACY
+7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	CARE
+7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	LANDING_PAGE
+70ec00db-e629-11ea-b70c-97aab6e4ac95	LANDING_PAGE
+71042ec9-1b7d-11ea-8a1a-54900ccd666e	CARE
+71449056-8dc0-11ec-965b-cde51f46b2d6	CARE
+71449056-8dc0-11ec-965b-cde51f46b2d6	LANDING_PAGE
+71596e90-cda9-11ea-b464-e4d44f10848e	LANDING_PAGE
+71e35717-5520-11eb-a9bd-2a1463bca0c4	CARE
+72e0de71-2919-11eb-85d7-4740316b64e2	LANDING_PAGE
+72e0de71-2919-11eb-85d7-4740316b64e2	CARE
+730b6989-d0c9-11ea-ad31-6380fc00472d	LANDING_PAGE
+73ebb309-8506-11ec-b4a3-a06520f34676	CARE
+73ebb309-8506-11ec-b4a3-a06520f34676	ONLINE_CANCEL
+74378c55-29d7-11eb-ad8b-d81e98ea3135	LANDING_PAGE
+74378c55-29d7-11eb-ad8b-d81e98ea3135	CARE
+74c1a2da-0775-11ec-b463-73f0d48bb750	CARE
+74c1a2da-0775-11ec-b463-73f0d48bb750	LANDING_PAGE
+74c1a2da-0775-11ec-b463-73f0d48bb750	ACCOUNT
+74cf5b85-b056-11ec-b67a-4e702bf88b98	CARE
+74eb355f-e66c-11ec-9b4c-0e61161d4688	ACCOUNT
+74eb355f-e66c-11ec-9b4c-0e61161d4688	CARE
+74eb355f-e66c-11ec-9b4c-0e61161d4688	ONLINE_CANCEL
+74eb355f-e66c-11ec-9b4c-0e61161d4688	LANDING_PAGE
+74eb355f-e66c-11ec-9b4c-0e61161d4688	SUBSCRIBER_ADVOCACY
+750d6814-1dec-11eb-93fa-e4ace959c4d0	CARE
+754b88f0-d0e0-11ea-ad31-6380fc00472d	LANDING_PAGE
+754b88f0-d0e0-11ea-ad31-6380fc00472d	CARE
+767f9555-e0a4-11ea-8339-305368a984f6	LANDING_PAGE
+76994efc-9d30-11eb-9576-41852d2a4367	CARE
+76bfc608-432e-11ec-bf86-3d750e8c1023	LANDING_PAGE
+76bfc608-432e-11ec-bf86-3d750e8c1023	SUBSCRIBER_ADVOCACY
+76dc82d6-324c-11ea-bb74-b9723fd1deda	CARE
+76e85568-d0d4-11ea-ad31-6380fc00472d	LANDING_PAGE
+76e85568-d0d4-11ea-ad31-6380fc00472d	CARE
+78665232-988f-11eb-8ca8-db53b31f008c	CARE
+79878181-d908-11ea-94d3-9a1933fc44f2	CARE
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	ONLINE_CANCEL
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	ACCOUNT
+79f8db95-3964-11eb-bf58-da4ba1647a90	CARE
+7b461697-1b7c-11ea-8a1a-54900ccd666e	CARE
+7bc27083-c290-11e9-ae0f-61baa9da25b1	CARE
+7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	CARE
+7c29a852-d0ce-11ea-ad31-6380fc00472d	LANDING_PAGE
+7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	LANDING_PAGE
+7c9f75d3-2a76-11eb-8401-a637f878566f	CARE
+7cf756f0-d026-11ea-aff7-6ff2a1213fc4	CARE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	CARE
+7f141a97-e93d-11ea-873f-74f46cae88b8	LANDING_PAGE
+7f741ea3-dbff-11ea-9596-859e83a0873f	CARE
+7f741ea3-dbff-11ea-9596-859e83a0873f	SUBSCRIBER_ADVOCACY
+7f741ea3-dbff-11ea-9596-859e83a0873f	LANDING_PAGE
+808d9699-bfbb-11eb-b23b-9ac57c61bc8b	CARE
+808d9699-bfbb-11eb-b23b-9ac57c61bc8b	LANDING_PAGE
+812218b9-fe9a-11ea-ab6c-3301e5e23406	LANDING_PAGE
+814970c7-8d7d-11eb-9847-7ad3a1d1918b	LANDING_PAGE
+814970c7-8d7d-11eb-9847-7ad3a1d1918b	ACCOUNT
+8210708c-b059-11ec-9421-5a740a103fd6	CARE
+83501585-caaf-11ea-885c-7597bf29c330	LANDING_PAGE
+83501585-caaf-11ea-885c-7597bf29c330	CARE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	CARE
+840e8a3a-e943-11ea-873f-74f46cae88b8	LANDING_PAGE
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	LANDING_PAGE
+862eac9b-512d-11ec-a1a4-d2106f159c00	CARE
+862eac9b-512d-11ec-a1a4-d2106f159c00	LANDING_PAGE
+866243b1-d8c3-11ea-96df-09ccd10d7717	CARE
+8680619d-ac4d-11ec-a49b-769203a1d08a	LANDING_PAGE
+869e33f2-dc00-11ea-9596-859e83a0873f	SUBSCRIBER_ADVOCACY
+869e33f2-dc00-11ea-9596-859e83a0873f	CARE
+869e33f2-dc00-11ea-9596-859e83a0873f	LANDING_PAGE
+8777f4a9-cdad-11ea-b464-e4d44f10848e	LANDING_PAGE
+8777f4a9-cdad-11ea-b464-e4d44f10848e	CARE
+877a6042-2b72-11eb-9088-e65d3b6c1fba	CARE
+87916632-d831-11eb-a5e5-2e4b1ed90277	ACCOUNT
+879f3c2f-d90b-11ea-94d3-9a1933fc44f2	CARE
+890c814c-e940-11ea-873f-74f46cae88b8	LANDING_PAGE
+89b0b3e7-b055-11ec-960d-f6a5017568cc	CARE
+8a807b8a-d590-11ea-9001-bc80ca56468d	CARE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	CARE
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	LANDING_PAGE
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	CARE
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	ACCOUNT
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	ONLINE_CANCEL
+8c8a8e99-0a34-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	CARE
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	ONLINE_CANCEL
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	CARE
+8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	CARE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	CARE
+91ad7778-dc01-11ea-9596-859e83a0873f	LANDING_PAGE
+9267744b-dc02-11ea-9596-859e83a0873f	CARE
+9267744b-dc02-11ea-9596-859e83a0873f	SUBSCRIBER_ADVOCACY
+9267744b-dc02-11ea-9596-859e83a0873f	LANDING_PAGE
+92b79d34-a1e7-11eb-9219-4b84622d27a3	CARE
+92b79d34-a1e7-11eb-9219-4b84622d27a3	LANDING_PAGE
+92e4cd4e-5519-11eb-92da-76a777a98c72	LANDING_PAGE
+92e4cd4e-5519-11eb-92da-76a777a98c72	CARE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	CARE
+93b6b147-bcc9-11ec-a0df-26852448f13d	ACCOUNT
+93b6b147-bcc9-11ec-a0df-26852448f13d	CARE
+93b6b147-bcc9-11ec-a0df-26852448f13d	ONLINE_CANCEL
+93b6b147-bcc9-11ec-a0df-26852448f13d	LANDING_PAGE
+93b6b147-bcc9-11ec-a0df-26852448f13d	SUBSCRIBER_ADVOCACY
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	CARE
+94780c98-cda8-11ea-b464-e4d44f10848e	CARE
+948e7ade-de4d-11ea-a319-6320d3f2fb09	LANDING_PAGE
+95544d50-bfbc-11eb-93f5-024cda8b295f	CARE
+95544d50-bfbc-11eb-93f5-024cda8b295f	LANDING_PAGE
+97499a49-b057-11ec-960d-f6a5017568cc	CARE
+9787a5e8-0a37-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+97cc2802-dbf1-11ea-899e-ed02528c3365	LANDING_PAGE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	CARE
+98cf7b4f-324d-11ea-a70d-8a8989bb29aa	CARE
+99e3a764-ebd6-11ea-ba6a-bd981f8d0c12	LANDING_PAGE
+9a208028-0a2a-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+9a842058-0285-11eb-b789-fd537ec536af	LANDING_PAGE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	CARE
+9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	ACCOUNT
+9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	LANDING_PAGE
+9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	CARE
+9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	CARE
+9c03eeab-de4a-11ea-a319-6320d3f2fb09	LANDING_PAGE
+9ccd528d-e87e-11ea-a5df-5346faa6bcb7	LANDING_PAGE
+9d33088f-b852-11e9-b8ef-27f7ec03ccac	CARE
+9d9c6742-e93c-11ea-873f-74f46cae88b8	LANDING_PAGE
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	CARE
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	ONLINE_CANCEL
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	ACCOUNT
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	SUBSCRIBER_ADVOCACY
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	LANDING_PAGE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	CARE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	CARE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	CARE
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	CARE
+a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	LANDING_PAGE
+a0f08632-88b7-11eb-9411-340419648ff7	ONLINE_CANCEL
+a1be5b8f-c290-11e9-ae0f-61baa9da25b1	CARE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	CARE
+a26fe6e3-e881-11ea-bee3-410e24c0cdb9	LANDING_PAGE
+a4312602-d035-11ea-a072-340cee6a52b6	LANDING_PAGE
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	LANDING_PAGE
+a597e111-cdad-11ea-b464-e4d44f10848e	LANDING_PAGE
+a597e111-cdad-11ea-b464-e4d44f10848e	CARE
+a5a8674b-e880-11ea-a5df-5346faa6bcb7	LANDING_PAGE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	CARE
+aa05adbb-ebd2-11ea-933b-690094bd8ad3	LANDING_PAGE
+aa05adbb-ebd2-11ea-933b-690094bd8ad3	CARE
+aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	CARE
+aae877fb-d0d0-11ea-ad31-6380fc00472d	LANDING_PAGE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	CARE
+ac495996-9d30-11eb-889c-da2dfe0352a8	CARE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	CARE
+acb2fa48-ebd3-11ea-933b-690094bd8ad3	LANDING_PAGE
+acb88d80-e949-11ea-8832-81de4b8e7104	LANDING_PAGE
+acbf354c-cda9-11ea-b464-e4d44f10848e	CARE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	CARE
+ad96f259-b059-11ec-b67a-4e702bf88b98	CARE
+ae4a399a-0a35-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+ae666bd5-aa06-11ec-84c9-227543ace765	LANDING_PAGE
+ae666bd5-aa06-11ec-84c9-227543ace765	SUBSCRIBER_ADVOCACY
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	CARE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	CARE
+b14f8307-d026-11ea-aff7-6ff2a1213fc4	CARE
+b188c2a2-de54-11ea-b5d0-ab6d8c68419e	LANDING_PAGE
+b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	CARE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	CARE
+b2640f83-e337-11eb-ae55-07d21b98ddbc	CARE
+b2640f83-e337-11eb-ae55-07d21b98ddbc	ACCOUNT
+b2640f83-e337-11eb-ae55-07d21b98ddbc	LANDING_PAGE
+b2dc229a-73cb-11ec-8218-3e2991ada43e	ONLINE_CANCEL
+b2dc229a-73cb-11ec-8218-3e2991ada43e	CARE
+b2dc229a-73cb-11ec-8218-3e2991ada43e	LANDING_PAGE
+b2dc229a-73cb-11ec-8218-3e2991ada43e	ACCOUNT
+b41c09a1-f789-11ea-86c3-636811e7072d	LANDING_PAGE
+b498ce2c-e7c1-11ea-bd65-b233ccf61790	LANDING_PAGE
+b4ab70bb-b055-11ec-9421-5a740a103fd6	CARE
+b4e376f5-d027-11ea-a072-340cee6a52b6	LANDING_PAGE
+b4e376f5-d027-11ea-a072-340cee6a52b6	CARE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	CARE
+b7370271-dbff-11ea-9596-859e83a0873f	SUBSCRIBER_ADVOCACY
+b7370271-dbff-11ea-9596-859e83a0873f	CARE
+b7370271-dbff-11ea-9596-859e83a0873f	LANDING_PAGE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	CARE
+b8201ff3-d0ca-11ea-ad31-6380fc00472d	CARE
+b873b3f3-0291-11eb-b789-fd537ec536af	LANDING_PAGE
+b8870d52-3efc-11eb-919b-4b09b3d24981	CARE
+b9075636-ee25-11ea-8a86-0bd413f6e205	CARE
+b93ced0f-d028-11ea-a072-340cee6a52b6	LANDING_PAGE
+b93ced0f-d028-11ea-a072-340cee6a52b6	CARE
+b93ced0f-d028-11ea-a072-340cee6a52b6	ONLINE_CANCEL
+b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	CARE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	CARE
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	CARE
+bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	CARE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	CARE
+bc331e82-d0d3-11ea-ad31-6380fc00472d	CARE
+bc758b50-1b7b-11ea-8a1a-54900ccd666e	CARE
+bc758b50-1b7b-11ea-8a1a-54900ccd666e	ONLINE_CANCEL
+bc81c3f5-bfbc-11eb-93f5-024cda8b295f	CARE
+bc81c3f5-bfbc-11eb-93f5-024cda8b295f	LANDING_PAGE
+be261562-7fe4-11ea-b471-6dc5734f4dbe	CARE
+be9adb2f-027f-11eb-9124-925109a1a627	LANDING_PAGE
+c1004dd7-ac7f-11ec-b67a-4e702bf88b98	LANDING_PAGE
+c1004dd7-ac7f-11ec-b67a-4e702bf88b98	ONLINE_CANCEL
+c1c8d412-cdaa-11ea-b464-e4d44f10848e	LANDING_PAGE
+c23f4ec4-988e-11eb-8c98-100c795c8520	CARE
+c26531b8-5519-11eb-a9bd-2a1463bca0c4	LANDING_PAGE
+c2782227-29d7-11eb-bf59-f6803518039b	LANDING_PAGE
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	ONLINE_CANCEL
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	ACCOUNT
+c2960d43-fdad-11ea-8b15-1f99be60a2b7	CARE
+c2960d43-fdad-11ea-8b15-1f99be60a2b7	LANDING_PAGE
+c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	CARE
+c3e7bccf-de4a-11ea-a319-6320d3f2fb09	LANDING_PAGE
+c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	CARE
+c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	LANDING_PAGE
+c5b5a709-bcd1-11ec-a0df-26852448f13d	ACCOUNT
+c5b5a709-bcd1-11ec-a0df-26852448f13d	CARE
+c5b5a709-bcd1-11ec-a0df-26852448f13d	ONLINE_CANCEL
+c5b5a709-bcd1-11ec-a0df-26852448f13d	LANDING_PAGE
+c5b5a709-bcd1-11ec-a0df-26852448f13d	SUBSCRIBER_ADVOCACY
+c650dbeb-d1de-11ea-8e1a-26ceed7cecea	CARE
+c67e3b35-bccd-11ec-abcb-b2200e125161	ACCOUNT
+c67e3b35-bccd-11ec-abcb-b2200e125161	CARE
+c67e3b35-bccd-11ec-abcb-b2200e125161	ONLINE_CANCEL
+c67e3b35-bccd-11ec-abcb-b2200e125161	LANDING_PAGE
+c67e3b35-bccd-11ec-abcb-b2200e125161	SUBSCRIBER_ADVOCACY
+c8452658-e62a-11ea-bbd2-cd4f6999a1a1	LANDING_PAGE
+c88a9327-e943-11ea-873f-74f46cae88b8	LANDING_PAGE
+c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	CARE
+c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	LANDING_PAGE
+c896742d-b852-11e9-b8ef-27f7ec03ccac	CARE
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	CARE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	CARE
+c9c5e161-c290-11e9-ae0f-61baa9da25b1	CARE
+c9de1579-324c-11ea-92fa-eb8955b7c3dd	CARE
+ca4c371c-db29-11ea-9d62-7a958c5d7319	CARE
+ca4c371c-db29-11ea-9d62-7a958c5d7319	LANDING_PAGE
+ca4c371c-db29-11ea-9d62-7a958c5d7319	SUBSCRIBER_ADVOCACY
+cba20597-afe3-11ea-9f79-0838ef53fe29	CARE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	CARE
+cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	LANDING_PAGE
+d030caac-3965-11eb-bf58-da4ba1647a90	CARE
+d0760d16-bfba-11eb-93f5-024cda8b295f	CARE
+d0760d16-bfba-11eb-93f5-024cda8b295f	LANDING_PAGE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	CARE
+d159fbe2-e93d-11ea-873f-74f46cae88b8	LANDING_PAGE
+d1a95c49-8506-11ec-8037-4f3e27e4d492	CARE
+d1a95c49-8506-11ec-8037-4f3e27e4d492	ONLINE_CANCEL
+d22818b8-dc00-11ea-9596-859e83a0873f	LANDING_PAGE
+d2615176-dc02-11ea-9596-859e83a0873f	LANDING_PAGE
+d45078b9-d035-11ea-a072-340cee6a52b6	CARE
+d544f9bc-f1db-11ea-942b-2b10751285b6	CARE
+d5c0e892-f94f-11eb-a8d7-c491e9cc8136	CARE
+d5c0e892-f94f-11eb-a8d7-c491e9cc8136	LANDING_PAGE
+d5fb6c43-cda8-11ea-b464-e4d44f10848e	LANDING_PAGE
+d6880dc7-de49-11ea-a319-6320d3f2fb09	LANDING_PAGE
+d7f26490-d0ca-11ea-ad31-6380fc00472d	CARE
+d8bf6c5b-0a37-11ea-906e-925cd985ab3d	CARE
+d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	CARE
+d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	LANDING_PAGE
+d9080372-d026-11ea-aff7-6ff2a1213fc4	CARE
+da06f835-1ddb-11eb-95b8-b4165a586460	CARE
+da971b00-e7bf-11ea-af4f-2e30bb3b6d1a	LANDING_PAGE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	CARE
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	CARE
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	ACCOUNT
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	ONLINE_CANCEL
+ddb07933-3964-11eb-bf58-da4ba1647a90	LANDING_PAGE
+de7fee0b-d590-11ea-9001-bc80ca56468d	CARE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	CARE
+e00f5bbd-d0d0-11ea-ad31-6380fc00472d	CARE
+e0aa30ad-d027-11ea-a072-340cee6a52b6	LANDING_PAGE
+e0aa30ad-d027-11ea-a072-340cee6a52b6	CARE
+e0aa30ad-d027-11ea-a072-340cee6a52b6	SUBSCRIBER_ADVOCACY
+e0c6a064-0775-11ec-b463-73f0d48bb750	CARE
+e0c6a064-0775-11ec-b463-73f0d48bb750	LANDING_PAGE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	CARE
+e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	CARE
+e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	LANDING_PAGE
+e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	ACCOUNT
+e217a4c1-f1d8-11ea-942b-2b10751285b6	CARE
+e232c385-73cb-11ec-8aab-240fce94ef66	CARE
+e232c385-73cb-11ec-8aab-240fce94ef66	ONLINE_CANCEL
+e232c385-73cb-11ec-8aab-240fce94ef66	LANDING_PAGE
+e232c385-73cb-11ec-8aab-240fce94ef66	ACCOUNT
+e2a24b17-cda9-11ea-b464-e4d44f10848e	CARE
+e3743132-e219-11ea-bd88-1c23e3dcaa84	LANDING_PAGE
+e4b4a8cb-d028-11ea-a072-340cee6a52b6	LANDING_PAGE
+e4b4a8cb-d028-11ea-a072-340cee6a52b6	CARE
+e563a0de-e7ba-11ea-82f3-296e0f812249	SUBSCRIBER_ADVOCACY
+e563a0de-e7ba-11ea-82f3-296e0f812249	CARE
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	CARE
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	ONLINE_CANCEL
+e71bb09d-2b71-11eb-a8a3-0715bbac1279	CARE
+e7287228-cdad-11ea-b464-e4d44f10848e	LANDING_PAGE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	CARE
+e7b2759c-d0cc-11ea-ad31-6380fc00472d	LANDING_PAGE
+e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	CARE
+e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	LANDING_PAGE
+e8eb9f76-d0d6-11ea-ad31-6380fc00472d	LANDING_PAGE
+e8eb9f76-d0d6-11ea-ad31-6380fc00472d	CARE
+e9a18630-1b7b-11ea-8a1a-54900ccd666e	CARE
+ea737858-d908-11ea-94d3-9a1933fc44f2	CARE
+ea9d77f9-a401-11e9-b054-57354076a64c	ONLINE_CANCEL
+ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	LANDING_PAGE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	CARE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	CARE
+ee582df8-a94d-11ec-94dd-2e703e69da05	LANDING_PAGE
+ee582df8-a94d-11ec-94dd-2e703e69da05	SUBSCRIBER_ADVOCACY
+eebd99d5-cc8f-11ec-831a-c27d9c4b082d	LANDING_PAGE
+eebd99d5-cc8f-11ec-831a-c27d9c4b082d	CARE
+ef2515ab-eec5-11ea-997f-2cc0a4e691d2	CARE
+ef2515ab-eec5-11ea-997f-2cc0a4e691d2	ONLINE_CANCEL
+effcb663-c35d-11e9-acaf-889c68f5a76b	CARE
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	CARE
+f03c648a-e880-11ea-b93e-180f500cdc79	LANDING_PAGE
+f05944cb-e93c-11ea-873f-74f46cae88b8	LANDING_PAGE
+f099b17d-5519-11eb-b599-1505d28e525c	LANDING_PAGE
+f0b817dc-e7c0-11ea-be14-d34dfa7bd272	LANDING_PAGE
+f0f1043c-a402-11e9-b054-57354076a64c	CARE
+f18d8314-ebd3-11ea-ba6a-bd981f8d0c12	LANDING_PAGE
+f1a099ca-fe99-11ea-ab6c-3301e5e23406	LANDING_PAGE
+f2b953ab-e881-11ea-bee3-410e24c0cdb9	LANDING_PAGE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	CARE
+f4b31d01-324c-11ea-92fa-eb8955b7c3dd	CARE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	CARE
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	LANDING_PAGE
+f6493ba3-d1de-11ea-8e1a-26ceed7cecea	CARE
+f73d506d-b853-11e9-b8ef-27f7ec03ccac	CARE
+f75b12db-0a27-11ea-906e-925cd985ab3d	CARE
+f7f963e2-bc2e-11ec-a0df-26852448f13d	ACCOUNT
+f7f963e2-bc2e-11ec-a0df-26852448f13d	CARE
+f7f963e2-bc2e-11ec-a0df-26852448f13d	ONLINE_CANCEL
+f7f963e2-bc2e-11ec-a0df-26852448f13d	LANDING_PAGE
+f7f963e2-bc2e-11ec-a0df-26852448f13d	SUBSCRIBER_ADVOCACY
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	CARE
+f855e284-80dc-11ea-899a-9e8b392bde36	CARE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	CARE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	CARE
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	CARE
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	LANDING_PAGE
+f9bc8bc9-e62a-11ea-aeb8-762344d797b1	CARE
+fa814cce-2918-11eb-9045-ad3b27c47ff3	CARE
+fb92a7ad-88b6-11eb-bb87-85374f6d40e3	ONLINE_CANCEL
+fbc1d51a-bfba-11eb-93f5-024cda8b295f	CARE
+fbc1d51a-bfba-11eb-93f5-024cda8b295f	LANDING_PAGE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	CARE
+fdc68ddc-f94f-11eb-a943-ad23dd917b98	CARE
+fe600d4f-d0e5-11ea-ad31-6380fc00472d	LANDING_PAGE
+fe864333-b059-11ec-9421-5a740a103fd6	CARE
+fecb388a-0a35-11ea-906e-925cd985ab3d	ONLINE_CANCEL
+ff0ad67c-432e-11ec-bf86-3d750e8c1023	SUBSCRIBER_ADVOCACY
+ff0ad67c-432e-11ec-bf86-3d750e8c1023	LANDING_PAGE
+fff7805b-6d95-11ec-9acc-7243aa5b9be8	LANDING_PAGE
+c8036ecc-1b72-4cf7-a374-f676311f7811	ACCOUNT
+c8036ecc-1b72-4cf7-a374-f676311f7811	CARE
+c8036ecc-1b72-4cf7-a374-f676311f7811	ONLINE_CANCEL
+c8036ecc-1b72-4cf7-a374-f676311f7811	LANDING_PAGE
+c8036ecc-1b72-4cf7-a374-f676311f7811	MARKETING_DRIVEN
+c8036ecc-1b72-4cf7-a374-f676311f7811	SUBSCRIBER_ADVOCACY
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	ACCOUNT
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	CARE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	ONLINE_CANCEL
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	LANDING_PAGE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	MARKETING_DRIVEN
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SUBSCRIBER_ADVOCACY
+\.
+
+
+--
+-- Data for Name: offer_hd_products; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offer_hd_products (offer_id, hd_product_code, region) FROM stdin;
+029007c6-5762-11eb-9147-c71d2095ad3f	LT	NA
+029007c6-5762-11eb-9147-c71d2095ad3f	LT	ND
+029007c6-5762-11eb-9147-c71d2095ad3f	LT	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	2+	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	3+	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	5+	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	6+	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	7+	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	DO	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	DS	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	FN	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	FS	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	MF	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	S+	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SF	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SO	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SR	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SS	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	TA	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	TF	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	TN	NA
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	DO	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	DS	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	FS	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	MF	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SF	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SO	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SR	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SS	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	ST	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SW	ND
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	2+	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	3+	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	5+	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	6+	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	7+	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	DO	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	DS	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	FN	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	FS	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	MF	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	S+	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SF	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SO	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SR	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	SS	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	TA	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	TF	NE
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	TN	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	2+	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	3+	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	5+	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	6+	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	7+	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	DO	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	DS	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	FN	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	FS	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	MF	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	S+	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SF	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SO	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SR	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SS	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	TA	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	TF	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	TN	NA
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	DO	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	DS	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	FS	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	MF	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SF	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SO	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SR	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SS	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	ST	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SW	ND
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	2+	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	3+	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	5+	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	6+	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	7+	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	DO	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	DS	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	FN	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	FS	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	MF	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	S+	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SF	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SO	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SR	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	SS	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	TA	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	TF	NE
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	TN	NE
+14269461-d8c7-11ea-96df-09ccd10d7717	71	NA
+14269461-d8c7-11ea-96df-09ccd10d7717	74	NA
+14269461-d8c7-11ea-96df-09ccd10d7717	7N	NA
+14269461-d8c7-11ea-96df-09ccd10d7717	DC	NA
+14269461-d8c7-11ea-96df-09ccd10d7717	DN	NA
+14269461-d8c7-11ea-96df-09ccd10d7717	S1	NA
+14269461-d8c7-11ea-96df-09ccd10d7717	S4	NA
+14269461-d8c7-11ea-96df-09ccd10d7717	SN	NA
+14269461-d8c7-11ea-96df-09ccd10d7717	71	ND
+14269461-d8c7-11ea-96df-09ccd10d7717	74	ND
+14269461-d8c7-11ea-96df-09ccd10d7717	DC	ND
+14269461-d8c7-11ea-96df-09ccd10d7717	S1	ND
+14269461-d8c7-11ea-96df-09ccd10d7717	S4	ND
+14269461-d8c7-11ea-96df-09ccd10d7717	71	NE
+14269461-d8c7-11ea-96df-09ccd10d7717	74	NE
+14269461-d8c7-11ea-96df-09ccd10d7717	7N	NE
+14269461-d8c7-11ea-96df-09ccd10d7717	DC	NE
+14269461-d8c7-11ea-96df-09ccd10d7717	DN	NE
+14269461-d8c7-11ea-96df-09ccd10d7717	S1	NE
+14269461-d8c7-11ea-96df-09ccd10d7717	S4	NE
+14269461-d8c7-11ea-96df-09ccd10d7717	SN	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	2+	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	3+	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	5+	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	6+	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	7+	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	DO	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	DS	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	FN	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	FS	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	MF	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	S+	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SF	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SO	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SR	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SS	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	TA	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	TF	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	TN	NA
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	DO	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	DS	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	FS	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	MF	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SF	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SO	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SR	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SS	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	ST	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SW	ND
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	2+	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	3+	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	5+	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	6+	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	7+	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	DO	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	DS	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	FN	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	FS	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	MF	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	S+	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SF	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SO	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SR	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	SS	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	TA	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	TF	NE
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	TN	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	2+	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	3+	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	5+	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	6+	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	7+	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	DO	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	DS	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	FN	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	FS	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	MF	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	S+	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SF	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SO	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SR	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SS	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	TA	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	TF	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	TN	NA
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	DO	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	DS	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	FS	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	MF	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SF	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SO	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SR	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SS	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	ST	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SW	ND
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	2+	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	3+	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	5+	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	6+	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	7+	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	DO	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	DS	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	FN	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	FS	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	MF	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	S+	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SF	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SO	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SR	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	SS	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	TA	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	TF	NE
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	TN	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	2+	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	3+	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	5+	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	6+	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	7+	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	DO	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	DS	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	FN	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	FS	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	MF	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	S+	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SF	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SO	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SR	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SS	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	TA	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	TF	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	TN	NA
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	DO	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	DS	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	FS	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	MF	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SF	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SO	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SR	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SS	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	ST	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SW	ND
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	2+	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	3+	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	5+	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	6+	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	7+	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	DO	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	DS	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	FN	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	FS	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	MF	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	S+	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SF	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SO	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SR	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	SS	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	TA	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	TF	NE
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	TN	NE
+24b7de5a-5762-11eb-8740-dfb6b15824e5	LT	NA
+24b7de5a-5762-11eb-8740-dfb6b15824e5	LT	ND
+24b7de5a-5762-11eb-8740-dfb6b15824e5	LT	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	2+	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	3+	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	5+	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	6+	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	7+	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	DO	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	DS	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	FN	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	FS	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	MF	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	S+	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SF	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SO	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SR	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SS	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	TA	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	TF	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	TN	NA
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	DO	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	DS	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	FS	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	MF	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SF	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SO	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SR	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SS	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	ST	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SW	ND
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	2+	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	3+	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	5+	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	6+	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	7+	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	DO	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	DS	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	FN	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	FS	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	MF	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	S+	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SF	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SO	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SR	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	SS	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	TA	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	TF	NE
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	TN	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	2+	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	3+	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	5+	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	6+	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	7+	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	DO	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	DS	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	FN	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	FS	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	MF	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	S+	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SF	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SO	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SR	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SS	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	TA	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	TF	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	TN	NA
+28da0792-2b7b-11eb-a8a3-0715bbac1279	DO	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	DS	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	FS	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	MF	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SF	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SO	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SR	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SS	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	ST	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SW	ND
+28da0792-2b7b-11eb-a8a3-0715bbac1279	2+	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	3+	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	5+	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	6+	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	7+	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	DO	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	DS	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	FN	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	FS	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	MF	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	S+	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SF	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SO	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SR	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	SS	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	TA	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	TF	NE
+28da0792-2b7b-11eb-a8a3-0715bbac1279	TN	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	2+	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	3+	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	5+	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	6+	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	7+	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	DO	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	DS	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	FN	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	FS	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	MF	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	S+	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SF	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SO	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SR	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SS	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	TA	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	TF	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	TN	NA
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	DO	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	DS	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	FS	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	MF	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SF	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SO	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SR	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SS	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	ST	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SW	ND
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	2+	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	3+	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	5+	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	6+	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	7+	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	DO	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	DS	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	FN	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	FS	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	MF	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	S+	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SF	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SO	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SR	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	SS	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	TA	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	TF	NE
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	TN	NE
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	LT	NA
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	LT	ND
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	LT	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	2+	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	3+	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	5+	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	6+	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	7+	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	DO	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	DS	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	FN	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	FS	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	MF	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	S+	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SF	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SO	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SR	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SS	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	TA	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	TF	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	TN	NA
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	DO	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	DS	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	FS	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	MF	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SF	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SO	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SR	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SS	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	ST	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SW	ND
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	2+	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	3+	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	5+	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	6+	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	7+	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	DO	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	DS	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	FN	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	FS	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	MF	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	S+	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SF	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SO	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SR	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	SS	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	TA	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	TF	NE
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	TN	NE
+2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	SO	NA
+2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	SO	ND
+2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	SO	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	2+	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	3+	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	5+	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	6+	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	7+	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	DO	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	DS	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	FN	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	FS	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	MF	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	S+	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SF	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SO	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SR	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SS	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	TA	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	TF	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	TN	NA
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	DO	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	DS	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	FS	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	MF	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SF	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SO	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SR	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SS	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	ST	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SW	ND
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	2+	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	3+	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	5+	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	6+	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	7+	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	DO	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	DS	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	FN	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	FS	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	MF	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	S+	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SF	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SO	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SR	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	SS	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	TA	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	TF	NE
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	TN	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	2+	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	3+	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	5+	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	6+	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	7+	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	DO	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	DS	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	FN	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	FS	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	MF	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	S+	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	SF	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	SO	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	SR	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	SS	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	TA	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	TF	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	TN	NA
+3159074c-1de0-11eb-9a88-1e812b8dd455	DO	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	DS	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	FS	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	MF	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	SF	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	SO	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	SR	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	SS	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	ST	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	SW	ND
+3159074c-1de0-11eb-9a88-1e812b8dd455	2+	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	3+	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	5+	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	6+	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	7+	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	DO	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	DS	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	FN	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	FS	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	MF	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	S+	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	SF	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	SO	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	SR	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	SS	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	TA	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	TF	NE
+3159074c-1de0-11eb-9a88-1e812b8dd455	TN	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	2+	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	3+	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	5+	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	6+	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	7+	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	DO	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	DS	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	FN	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	FS	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	MF	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	S+	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SF	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SO	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SR	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SS	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	TA	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	TF	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	TN	NA
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	DO	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	DS	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	FS	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	MF	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SF	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SO	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SR	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SS	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	ST	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SW	ND
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	2+	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	3+	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	5+	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	6+	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	7+	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	DO	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	DS	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	FN	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	FS	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	MF	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	S+	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SF	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SO	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SR	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	SS	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	TA	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	TF	NE
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	TN	NE
+328b82cd-0286-11eb-b789-fd537ec536af	SO	NA
+328b82cd-0286-11eb-b789-fd537ec536af	SS	ND
+328b82cd-0286-11eb-b789-fd537ec536af	SO	NE
+339ad763-d590-11ea-9001-bc80ca56468d	2+	NA
+339ad763-d590-11ea-9001-bc80ca56468d	3+	NA
+339ad763-d590-11ea-9001-bc80ca56468d	5+	NA
+339ad763-d590-11ea-9001-bc80ca56468d	6+	NA
+339ad763-d590-11ea-9001-bc80ca56468d	7+	NA
+339ad763-d590-11ea-9001-bc80ca56468d	DO	NA
+339ad763-d590-11ea-9001-bc80ca56468d	DS	NA
+339ad763-d590-11ea-9001-bc80ca56468d	FN	NA
+339ad763-d590-11ea-9001-bc80ca56468d	FS	NA
+339ad763-d590-11ea-9001-bc80ca56468d	MF	NA
+339ad763-d590-11ea-9001-bc80ca56468d	S+	NA
+339ad763-d590-11ea-9001-bc80ca56468d	SF	NA
+339ad763-d590-11ea-9001-bc80ca56468d	SO	NA
+339ad763-d590-11ea-9001-bc80ca56468d	SR	NA
+339ad763-d590-11ea-9001-bc80ca56468d	SS	NA
+339ad763-d590-11ea-9001-bc80ca56468d	TA	NA
+339ad763-d590-11ea-9001-bc80ca56468d	TF	NA
+339ad763-d590-11ea-9001-bc80ca56468d	TN	NA
+339ad763-d590-11ea-9001-bc80ca56468d	DO	ND
+339ad763-d590-11ea-9001-bc80ca56468d	DS	ND
+339ad763-d590-11ea-9001-bc80ca56468d	FS	ND
+339ad763-d590-11ea-9001-bc80ca56468d	MF	ND
+339ad763-d590-11ea-9001-bc80ca56468d	SF	ND
+339ad763-d590-11ea-9001-bc80ca56468d	SO	ND
+339ad763-d590-11ea-9001-bc80ca56468d	SR	ND
+339ad763-d590-11ea-9001-bc80ca56468d	SS	ND
+339ad763-d590-11ea-9001-bc80ca56468d	ST	ND
+339ad763-d590-11ea-9001-bc80ca56468d	SW	ND
+339ad763-d590-11ea-9001-bc80ca56468d	2+	NE
+339ad763-d590-11ea-9001-bc80ca56468d	3+	NE
+339ad763-d590-11ea-9001-bc80ca56468d	5+	NE
+339ad763-d590-11ea-9001-bc80ca56468d	6+	NE
+339ad763-d590-11ea-9001-bc80ca56468d	7+	NE
+339ad763-d590-11ea-9001-bc80ca56468d	DO	NE
+339ad763-d590-11ea-9001-bc80ca56468d	DS	NE
+339ad763-d590-11ea-9001-bc80ca56468d	FN	NE
+339ad763-d590-11ea-9001-bc80ca56468d	FS	NE
+339ad763-d590-11ea-9001-bc80ca56468d	MF	NE
+339ad763-d590-11ea-9001-bc80ca56468d	S+	NE
+339ad763-d590-11ea-9001-bc80ca56468d	SF	NE
+339ad763-d590-11ea-9001-bc80ca56468d	SO	NE
+339ad763-d590-11ea-9001-bc80ca56468d	SR	NE
+339ad763-d590-11ea-9001-bc80ca56468d	SS	NE
+339ad763-d590-11ea-9001-bc80ca56468d	TA	NE
+339ad763-d590-11ea-9001-bc80ca56468d	TF	NE
+339ad763-d590-11ea-9001-bc80ca56468d	TN	NE
+34b69151-3966-11eb-9995-5fa4d68055de	DS	NA
+34b69151-3966-11eb-9995-5fa4d68055de	FN	NA
+34b69151-3966-11eb-9995-5fa4d68055de	FS	NA
+34b69151-3966-11eb-9995-5fa4d68055de	MF	NA
+34b69151-3966-11eb-9995-5fa4d68055de	SO	NA
+34b69151-3966-11eb-9995-5fa4d68055de	TF	NA
+34b69151-3966-11eb-9995-5fa4d68055de	TN	NA
+34b69151-3966-11eb-9995-5fa4d68055de	DS	ND
+34b69151-3966-11eb-9995-5fa4d68055de	FS	ND
+34b69151-3966-11eb-9995-5fa4d68055de	MF	ND
+34b69151-3966-11eb-9995-5fa4d68055de	SS	ND
+34b69151-3966-11eb-9995-5fa4d68055de	DS	NE
+34b69151-3966-11eb-9995-5fa4d68055de	FN	NE
+34b69151-3966-11eb-9995-5fa4d68055de	FS	NE
+34b69151-3966-11eb-9995-5fa4d68055de	MF	NE
+34b69151-3966-11eb-9995-5fa4d68055de	SO	NE
+34b69151-3966-11eb-9995-5fa4d68055de	TF	NE
+34b69151-3966-11eb-9995-5fa4d68055de	TN	NE
+35f28e96-f8ef-11ea-aca5-1c2b82b39a01	SO	NA
+35f28e96-f8ef-11ea-aca5-1c2b82b39a01	SO	ND
+35f28e96-f8ef-11ea-aca5-1c2b82b39a01	SO	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	2+	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	3+	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	5+	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	6+	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	7+	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	DO	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	DS	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	FN	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	FS	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	MF	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	S+	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SF	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SO	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SR	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SS	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	TA	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	TF	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	TN	NA
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	DO	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	DS	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	FS	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	MF	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SF	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SO	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SR	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SS	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	ST	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SW	ND
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	2+	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	3+	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	5+	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	6+	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	7+	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	DO	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	DS	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	FN	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	FS	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	MF	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	S+	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SF	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SO	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SR	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	SS	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	TA	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	TF	NE
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	TN	NE
+37127982-0328-11eb-a043-4ecfbb3db7bb	DS	NA
+37127982-0328-11eb-a043-4ecfbb3db7bb	FN	NA
+37127982-0328-11eb-a043-4ecfbb3db7bb	FS	NA
+37127982-0328-11eb-a043-4ecfbb3db7bb	MF	NA
+37127982-0328-11eb-a043-4ecfbb3db7bb	SO	NA
+37127982-0328-11eb-a043-4ecfbb3db7bb	TF	NA
+37127982-0328-11eb-a043-4ecfbb3db7bb	TN	NA
+37127982-0328-11eb-a043-4ecfbb3db7bb	DS	ND
+37127982-0328-11eb-a043-4ecfbb3db7bb	FS	ND
+37127982-0328-11eb-a043-4ecfbb3db7bb	MF	ND
+37127982-0328-11eb-a043-4ecfbb3db7bb	SS	ND
+37127982-0328-11eb-a043-4ecfbb3db7bb	DS	NE
+37127982-0328-11eb-a043-4ecfbb3db7bb	FN	NE
+37127982-0328-11eb-a043-4ecfbb3db7bb	FS	NE
+37127982-0328-11eb-a043-4ecfbb3db7bb	MF	NE
+37127982-0328-11eb-a043-4ecfbb3db7bb	SO	NE
+37127982-0328-11eb-a043-4ecfbb3db7bb	TF	NE
+37127982-0328-11eb-a043-4ecfbb3db7bb	TN	NE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	71	NA
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	74	NA
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	7N	NA
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	DC	NA
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	DN	NA
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	S1	NA
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	S4	NA
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	SN	NA
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	71	ND
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	74	ND
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	DC	ND
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	S1	ND
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	S4	ND
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	71	NE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	74	NE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	7N	NE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	DC	NE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	DN	NE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	S1	NE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	S4	NE
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	SN	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	2+	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	3+	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	5+	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	6+	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	7+	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	DO	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	DS	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	FN	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	FS	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	MF	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	S+	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SF	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SO	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SR	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SS	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	TA	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	TF	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	TN	NA
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	DO	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	DS	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	FS	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	MF	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SF	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SO	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SR	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SS	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	ST	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SW	ND
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	2+	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	3+	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	5+	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	6+	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	7+	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	DO	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	DS	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	FN	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	FS	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	MF	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	S+	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SF	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SO	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SR	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	SS	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	TA	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	TF	NE
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	TN	NE
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	DS	NA
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	FN	NA
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	FS	NA
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	MF	NA
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	SO	NA
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	TF	NA
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	TN	NA
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	FS	ND
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	SS	ND
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	DS	ND
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	MF	ND
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	DS	NE
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	FN	NE
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	FS	NE
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	MF	NE
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	SO	NE
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	TF	NE
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	TN	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	2+	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	3+	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	5+	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	6+	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	7+	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	DO	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	DS	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	FN	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	FS	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	MF	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	S+	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	SF	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	SO	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	SR	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	SS	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	TA	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	TF	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	TN	NA
+3e5b7e25-988f-11eb-8c98-100c795c8520	DO	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	DS	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	FS	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	MF	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	SF	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	SO	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	SR	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	SS	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	ST	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	SW	ND
+3e5b7e25-988f-11eb-8c98-100c795c8520	2+	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	3+	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	5+	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	6+	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	7+	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	DO	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	DS	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	FN	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	FS	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	MF	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	S+	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	SF	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	SO	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	SR	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	SS	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	TA	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	TF	NE
+3e5b7e25-988f-11eb-8c98-100c795c8520	TN	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	2+	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	3+	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	5+	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	6+	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	7+	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	DO	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	DS	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	FN	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	FS	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	MF	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	S+	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SF	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SO	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SR	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SS	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	TA	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	TF	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	TN	NA
+46b99aab-d8c4-11ea-96df-09ccd10d7717	DO	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	DS	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	FS	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	MF	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SF	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SO	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SR	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SS	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	ST	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SW	ND
+46b99aab-d8c4-11ea-96df-09ccd10d7717	2+	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	3+	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	5+	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	6+	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	7+	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	DO	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	DS	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	FN	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	FS	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	MF	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	S+	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SF	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SO	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SR	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	SS	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	TA	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	TF	NE
+46b99aab-d8c4-11ea-96df-09ccd10d7717	TN	NE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	S1	NA
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	DN	NA
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	DC	NA
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	S4	NA
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	7N	NA
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	SN	NA
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	71	NA
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	74	NA
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	S1	ND
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	DN	ND
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	DC	ND
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	S4	ND
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	74	ND
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	71	ND
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	S1	NE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	DN	NE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	DC	NE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	S4	NE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	7N	NE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	SN	NE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	71	NE
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	74	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	2+	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	3+	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	5+	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	6+	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	7+	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	DO	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	DS	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	FN	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	FS	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	MF	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	S+	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SF	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SO	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SR	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SS	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	TA	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	TF	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	TN	NA
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	DO	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	DS	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	FS	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	MF	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SF	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SO	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SR	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SS	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	ST	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SW	ND
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	2+	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	3+	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	5+	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	6+	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	7+	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	DO	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	DS	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	FN	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	FS	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	MF	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	S+	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SF	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SO	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SR	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	SS	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	TA	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	TF	NE
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	TN	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	2+	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	3+	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	5+	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	6+	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	7+	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	DO	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	DS	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	FN	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	FS	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	MF	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	S+	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SF	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SO	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SR	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SS	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	TA	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	TF	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	TN	NA
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	DO	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	DS	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	FS	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	MF	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SF	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SO	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SR	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SS	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	ST	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SW	ND
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	2+	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	3+	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	5+	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	6+	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	7+	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	DO	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	DS	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	FN	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	FS	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	MF	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	S+	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SF	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SO	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SR	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	SS	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	TA	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	TF	NE
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	TN	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	2+	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	3+	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	5+	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	6+	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	7+	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	DO	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	DS	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	FN	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	FS	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	MF	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	S+	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SF	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SO	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SR	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SS	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	TA	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	TF	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	TN	NA
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	DO	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	DS	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	FS	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	MF	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SF	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SO	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SR	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SS	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	ST	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SW	ND
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	2+	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	3+	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	5+	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	6+	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	7+	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	DO	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	DS	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	FN	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	FS	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	MF	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	S+	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SF	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SO	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SR	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	SS	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	TA	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	TF	NE
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	TN	NE
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	SS	NA
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	2+	NA
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	SO	NA
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	SS	ND
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	2+	ND
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	SO	ND
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	SS	NE
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	2+	NE
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	SO	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	2+	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	3+	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	5+	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	6+	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	7+	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	DO	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	DS	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	FN	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	FS	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	MF	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	S+	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	SF	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	SO	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	SR	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	SS	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	TA	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	TF	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	TN	NA
+58838288-eba5-11ea-ad18-35b6d1b87db1	DO	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	DS	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	FS	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	MF	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	SF	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	SO	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	SR	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	SS	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	ST	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	SW	ND
+58838288-eba5-11ea-ad18-35b6d1b87db1	2+	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	3+	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	5+	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	6+	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	7+	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	DO	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	DS	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	FN	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	FS	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	MF	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	S+	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	SF	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	SO	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	SR	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	SS	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	TA	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	TF	NE
+58838288-eba5-11ea-ad18-35b6d1b87db1	TN	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	2+	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	3+	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	5+	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	6+	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	7+	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	DO	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	DS	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	FN	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	FS	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	MF	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	S+	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SF	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SO	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SR	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SS	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	TA	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	TF	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	TN	NA
+5a4a811c-ec81-11ea-a052-cb28611c7be8	DO	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	DS	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	FS	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	MF	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SF	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SO	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SR	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SS	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	ST	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SW	ND
+5a4a811c-ec81-11ea-a052-cb28611c7be8	2+	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	3+	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	5+	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	6+	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	7+	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	DO	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	DS	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	FN	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	FS	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	MF	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	S+	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SF	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SO	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SR	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	SS	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	TA	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	TF	NE
+5a4a811c-ec81-11ea-a052-cb28611c7be8	TN	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	2+	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	3+	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	5+	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	6+	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	7+	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	DO	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	DS	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	FN	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	FS	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	MF	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	S+	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SF	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SO	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SR	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SS	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	TA	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	TF	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	TN	NA
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	DO	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	DS	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	FS	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	MF	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SF	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SO	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SR	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SS	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	ST	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SW	ND
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	2+	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	3+	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	5+	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	6+	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	7+	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	DO	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	DS	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	FN	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	FS	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	MF	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	S+	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SF	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SO	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SR	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	SS	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	TA	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	TF	NE
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	TN	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	2+	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	3+	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	5+	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	6+	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	7+	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	DO	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	DS	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	FN	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	FS	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	MF	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	S+	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SF	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SO	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SR	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SS	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	TA	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	TF	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	TN	NA
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	DO	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	DS	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	FS	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	MF	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SF	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SO	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SR	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SS	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	ST	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SW	ND
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	2+	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	3+	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	5+	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	6+	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	7+	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	DO	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	DS	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	FN	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	FS	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	MF	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	S+	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SF	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SO	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SR	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	SS	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	TA	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	TF	NE
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	TN	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	2+	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	3+	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	5+	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	6+	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	7+	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	DO	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	DS	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	FN	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	FS	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	MF	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	S+	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	SF	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	SO	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	SR	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	SS	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	TA	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	TF	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	TN	NA
+60e1d710-1ddf-11eb-b628-125d5786ccee	DO	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	DS	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	FS	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	MF	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	SF	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	SO	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	SR	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	SS	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	ST	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	SW	ND
+60e1d710-1ddf-11eb-b628-125d5786ccee	2+	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	3+	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	5+	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	6+	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	7+	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	DO	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	DS	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	FN	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	FS	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	MF	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	S+	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	SF	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	SO	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	SR	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	SS	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	TA	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	TF	NE
+60e1d710-1ddf-11eb-b628-125d5786ccee	TN	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	2+	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	3+	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	5+	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	6+	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	7+	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	DO	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	DS	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	FN	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	FS	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	MF	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	S+	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SF	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SO	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SR	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SS	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	TA	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	TF	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	TN	NA
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	DO	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	DS	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	FS	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	MF	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SF	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SO	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SR	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SS	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	ST	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SW	ND
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	2+	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	3+	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	5+	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	6+	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	7+	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	DO	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	DS	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	FN	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	FS	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	MF	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	S+	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SF	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SO	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SR	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	SS	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	TA	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	TF	NE
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	TN	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	2+	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	3+	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	5+	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	6+	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	7+	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	DO	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	DS	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	FS	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	MF	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	S+	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	SF	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	SO	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	SR	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	SS	NA
+6521393d-e0b2-11eb-90b6-d4808be41804	DO	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	DS	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	FS	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	MF	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	SF	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	SO	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	SR	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	SS	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	ST	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	SW	ND
+6521393d-e0b2-11eb-90b6-d4808be41804	2+	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	3+	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	5+	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	6+	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	7+	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	DO	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	DS	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	FS	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	MF	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	S+	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	SF	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	SO	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	SR	NE
+6521393d-e0b2-11eb-90b6-d4808be41804	SS	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	2+	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	3+	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	5+	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	6+	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	7+	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	DO	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	DS	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	FN	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	FS	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	MF	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	S+	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	SF	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	SO	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	SR	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	SS	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	TA	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	TF	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	TN	NA
+69075f1f-619c-11eb-a623-5fbb489147f9	DO	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	DS	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	FS	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	MF	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	SF	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	SO	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	SR	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	SS	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	ST	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	SW	ND
+69075f1f-619c-11eb-a623-5fbb489147f9	2+	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	3+	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	5+	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	6+	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	7+	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	DO	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	DS	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	FN	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	FS	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	MF	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	S+	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	SF	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	SO	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	SR	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	SS	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	TA	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	TF	NE
+69075f1f-619c-11eb-a623-5fbb489147f9	TN	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	2+	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	3+	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	5+	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	6+	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	7+	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	DO	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	DS	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	FN	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	FS	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	MF	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	S+	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	SF	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	SO	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	SR	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	SS	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	TA	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	TF	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	TN	NA
+6929d115-3962-11eb-8781-6119ce7d1b1e	DO	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	DS	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	FS	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	MF	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	SF	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	SO	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	SR	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	SS	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	ST	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	SW	ND
+6929d115-3962-11eb-8781-6119ce7d1b1e	2+	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	3+	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	5+	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	6+	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	7+	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	DO	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	DS	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	FN	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	FS	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	MF	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	S+	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	SF	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	SO	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	SR	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	SS	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	TA	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	TF	NE
+6929d115-3962-11eb-8781-6119ce7d1b1e	TN	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	2+	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	3+	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	5+	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	6+	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	7+	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	DO	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	DS	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	FN	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	FS	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	MF	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	S+	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	SF	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	SO	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	SR	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	SS	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	TA	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	TF	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	TN	NA
+69b57424-9891-11eb-8a0c-b14e9a417941	DO	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	DS	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	FS	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	MF	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	SF	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	SO	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	SR	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	SS	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	ST	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	SW	ND
+69b57424-9891-11eb-8a0c-b14e9a417941	2+	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	3+	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	5+	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	6+	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	7+	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	DO	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	DS	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	FN	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	FS	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	MF	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	S+	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	SF	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	SO	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	SR	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	SS	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	TA	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	TF	NE
+69b57424-9891-11eb-8a0c-b14e9a417941	TN	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	2+	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	3+	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	5+	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	6+	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	7+	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	DO	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	DS	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	FN	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	FS	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	MF	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	S+	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SF	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SO	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SR	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SS	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	TA	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	TF	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	TN	NA
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	DO	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	DS	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	FS	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	MF	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SF	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SO	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SR	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SS	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	ST	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SW	ND
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	2+	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	3+	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	5+	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	6+	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	7+	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	DO	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	DS	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	FN	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	FS	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	MF	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	S+	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SF	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SO	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SR	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	SS	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	TA	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	TF	NE
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	TN	NE
+6c78f773-1b0f-11ec-8a3b-392104367073	DS	NA
+6c78f773-1b0f-11ec-8a3b-392104367073	MF	NA
+6c78f773-1b0f-11ec-8a3b-392104367073	FS	NA
+6c78f773-1b0f-11ec-8a3b-392104367073	SO	NA
+6c78f773-1b0f-11ec-8a3b-392104367073	TF	NA
+6c78f773-1b0f-11ec-8a3b-392104367073	TN	NA
+6c78f773-1b0f-11ec-8a3b-392104367073	FN	NA
+6c78f773-1b0f-11ec-8a3b-392104367073	7+	NA
+6c78f773-1b0f-11ec-8a3b-392104367073	DS	ND
+6c78f773-1b0f-11ec-8a3b-392104367073	MF	ND
+6c78f773-1b0f-11ec-8a3b-392104367073	FS	ND
+6c78f773-1b0f-11ec-8a3b-392104367073	SS	ND
+6c78f773-1b0f-11ec-8a3b-392104367073	DS	NE
+6c78f773-1b0f-11ec-8a3b-392104367073	MF	NE
+6c78f773-1b0f-11ec-8a3b-392104367073	FS	NE
+6c78f773-1b0f-11ec-8a3b-392104367073	SO	NE
+6c78f773-1b0f-11ec-8a3b-392104367073	TF	NE
+6c78f773-1b0f-11ec-8a3b-392104367073	TN	NE
+6c78f773-1b0f-11ec-8a3b-392104367073	FN	NE
+6c78f773-1b0f-11ec-8a3b-392104367073	7+	NE
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	DS	NA
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	MF	NA
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	FS	NA
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	SO	NA
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	TF	NA
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	TN	NA
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	FN	NA
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	DS	ND
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	MF	ND
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	FS	ND
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	SS	ND
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	DS	NE
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	MF	NE
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	FS	NE
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	SO	NE
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	TF	NE
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	TN	NE
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	FN	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	2+	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	3+	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	5+	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	6+	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	7+	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	DO	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	DS	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	FN	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	FS	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	MF	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	S+	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SF	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SO	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SR	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SS	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	TA	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	TF	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	TN	NA
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	DO	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	DS	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	FS	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	MF	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SF	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SO	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SR	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SS	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	ST	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SW	ND
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	2+	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	3+	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	5+	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	6+	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	7+	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	DO	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	DS	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	FN	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	FS	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	MF	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	S+	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SF	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SO	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SR	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	SS	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	TA	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	TF	NE
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	TN	NE
+71e35717-5520-11eb-a9bd-2a1463bca0c4	BR	NA
+71e35717-5520-11eb-a9bd-2a1463bca0c4	BR	ND
+71e35717-5520-11eb-a9bd-2a1463bca0c4	BR	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	2+	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	3+	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	5+	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	6+	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	7+	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	DO	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	DS	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	FN	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	FS	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	MF	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	S+	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SF	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SO	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SR	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SS	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	TA	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	TF	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	TN	NA
+750d6814-1dec-11eb-93fa-e4ace959c4d0	DO	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	DS	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	FS	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	MF	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SF	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SO	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SR	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SS	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	ST	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SW	ND
+750d6814-1dec-11eb-93fa-e4ace959c4d0	2+	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	3+	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	5+	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	6+	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	7+	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	DO	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	DS	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	FN	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	FS	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	MF	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	S+	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SF	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SO	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SR	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	SS	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	TA	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	TF	NE
+750d6814-1dec-11eb-93fa-e4ace959c4d0	TN	NE
+767f9555-e0a4-11ea-8339-305368a984f6	SO	NA
+767f9555-e0a4-11ea-8339-305368a984f6	SO	ND
+767f9555-e0a4-11ea-8339-305368a984f6	SO	NE
+76994efc-9d30-11eb-9576-41852d2a4367	2+	NA
+76994efc-9d30-11eb-9576-41852d2a4367	3+	NA
+76994efc-9d30-11eb-9576-41852d2a4367	5+	NA
+76994efc-9d30-11eb-9576-41852d2a4367	6+	NA
+76994efc-9d30-11eb-9576-41852d2a4367	7+	NA
+76994efc-9d30-11eb-9576-41852d2a4367	DO	NA
+76994efc-9d30-11eb-9576-41852d2a4367	DS	NA
+76994efc-9d30-11eb-9576-41852d2a4367	FN	NA
+76994efc-9d30-11eb-9576-41852d2a4367	FS	NA
+76994efc-9d30-11eb-9576-41852d2a4367	MF	NA
+76994efc-9d30-11eb-9576-41852d2a4367	S+	NA
+76994efc-9d30-11eb-9576-41852d2a4367	SF	NA
+76994efc-9d30-11eb-9576-41852d2a4367	SO	NA
+76994efc-9d30-11eb-9576-41852d2a4367	SR	NA
+76994efc-9d30-11eb-9576-41852d2a4367	SS	NA
+76994efc-9d30-11eb-9576-41852d2a4367	TA	NA
+76994efc-9d30-11eb-9576-41852d2a4367	TF	NA
+76994efc-9d30-11eb-9576-41852d2a4367	TN	NA
+76994efc-9d30-11eb-9576-41852d2a4367	DO	ND
+76994efc-9d30-11eb-9576-41852d2a4367	DS	ND
+76994efc-9d30-11eb-9576-41852d2a4367	FS	ND
+76994efc-9d30-11eb-9576-41852d2a4367	MF	ND
+76994efc-9d30-11eb-9576-41852d2a4367	SF	ND
+76994efc-9d30-11eb-9576-41852d2a4367	SO	ND
+76994efc-9d30-11eb-9576-41852d2a4367	SR	ND
+76994efc-9d30-11eb-9576-41852d2a4367	SS	ND
+76994efc-9d30-11eb-9576-41852d2a4367	ST	ND
+76994efc-9d30-11eb-9576-41852d2a4367	SW	ND
+76994efc-9d30-11eb-9576-41852d2a4367	2+	NE
+76994efc-9d30-11eb-9576-41852d2a4367	3+	NE
+76994efc-9d30-11eb-9576-41852d2a4367	5+	NE
+76994efc-9d30-11eb-9576-41852d2a4367	6+	NE
+76994efc-9d30-11eb-9576-41852d2a4367	7+	NE
+76994efc-9d30-11eb-9576-41852d2a4367	DO	NE
+76994efc-9d30-11eb-9576-41852d2a4367	DS	NE
+76994efc-9d30-11eb-9576-41852d2a4367	FN	NE
+76994efc-9d30-11eb-9576-41852d2a4367	FS	NE
+76994efc-9d30-11eb-9576-41852d2a4367	MF	NE
+76994efc-9d30-11eb-9576-41852d2a4367	S+	NE
+76994efc-9d30-11eb-9576-41852d2a4367	SF	NE
+76994efc-9d30-11eb-9576-41852d2a4367	SO	NE
+76994efc-9d30-11eb-9576-41852d2a4367	SR	NE
+76994efc-9d30-11eb-9576-41852d2a4367	SS	NE
+76994efc-9d30-11eb-9576-41852d2a4367	TA	NE
+76994efc-9d30-11eb-9576-41852d2a4367	TF	NE
+76994efc-9d30-11eb-9576-41852d2a4367	TN	NE
+78665232-988f-11eb-8ca8-db53b31f008c	2+	NA
+78665232-988f-11eb-8ca8-db53b31f008c	3+	NA
+78665232-988f-11eb-8ca8-db53b31f008c	5+	NA
+78665232-988f-11eb-8ca8-db53b31f008c	6+	NA
+78665232-988f-11eb-8ca8-db53b31f008c	7+	NA
+78665232-988f-11eb-8ca8-db53b31f008c	DO	NA
+78665232-988f-11eb-8ca8-db53b31f008c	DS	NA
+78665232-988f-11eb-8ca8-db53b31f008c	FN	NA
+78665232-988f-11eb-8ca8-db53b31f008c	FS	NA
+78665232-988f-11eb-8ca8-db53b31f008c	MF	NA
+78665232-988f-11eb-8ca8-db53b31f008c	S+	NA
+78665232-988f-11eb-8ca8-db53b31f008c	SF	NA
+78665232-988f-11eb-8ca8-db53b31f008c	SO	NA
+78665232-988f-11eb-8ca8-db53b31f008c	SR	NA
+78665232-988f-11eb-8ca8-db53b31f008c	SS	NA
+78665232-988f-11eb-8ca8-db53b31f008c	TA	NA
+78665232-988f-11eb-8ca8-db53b31f008c	TF	NA
+78665232-988f-11eb-8ca8-db53b31f008c	TN	NA
+78665232-988f-11eb-8ca8-db53b31f008c	DO	ND
+78665232-988f-11eb-8ca8-db53b31f008c	DS	ND
+78665232-988f-11eb-8ca8-db53b31f008c	FS	ND
+78665232-988f-11eb-8ca8-db53b31f008c	MF	ND
+78665232-988f-11eb-8ca8-db53b31f008c	SF	ND
+78665232-988f-11eb-8ca8-db53b31f008c	SO	ND
+78665232-988f-11eb-8ca8-db53b31f008c	SR	ND
+78665232-988f-11eb-8ca8-db53b31f008c	SS	ND
+78665232-988f-11eb-8ca8-db53b31f008c	ST	ND
+78665232-988f-11eb-8ca8-db53b31f008c	SW	ND
+78665232-988f-11eb-8ca8-db53b31f008c	2+	NE
+78665232-988f-11eb-8ca8-db53b31f008c	3+	NE
+78665232-988f-11eb-8ca8-db53b31f008c	5+	NE
+78665232-988f-11eb-8ca8-db53b31f008c	6+	NE
+78665232-988f-11eb-8ca8-db53b31f008c	7+	NE
+78665232-988f-11eb-8ca8-db53b31f008c	DO	NE
+78665232-988f-11eb-8ca8-db53b31f008c	DS	NE
+78665232-988f-11eb-8ca8-db53b31f008c	FN	NE
+78665232-988f-11eb-8ca8-db53b31f008c	FS	NE
+78665232-988f-11eb-8ca8-db53b31f008c	MF	NE
+78665232-988f-11eb-8ca8-db53b31f008c	S+	NE
+78665232-988f-11eb-8ca8-db53b31f008c	SF	NE
+78665232-988f-11eb-8ca8-db53b31f008c	SO	NE
+78665232-988f-11eb-8ca8-db53b31f008c	SR	NE
+78665232-988f-11eb-8ca8-db53b31f008c	SS	NE
+78665232-988f-11eb-8ca8-db53b31f008c	TA	NE
+78665232-988f-11eb-8ca8-db53b31f008c	TF	NE
+78665232-988f-11eb-8ca8-db53b31f008c	TN	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	2+	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	3+	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	5+	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	6+	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	7+	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	DO	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	DS	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	FN	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	FS	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	MF	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	S+	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	SF	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	SO	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	SR	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	SS	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	TA	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	TF	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	TN	NA
+79878181-d908-11ea-94d3-9a1933fc44f2	DO	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	DS	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	FS	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	MF	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	SF	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	SO	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	SR	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	SS	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	ST	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	SW	ND
+79878181-d908-11ea-94d3-9a1933fc44f2	2+	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	3+	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	5+	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	6+	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	7+	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	DO	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	DS	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	FN	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	FS	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	MF	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	S+	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	SF	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	SO	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	SR	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	SS	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	TA	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	TF	NE
+79878181-d908-11ea-94d3-9a1933fc44f2	TN	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	2+	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	3+	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	5+	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	6+	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	7+	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	DO	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	DS	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	FN	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	FS	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	MF	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	S+	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	SF	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	SO	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	SR	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	SS	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	TA	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	TF	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	TN	NA
+79f8db95-3964-11eb-bf58-da4ba1647a90	DO	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	DS	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	FS	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	MF	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	SF	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	SO	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	SR	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	SS	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	ST	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	SW	ND
+79f8db95-3964-11eb-bf58-da4ba1647a90	2+	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	3+	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	5+	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	6+	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	7+	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	DO	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	DS	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	FN	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	FS	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	MF	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	S+	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	SF	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	SO	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	SR	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	SS	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	TA	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	TF	NE
+79f8db95-3964-11eb-bf58-da4ba1647a90	TN	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	2+	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	3+	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	5+	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	6+	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	7+	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	DO	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	DS	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	FN	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	FS	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	MF	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	S+	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	SF	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	SO	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	SR	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	SS	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	TA	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	TF	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	TN	NA
+7c9f75d3-2a76-11eb-8401-a637f878566f	DO	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	DS	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	FS	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	MF	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	SF	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	SO	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	SR	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	SS	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	ST	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	SW	ND
+7c9f75d3-2a76-11eb-8401-a637f878566f	2+	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	3+	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	5+	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	6+	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	7+	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	DO	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	DS	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	FN	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	FS	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	MF	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	S+	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	SF	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	SO	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	SR	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	SS	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	TA	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	TF	NE
+7c9f75d3-2a76-11eb-8401-a637f878566f	TN	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	2+	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	3+	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	5+	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	6+	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	7+	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	DO	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	DS	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	FN	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	FS	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	MF	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	S+	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SF	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SO	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SR	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SS	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	TA	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	TF	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	TN	NA
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	DO	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	DS	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	FS	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	MF	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SF	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SO	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SR	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SS	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	ST	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SW	ND
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	2+	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	3+	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	5+	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	6+	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	7+	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	DO	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	DS	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	FN	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	FS	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	MF	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	S+	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SF	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SO	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SR	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	SS	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	TA	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	TF	NE
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	TN	NE
+812218b9-fe9a-11ea-ab6c-3301e5e23406	DS	NA
+812218b9-fe9a-11ea-ab6c-3301e5e23406	MF	NA
+812218b9-fe9a-11ea-ab6c-3301e5e23406	FS	NA
+812218b9-fe9a-11ea-ab6c-3301e5e23406	SO	NA
+812218b9-fe9a-11ea-ab6c-3301e5e23406	TF	NA
+812218b9-fe9a-11ea-ab6c-3301e5e23406	TN	NA
+812218b9-fe9a-11ea-ab6c-3301e5e23406	FN	NA
+812218b9-fe9a-11ea-ab6c-3301e5e23406	DS	ND
+812218b9-fe9a-11ea-ab6c-3301e5e23406	MF	ND
+812218b9-fe9a-11ea-ab6c-3301e5e23406	FS	ND
+812218b9-fe9a-11ea-ab6c-3301e5e23406	SS	ND
+812218b9-fe9a-11ea-ab6c-3301e5e23406	DS	NE
+812218b9-fe9a-11ea-ab6c-3301e5e23406	MF	NE
+812218b9-fe9a-11ea-ab6c-3301e5e23406	FS	NE
+812218b9-fe9a-11ea-ab6c-3301e5e23406	SO	NE
+812218b9-fe9a-11ea-ab6c-3301e5e23406	TF	NE
+812218b9-fe9a-11ea-ab6c-3301e5e23406	TN	NE
+812218b9-fe9a-11ea-ab6c-3301e5e23406	FN	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	2+	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	3+	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	5+	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	6+	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	7+	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	DO	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	DS	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	FS	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	MF	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	S+	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SF	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SO	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SR	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SS	NA
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	DO	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	DS	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	FS	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	MF	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SF	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SO	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SR	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SS	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	ST	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SW	ND
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	2+	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	3+	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	5+	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	6+	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	7+	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	DO	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	DS	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	FS	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	MF	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	S+	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SF	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SO	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SR	NE
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	SS	NE
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	FS	NA
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	DS	NA
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	MF	NA
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	SO	NA
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	FN	NA
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	TF	NA
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	TN	NA
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	FS	ND
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	DS	ND
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	MF	ND
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	SS	ND
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	FS	NE
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	DS	NE
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	MF	NE
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	SO	NE
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	FN	NE
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	TF	NE
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	TN	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	2+	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	3+	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	5+	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	6+	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	7+	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	DO	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	DS	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	FN	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	FS	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	MF	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	S+	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	SF	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	SO	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	SR	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	SS	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	TA	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	TF	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	TN	NA
+866243b1-d8c3-11ea-96df-09ccd10d7717	DO	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	DS	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	FS	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	MF	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	SF	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	SO	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	SR	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	SS	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	ST	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	SW	ND
+866243b1-d8c3-11ea-96df-09ccd10d7717	2+	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	3+	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	5+	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	6+	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	7+	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	DO	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	DS	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	FN	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	FS	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	MF	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	S+	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	SF	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	SO	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	SR	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	SS	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	TA	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	TF	NE
+866243b1-d8c3-11ea-96df-09ccd10d7717	TN	NE
+879f3c2f-d90b-11ea-94d3-9a1933fc44f2	BR	NA
+879f3c2f-d90b-11ea-94d3-9a1933fc44f2	BR	ND
+879f3c2f-d90b-11ea-94d3-9a1933fc44f2	BR	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	2+	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	3+	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	5+	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	6+	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	7+	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	DO	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	DS	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	FN	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	FS	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	MF	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	S+	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	SF	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	SO	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	SR	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	SS	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	TA	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	TF	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	TN	NA
+8a807b8a-d590-11ea-9001-bc80ca56468d	DO	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	DS	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	FS	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	MF	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	SF	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	SO	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	SR	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	SS	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	ST	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	SW	ND
+8a807b8a-d590-11ea-9001-bc80ca56468d	2+	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	3+	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	5+	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	6+	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	7+	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	DO	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	DS	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	FN	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	FS	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	MF	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	S+	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	SF	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	SO	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	SR	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	SS	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	TA	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	TF	NE
+8a807b8a-d590-11ea-9001-bc80ca56468d	TN	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	2+	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	3+	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	5+	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	6+	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	7+	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	DO	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	DS	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	FN	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	FS	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	MF	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	S+	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SF	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SO	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SR	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SS	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	TA	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	TF	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	TN	NA
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	DO	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	DS	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	FS	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	MF	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SF	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SO	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SR	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SS	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	ST	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SW	ND
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	2+	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	3+	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	5+	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	6+	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	7+	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	DO	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	DS	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	FN	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	FS	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	MF	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	S+	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SF	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SO	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SR	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	SS	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	TA	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	TF	NE
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	TN	NE
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	DS	NA
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	FS	NA
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	FN	NA
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	MF	NA
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	SO	NA
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	TF	NA
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	TN	NA
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	DS	ND
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	FS	ND
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	MF	ND
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	SS	ND
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	DS	NE
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	FS	NE
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	FN	NE
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	MF	NE
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	SO	NE
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	TF	NE
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	TN	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	2+	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	3+	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	5+	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	6+	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	7+	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	DO	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	DS	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	FN	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	FS	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	MF	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	S+	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SF	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SO	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SR	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SS	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	TA	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	TF	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	TN	NA
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	DO	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	DS	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	FS	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	MF	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SF	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SO	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SR	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SS	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	ST	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SW	ND
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	2+	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	3+	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	5+	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	6+	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	7+	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	DO	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	DS	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	FN	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	FS	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	MF	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	S+	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SF	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SO	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SR	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	SS	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	TA	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	TF	NE
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	TN	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	2+	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	3+	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	5+	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	6+	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	7+	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	DO	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	DS	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	FN	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	FS	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	MF	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	S+	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SF	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SO	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SR	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SS	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	TA	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	TF	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	TN	NA
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	DO	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	DS	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	FS	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	MF	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SF	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SO	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SR	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SS	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	ST	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SW	ND
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	2+	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	3+	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	5+	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	6+	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	7+	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	DO	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	DS	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	FN	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	FS	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	MF	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	S+	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SF	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SO	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SR	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	SS	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	TA	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	TF	NE
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	TN	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	2+	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	3+	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	5+	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	6+	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	7+	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	DO	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	DS	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	FN	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	FS	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	MF	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	S+	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SF	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SO	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SR	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SS	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	TA	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	TF	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	TN	NA
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	DO	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	DS	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	FS	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	MF	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SF	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SO	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SR	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SS	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	ST	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SW	ND
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	2+	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	3+	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	5+	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	6+	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	7+	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	DO	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	DS	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	FN	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	FS	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	MF	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	S+	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SF	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SO	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SR	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	SS	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	TA	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	TF	NE
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	TN	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	2+	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	3+	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	5+	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	6+	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	7+	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	DO	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	DS	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	FN	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	FS	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	MF	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	S+	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SF	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SO	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SR	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SS	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	TA	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	TF	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	TN	NA
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	DO	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	DS	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	FS	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	MF	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SF	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SO	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SR	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SS	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	ST	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SW	ND
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	2+	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	3+	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	5+	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	6+	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	7+	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	DO	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	DS	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	FN	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	FS	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	MF	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	S+	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SF	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SO	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SR	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	SS	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	TA	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	TF	NE
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	TN	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	2+	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	3+	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	5+	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	6+	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	7+	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	DO	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	DS	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	FN	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	FS	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	MF	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	S+	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SF	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SO	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SR	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SS	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	TA	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	TF	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	TN	NA
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	DO	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	DS	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	FS	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	MF	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SF	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SO	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SR	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SS	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	ST	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SW	ND
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	2+	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	3+	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	5+	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	6+	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	7+	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	DO	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	DS	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	FN	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	FS	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	MF	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	S+	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SF	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SO	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SR	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	SS	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	TA	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	TF	NE
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	TN	NE
+9a842058-0285-11eb-b789-fd537ec536af	FN	NA
+9a842058-0285-11eb-b789-fd537ec536af	FS	NA
+9a842058-0285-11eb-b789-fd537ec536af	SO	NA
+9a842058-0285-11eb-b789-fd537ec536af	FS	ND
+9a842058-0285-11eb-b789-fd537ec536af	SO	ND
+9a842058-0285-11eb-b789-fd537ec536af	FN	NE
+9a842058-0285-11eb-b789-fd537ec536af	FS	NE
+9a842058-0285-11eb-b789-fd537ec536af	SO	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	2+	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	3+	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	5+	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	6+	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	7+	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	DO	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	DS	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	FN	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	FS	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	MF	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	S+	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SF	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SO	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SR	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SS	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	TA	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	TF	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	TN	NA
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	DO	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	DS	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	FS	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	MF	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SF	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SO	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SR	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SS	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	ST	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SW	ND
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	2+	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	3+	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	5+	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	6+	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	7+	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	DO	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	DS	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	FN	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	FS	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	MF	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	S+	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SF	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SO	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SR	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	SS	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	TA	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	TF	NE
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	TN	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	2+	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	3+	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	5+	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	6+	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	7+	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	DO	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	DS	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	FN	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	FS	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	MF	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	S+	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SF	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SO	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SR	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SS	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	TA	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	TF	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	TN	NA
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	DO	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	DS	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	FS	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	MF	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SF	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SO	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SR	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SS	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	ST	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SW	ND
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	2+	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	3+	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	5+	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	6+	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	7+	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	DO	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	DS	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	FN	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	FS	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	MF	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	S+	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SF	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SO	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SR	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	SS	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	TA	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	TF	NE
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	TN	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	2+	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	3+	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	5+	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	6+	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	7+	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	DO	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	DS	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	FN	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	FS	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	MF	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	S+	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SF	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SO	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SR	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SS	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	TA	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	TF	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	TN	NA
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	DO	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	DS	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	FS	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	MF	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SF	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SO	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SR	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SS	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	ST	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SW	ND
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	2+	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	3+	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	5+	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	6+	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	7+	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	DO	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	DS	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	FN	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	FS	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	MF	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	S+	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SF	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SO	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SR	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	SS	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	TA	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	TF	NE
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	TN	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	2+	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	3+	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	5+	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	6+	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	7+	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	DO	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	DS	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	FN	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	FS	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	MF	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	S+	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SF	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SO	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SR	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SS	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	TA	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	TF	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	TN	NA
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	DO	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	DS	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	FS	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	MF	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SF	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SO	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SR	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SS	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	ST	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SW	ND
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	2+	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	3+	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	5+	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	6+	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	7+	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	DO	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	DS	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	FN	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	FS	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	MF	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	S+	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SF	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SO	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SR	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	SS	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	TA	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	TF	NE
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	TN	NE
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	BR	NA
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	BR	ND
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	BR	NE
+a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	SO	NA
+a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	SO	ND
+a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	SO	NE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	71	NA
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	74	NA
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	7N	NA
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	DC	NA
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	DN	NA
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	S1	NA
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	S4	NA
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	SN	NA
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	71	ND
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	74	ND
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	DC	ND
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	S1	ND
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	S4	ND
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	71	NE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	74	NE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	7N	NE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	DC	NE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	DN	NE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	S1	NE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	S4	NE
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	SN	NE
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	SO	NA
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	FS	NA
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	FN	NA
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	FS	ND
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	SO	ND
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	SO	NE
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	FS	NE
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	FN	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	2+	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	3+	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	5+	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	6+	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	7+	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	DO	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	DS	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	FN	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	FS	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	MF	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	S+	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SF	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SO	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SR	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SS	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	TA	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	TF	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	TN	NA
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	DO	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	DS	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	FS	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	MF	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SF	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SO	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SR	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SS	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	ST	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SW	ND
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	2+	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	3+	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	5+	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	6+	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	7+	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	DO	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	DS	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	FN	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	FS	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	MF	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	S+	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SF	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SO	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SR	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	SS	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	TA	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	TF	NE
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	TN	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	2+	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	3+	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	5+	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	6+	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	7+	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	DO	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	DS	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	FN	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	FS	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	MF	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	S+	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SF	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SO	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SR	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SS	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	TA	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	TF	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	TN	NA
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	DO	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	DS	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	FS	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	MF	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SF	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SO	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SR	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SS	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	ST	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SW	ND
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	2+	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	3+	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	5+	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	6+	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	7+	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	DO	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	DS	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	FN	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	FS	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	MF	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	S+	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SF	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SO	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SR	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	SS	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	TA	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	TF	NE
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	TN	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	2+	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	3+	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	5+	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	6+	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	7+	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	DO	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	DS	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	FN	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	FS	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	MF	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	S+	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	SF	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	SO	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	SR	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	SS	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	TA	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	TF	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	TN	NA
+ac495996-9d30-11eb-889c-da2dfe0352a8	DO	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	DS	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	FS	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	MF	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	SF	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	SO	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	SR	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	SS	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	ST	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	SW	ND
+ac495996-9d30-11eb-889c-da2dfe0352a8	2+	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	3+	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	5+	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	6+	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	7+	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	DO	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	DS	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	FN	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	FS	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	MF	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	S+	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	SF	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	SO	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	SR	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	SS	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	TA	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	TF	NE
+ac495996-9d30-11eb-889c-da2dfe0352a8	TN	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	2+	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	3+	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	5+	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	6+	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	7+	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	DO	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	DS	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	FN	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	FS	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	MF	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	S+	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SF	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SO	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SR	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SS	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	TA	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	TF	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	TN	NA
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	DO	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	DS	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	FS	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	MF	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SF	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SO	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SR	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SS	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	ST	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SW	ND
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	2+	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	3+	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	5+	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	6+	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	7+	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	DO	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	DS	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	FN	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	FS	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	MF	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	S+	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SF	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SO	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SR	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	SS	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	TA	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	TF	NE
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	TN	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	2+	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	3+	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	5+	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	6+	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	7+	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	DO	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	DS	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	FN	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	FS	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	MF	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	S+	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SF	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SO	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SR	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SS	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	TA	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	TF	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	TN	NA
+ad86d341-d8c4-11ea-96df-09ccd10d7717	DO	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	DS	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	FS	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	MF	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SF	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SO	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SR	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SS	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	ST	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SW	ND
+ad86d341-d8c4-11ea-96df-09ccd10d7717	2+	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	3+	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	5+	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	6+	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	7+	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	DO	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	DS	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	FN	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	FS	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	MF	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	S+	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SF	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SO	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SR	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	SS	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	TA	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	TF	NE
+ad86d341-d8c4-11ea-96df-09ccd10d7717	TN	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	2+	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	3+	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	5+	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	6+	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	7+	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	DO	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	DS	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	FN	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	FS	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	MF	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	S+	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SF	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SO	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SR	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SS	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	TA	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	TF	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	TN	NA
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	DO	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	DS	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	FS	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	MF	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SF	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SO	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SR	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SS	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	ST	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SW	ND
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	2+	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	3+	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	5+	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	6+	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	7+	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	DO	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	DS	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	FN	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	FS	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	MF	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	S+	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SF	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SO	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SR	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	SS	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	TA	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	TF	NE
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	TN	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	2+	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	3+	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	5+	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	6+	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	7+	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	DO	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	DS	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	FN	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	FS	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	MF	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	S+	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SF	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SO	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SR	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SS	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	TA	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	TF	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	TN	NA
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	DO	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	DS	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	FS	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	MF	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SF	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SO	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SR	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SS	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	ST	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SW	ND
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	2+	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	3+	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	5+	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	6+	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	7+	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	DO	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	DS	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	FN	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	FS	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	MF	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	S+	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SF	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SO	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SR	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	SS	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	TA	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	TF	NE
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	TN	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	2+	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	3+	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	5+	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	6+	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	7+	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	DO	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	DS	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	FN	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	FS	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	MF	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	S+	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SF	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SO	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SR	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SS	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	TA	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	TF	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	TN	NA
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	DO	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	DS	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	FS	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	MF	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SF	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SO	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SR	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SS	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	ST	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SW	ND
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	2+	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	3+	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	5+	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	6+	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	7+	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	DO	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	DS	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	FN	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	FS	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	MF	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	S+	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SF	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SO	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SR	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	SS	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	TA	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	TF	NE
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	TN	NE
+b41c09a1-f789-11ea-86c3-636811e7072d	DS	NA
+b41c09a1-f789-11ea-86c3-636811e7072d	FN	NA
+b41c09a1-f789-11ea-86c3-636811e7072d	FS	NA
+b41c09a1-f789-11ea-86c3-636811e7072d	MF	NA
+b41c09a1-f789-11ea-86c3-636811e7072d	SO	NA
+b41c09a1-f789-11ea-86c3-636811e7072d	TF	NA
+b41c09a1-f789-11ea-86c3-636811e7072d	TN	NA
+b41c09a1-f789-11ea-86c3-636811e7072d	DS	ND
+b41c09a1-f789-11ea-86c3-636811e7072d	FS	ND
+b41c09a1-f789-11ea-86c3-636811e7072d	MF	ND
+b41c09a1-f789-11ea-86c3-636811e7072d	SS	ND
+b41c09a1-f789-11ea-86c3-636811e7072d	DS	NE
+b41c09a1-f789-11ea-86c3-636811e7072d	FN	NE
+b41c09a1-f789-11ea-86c3-636811e7072d	FS	NE
+b41c09a1-f789-11ea-86c3-636811e7072d	MF	NE
+b41c09a1-f789-11ea-86c3-636811e7072d	SO	NE
+b41c09a1-f789-11ea-86c3-636811e7072d	TF	NE
+b41c09a1-f789-11ea-86c3-636811e7072d	TN	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	2+	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	3+	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	5+	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	6+	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	7+	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	DO	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	DS	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	FN	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	FS	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	MF	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	S+	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SF	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SO	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SR	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SS	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	TA	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	TF	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	TN	NA
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	DO	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	DS	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	FS	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	MF	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SF	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SO	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SR	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SS	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	ST	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SW	ND
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	2+	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	3+	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	5+	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	6+	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	7+	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	DO	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	DS	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	FN	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	FS	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	MF	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	S+	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SF	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SO	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SR	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	SS	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	TA	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	TF	NE
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	TN	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	2+	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	3+	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	5+	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	6+	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	7+	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	DO	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	DS	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	FN	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	FS	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	MF	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	S+	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SF	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SO	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SR	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SS	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	TA	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	TF	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	TN	NA
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	DO	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	DS	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	FS	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	MF	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SF	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SO	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SR	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SS	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	ST	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SW	ND
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	2+	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	3+	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	5+	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	6+	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	7+	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	DO	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	DS	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	FN	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	FS	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	MF	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	S+	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SF	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SO	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SR	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	SS	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	TA	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	TF	NE
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	TN	NE
+b873b3f3-0291-11eb-b789-fd537ec536af	DS	NA
+b873b3f3-0291-11eb-b789-fd537ec536af	FN	NA
+b873b3f3-0291-11eb-b789-fd537ec536af	FS	NA
+b873b3f3-0291-11eb-b789-fd537ec536af	MF	NA
+b873b3f3-0291-11eb-b789-fd537ec536af	SO	NA
+b873b3f3-0291-11eb-b789-fd537ec536af	TF	NA
+b873b3f3-0291-11eb-b789-fd537ec536af	TN	NA
+b873b3f3-0291-11eb-b789-fd537ec536af	DS	ND
+b873b3f3-0291-11eb-b789-fd537ec536af	FS	ND
+b873b3f3-0291-11eb-b789-fd537ec536af	MF	ND
+b873b3f3-0291-11eb-b789-fd537ec536af	SS	ND
+b873b3f3-0291-11eb-b789-fd537ec536af	DS	NE
+b873b3f3-0291-11eb-b789-fd537ec536af	FN	NE
+b873b3f3-0291-11eb-b789-fd537ec536af	FS	NE
+b873b3f3-0291-11eb-b789-fd537ec536af	MF	NE
+b873b3f3-0291-11eb-b789-fd537ec536af	SO	NE
+b873b3f3-0291-11eb-b789-fd537ec536af	TF	NE
+b873b3f3-0291-11eb-b789-fd537ec536af	TN	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	2+	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	3+	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	5+	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	6+	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	7+	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	DO	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	DS	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	FN	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	FS	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	MF	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	S+	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	SF	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	SO	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	SR	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	SS	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	TA	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	TF	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	TN	NA
+b8870d52-3efc-11eb-919b-4b09b3d24981	DO	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	DS	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	FS	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	MF	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	SF	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	SO	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	SR	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	SS	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	ST	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	SW	ND
+b8870d52-3efc-11eb-919b-4b09b3d24981	2+	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	3+	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	5+	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	6+	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	7+	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	DO	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	DS	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	FN	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	FS	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	MF	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	S+	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	SF	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	SO	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	SR	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	SS	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	TA	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	TF	NE
+b8870d52-3efc-11eb-919b-4b09b3d24981	TN	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	2+	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	3+	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	5+	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	6+	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	7+	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	DO	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	DS	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	FN	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	FS	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	MF	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	S+	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	SF	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	SO	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	SR	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	SS	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	TA	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	TF	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	TN	NA
+b9075636-ee25-11ea-8a86-0bd413f6e205	DO	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	DS	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	FS	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	MF	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	SF	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	SO	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	SR	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	SS	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	ST	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	SW	ND
+b9075636-ee25-11ea-8a86-0bd413f6e205	2+	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	3+	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	5+	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	6+	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	7+	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	DO	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	DS	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	FN	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	FS	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	MF	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	S+	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	SF	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	SO	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	SR	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	SS	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	TA	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	TF	NE
+b9075636-ee25-11ea-8a86-0bd413f6e205	TN	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	2+	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	3+	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	5+	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	6+	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	7+	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	DO	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	DS	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	FN	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	FS	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	MF	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	S+	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SF	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SO	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SR	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SS	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	TA	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	TF	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	TN	NA
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	DO	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	DS	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	FS	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	MF	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SF	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SO	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SR	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SS	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	ST	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SW	ND
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	2+	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	3+	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	5+	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	6+	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	7+	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	DO	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	DS	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	FN	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	FS	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	MF	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	S+	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SF	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SO	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SR	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	SS	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	TA	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	TF	NE
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	TN	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	2+	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	3+	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	5+	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	6+	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	7+	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	DO	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	DS	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	FN	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	FS	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	MF	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	S+	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SF	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SO	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SR	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SS	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	TA	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	TF	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	TN	NA
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	DO	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	DS	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	FS	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	MF	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SF	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SO	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SR	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SS	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	ST	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SW	ND
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	2+	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	3+	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	5+	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	6+	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	7+	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	DO	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	DS	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	FN	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	FS	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	MF	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	S+	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SF	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SO	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SR	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	SS	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	TA	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	TF	NE
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	TN	NE
+be9adb2f-027f-11eb-9124-925109a1a627	DS	NA
+be9adb2f-027f-11eb-9124-925109a1a627	FN	NA
+be9adb2f-027f-11eb-9124-925109a1a627	FS	NA
+be9adb2f-027f-11eb-9124-925109a1a627	MF	NA
+be9adb2f-027f-11eb-9124-925109a1a627	SO	NA
+be9adb2f-027f-11eb-9124-925109a1a627	TF	NA
+be9adb2f-027f-11eb-9124-925109a1a627	TN	NA
+be9adb2f-027f-11eb-9124-925109a1a627	DS	ND
+be9adb2f-027f-11eb-9124-925109a1a627	FS	ND
+be9adb2f-027f-11eb-9124-925109a1a627	MF	ND
+be9adb2f-027f-11eb-9124-925109a1a627	SS	ND
+be9adb2f-027f-11eb-9124-925109a1a627	DS	NE
+be9adb2f-027f-11eb-9124-925109a1a627	FN	NE
+be9adb2f-027f-11eb-9124-925109a1a627	FS	NE
+be9adb2f-027f-11eb-9124-925109a1a627	MF	NE
+be9adb2f-027f-11eb-9124-925109a1a627	SO	NE
+be9adb2f-027f-11eb-9124-925109a1a627	TF	NE
+be9adb2f-027f-11eb-9124-925109a1a627	TN	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	2+	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	3+	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	5+	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	6+	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	7+	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	DO	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	DS	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	FN	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	FS	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	MF	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	S+	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	SF	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	SO	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	SR	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	SS	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	TA	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	TF	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	TN	NA
+c23f4ec4-988e-11eb-8c98-100c795c8520	DO	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	DS	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	FS	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	MF	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	SF	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	SO	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	SR	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	SS	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	ST	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	SW	ND
+c23f4ec4-988e-11eb-8c98-100c795c8520	2+	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	3+	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	5+	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	6+	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	7+	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	DO	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	DS	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	FN	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	FS	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	MF	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	S+	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	SF	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	SO	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	SR	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	SS	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	TA	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	TF	NE
+c23f4ec4-988e-11eb-8c98-100c795c8520	TN	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	2+	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	3+	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	5+	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	6+	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	7+	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	DO	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	DS	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	FN	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	FS	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	MF	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	S+	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SF	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SO	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SR	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SS	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	TA	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	TF	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	TN	NA
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	DO	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	DS	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	FS	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	MF	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SF	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SO	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SR	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SS	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	ST	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SW	ND
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	2+	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	3+	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	5+	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	6+	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	7+	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	DO	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	DS	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	FN	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	FS	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	MF	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	S+	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SF	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SO	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SR	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	SS	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	TA	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	TF	NE
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	TN	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	2+	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	3+	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	5+	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	6+	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	7+	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	DO	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	DS	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	FN	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	FS	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	MF	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	S+	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SF	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SO	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SR	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SS	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	TA	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	TF	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	TN	NA
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	DO	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	DS	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	FS	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	MF	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SF	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SO	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SR	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SS	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	ST	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SW	ND
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	2+	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	3+	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	5+	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	6+	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	7+	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	DO	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	DS	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	FN	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	FS	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	MF	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	S+	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SF	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SO	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SR	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	SS	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	TA	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	TF	NE
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	TN	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	2+	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	3+	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	5+	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	6+	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	7+	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	DO	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	DS	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	FN	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	FS	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	MF	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	S+	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	SF	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	SO	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	SR	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	SS	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	TA	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	TF	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	TN	NA
+d030caac-3965-11eb-bf58-da4ba1647a90	DO	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	DS	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	FS	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	MF	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	SF	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	SO	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	SR	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	SS	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	ST	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	SW	ND
+d030caac-3965-11eb-bf58-da4ba1647a90	2+	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	3+	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	5+	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	6+	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	7+	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	DO	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	DS	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	FN	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	FS	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	MF	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	S+	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	SF	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	SO	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	SR	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	SS	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	TA	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	TF	NE
+d030caac-3965-11eb-bf58-da4ba1647a90	TN	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	2+	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	3+	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	5+	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	6+	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	7+	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	DO	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	DS	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	FN	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	FS	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	MF	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	S+	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SF	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SO	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SR	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SS	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	TA	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	TF	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	TN	NA
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	DO	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	DS	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	FS	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	MF	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SF	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SO	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SR	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SS	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	ST	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SW	ND
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	2+	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	3+	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	5+	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	6+	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	7+	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	DO	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	DS	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	FN	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	FS	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	MF	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	S+	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SF	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SO	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SR	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	SS	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	TA	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	TF	NE
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	TN	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	2+	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	3+	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	5+	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	6+	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	7+	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	DO	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	DS	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	FN	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	FS	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	MF	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	S+	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	SF	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	SO	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	SR	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	SS	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	TA	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	TF	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	TN	NA
+d544f9bc-f1db-11ea-942b-2b10751285b6	DO	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	DS	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	FS	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	MF	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	SF	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	SO	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	SR	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	SS	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	ST	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	SW	ND
+d544f9bc-f1db-11ea-942b-2b10751285b6	2+	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	3+	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	5+	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	6+	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	7+	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	DO	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	DS	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	FN	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	FS	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	MF	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	S+	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	SF	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	SO	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	SR	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	SS	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	TA	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	TF	NE
+d544f9bc-f1db-11ea-942b-2b10751285b6	TN	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	2+	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	3+	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	5+	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	6+	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	7+	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	DO	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	DS	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	FN	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	FS	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	MF	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	S+	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	SF	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	SO	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	SR	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	SS	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	TA	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	TF	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	TN	NA
+da06f835-1ddb-11eb-95b8-b4165a586460	DO	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	DS	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	FS	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	MF	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	SF	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	SO	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	SR	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	SS	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	ST	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	SW	ND
+da06f835-1ddb-11eb-95b8-b4165a586460	2+	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	3+	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	5+	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	6+	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	7+	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	DO	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	DS	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	FN	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	FS	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	MF	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	S+	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	SF	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	SO	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	SR	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	SS	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	TA	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	TF	NE
+da06f835-1ddb-11eb-95b8-b4165a586460	TN	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	2+	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	3+	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	5+	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	6+	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	7+	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	DO	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	DS	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	FN	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	FS	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	MF	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	S+	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SF	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SO	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SR	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SS	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	TA	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	TF	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	TN	NA
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	DO	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	DS	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	FS	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	MF	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SF	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SO	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SR	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SS	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	ST	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SW	ND
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	2+	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	3+	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	5+	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	6+	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	7+	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	DO	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	DS	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	FN	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	FS	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	MF	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	S+	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SF	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SO	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SR	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	SS	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	TA	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	TF	NE
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	TN	NE
+ddb07933-3964-11eb-bf58-da4ba1647a90	DS	NA
+ddb07933-3964-11eb-bf58-da4ba1647a90	FN	NA
+ddb07933-3964-11eb-bf58-da4ba1647a90	FS	NA
+ddb07933-3964-11eb-bf58-da4ba1647a90	MF	NA
+ddb07933-3964-11eb-bf58-da4ba1647a90	SO	NA
+ddb07933-3964-11eb-bf58-da4ba1647a90	TF	NA
+ddb07933-3964-11eb-bf58-da4ba1647a90	TN	NA
+ddb07933-3964-11eb-bf58-da4ba1647a90	DS	ND
+ddb07933-3964-11eb-bf58-da4ba1647a90	FS	ND
+ddb07933-3964-11eb-bf58-da4ba1647a90	MF	ND
+ddb07933-3964-11eb-bf58-da4ba1647a90	SS	ND
+ddb07933-3964-11eb-bf58-da4ba1647a90	DS	NE
+ddb07933-3964-11eb-bf58-da4ba1647a90	FN	NE
+ddb07933-3964-11eb-bf58-da4ba1647a90	FS	NE
+ddb07933-3964-11eb-bf58-da4ba1647a90	MF	NE
+ddb07933-3964-11eb-bf58-da4ba1647a90	SO	NE
+ddb07933-3964-11eb-bf58-da4ba1647a90	TF	NE
+ddb07933-3964-11eb-bf58-da4ba1647a90	TN	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	2+	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	3+	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	5+	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	6+	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	7+	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	DO	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	DS	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	FN	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	FS	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	MF	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	S+	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	SF	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	SO	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	SR	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	SS	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	TA	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	TF	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	TN	NA
+de7fee0b-d590-11ea-9001-bc80ca56468d	DO	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	DS	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	FS	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	MF	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	SF	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	SO	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	SR	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	SS	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	ST	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	SW	ND
+de7fee0b-d590-11ea-9001-bc80ca56468d	2+	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	3+	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	5+	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	6+	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	7+	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	DO	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	DS	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	FN	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	FS	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	MF	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	S+	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	SF	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	SO	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	SR	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	SS	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	TA	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	TF	NE
+de7fee0b-d590-11ea-9001-bc80ca56468d	TN	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	2+	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	3+	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	5+	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	6+	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	7+	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	DO	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	DS	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	FN	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	FS	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	MF	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	S+	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SF	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SO	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SR	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SS	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	TA	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	TF	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	TN	NA
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	DO	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	DS	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	FS	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	MF	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SF	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SO	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SR	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SS	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	ST	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SW	ND
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	2+	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	3+	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	5+	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	6+	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	7+	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	DO	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	DS	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	FN	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	FS	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	MF	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	S+	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SF	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SO	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SR	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	SS	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	TA	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	TF	NE
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	TN	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	2+	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	3+	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	5+	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	6+	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	7+	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	DO	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	DS	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	FN	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	FS	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	MF	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	S+	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SF	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SO	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SR	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SS	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	TA	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	TF	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	TN	NA
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	DO	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	DS	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	FS	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	MF	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SF	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SO	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SR	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SS	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	ST	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SW	ND
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	2+	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	3+	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	5+	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	6+	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	7+	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	DO	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	DS	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	FN	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	FS	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	MF	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	S+	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SF	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SO	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SR	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	SS	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	TA	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	TF	NE
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	TN	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	2+	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	3+	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	5+	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	6+	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	7+	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	DO	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	DS	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	FN	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	FS	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	MF	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	S+	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SF	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SO	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SR	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SS	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	TA	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	TF	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	TN	NA
+e217a4c1-f1d8-11ea-942b-2b10751285b6	DO	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	DS	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	FS	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	MF	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SF	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SO	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SR	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SS	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	ST	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SW	ND
+e217a4c1-f1d8-11ea-942b-2b10751285b6	2+	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	3+	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	5+	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	6+	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	7+	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	DO	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	DS	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	FN	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	FS	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	MF	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	S+	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SF	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SO	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SR	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	SS	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	TA	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	TF	NE
+e217a4c1-f1d8-11ea-942b-2b10751285b6	TN	NE
+e3743132-e219-11ea-bd88-1c23e3dcaa84	SS	NA
+e3743132-e219-11ea-bd88-1c23e3dcaa84	SS	ND
+e3743132-e219-11ea-bd88-1c23e3dcaa84	SS	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	2+	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	3+	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	5+	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	6+	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	7+	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	DO	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	DS	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	FN	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	FS	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	MF	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	S+	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SF	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SO	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SR	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SS	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	TA	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	TF	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	TN	NA
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	DO	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	DS	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	FS	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	MF	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SF	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SO	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SR	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SS	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	ST	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SW	ND
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	2+	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	3+	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	5+	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	6+	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	7+	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	DO	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	DS	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	FN	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	FS	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	MF	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	S+	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SF	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SO	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SR	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	SS	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	TA	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	TF	NE
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	TN	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	2+	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	3+	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	5+	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	6+	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	7+	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	DO	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	DS	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	FN	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	FS	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	MF	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	S+	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	SF	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	SO	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	SR	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	SS	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	TA	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	TF	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	TN	NA
+ea737858-d908-11ea-94d3-9a1933fc44f2	DO	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	DS	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	FS	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	MF	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	SF	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	SO	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	SR	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	SS	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	ST	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	SW	ND
+ea737858-d908-11ea-94d3-9a1933fc44f2	2+	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	3+	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	5+	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	6+	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	7+	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	DO	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	DS	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	FN	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	FS	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	MF	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	S+	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	SF	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	SO	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	SR	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	SS	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	TA	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	TF	NE
+ea737858-d908-11ea-94d3-9a1933fc44f2	TN	NE
+ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	SO	NA
+ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	SO	ND
+ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	SO	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	2+	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	3+	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	5+	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	6+	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	7+	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	DO	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	DS	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	FN	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	FS	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	MF	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	S+	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SF	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SO	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SR	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SS	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	TA	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	TF	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	TN	NA
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	DO	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	DS	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	FS	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	MF	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SF	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SO	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SR	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SS	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	ST	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SW	ND
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	2+	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	3+	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	5+	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	6+	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	7+	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	DO	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	DS	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	FN	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	FS	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	MF	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	S+	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SF	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SO	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SR	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	SS	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	TA	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	TF	NE
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	TN	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	2+	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	3+	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	5+	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	6+	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	7+	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	DO	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	DS	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	FN	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	FS	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	MF	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	S+	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SF	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SO	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SR	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SS	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	TA	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	TF	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	TN	NA
+ed1e0b41-1dde-11eb-95b8-b4165a586460	DO	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	DS	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	FS	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	MF	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SF	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SO	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SR	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SS	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	ST	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SW	ND
+ed1e0b41-1dde-11eb-95b8-b4165a586460	2+	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	3+	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	5+	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	6+	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	7+	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	DO	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	DS	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	FN	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	FS	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	MF	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	S+	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SF	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SO	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SR	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	SS	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	TA	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	TF	NE
+ed1e0b41-1dde-11eb-95b8-b4165a586460	TN	NE
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	LT	NA
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	LT	ND
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	LT	NE
+f1a099ca-fe99-11ea-ab6c-3301e5e23406	SO	NA
+f1a099ca-fe99-11ea-ab6c-3301e5e23406	SO	ND
+f1a099ca-fe99-11ea-ab6c-3301e5e23406	SO	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	2+	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	3+	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	5+	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	6+	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	7+	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	DO	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	DS	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	FN	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	FS	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	MF	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	S+	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SF	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SO	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SR	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SS	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	TA	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	TF	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	TN	NA
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	DO	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	DS	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	FS	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	MF	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SF	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SO	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SR	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SS	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	ST	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SW	ND
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	2+	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	3+	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	5+	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	6+	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	7+	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	DO	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	DS	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	FN	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	FS	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	MF	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	S+	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SF	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SO	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SR	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	SS	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	TA	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	TF	NE
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	TN	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	2+	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	3+	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	5+	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	6+	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	7+	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	DO	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	DS	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	FN	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	FS	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	MF	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	S+	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SF	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SO	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SR	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SS	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	TA	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	TF	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	TN	NA
+f4bdeab0-eba1-11ea-8511-474d7bc12993	DO	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	DS	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	FS	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	MF	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SF	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SO	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SR	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SS	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	ST	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SW	ND
+f4bdeab0-eba1-11ea-8511-474d7bc12993	2+	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	3+	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	5+	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	6+	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	7+	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	DO	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	DS	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	FN	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	FS	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	MF	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	S+	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SF	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SO	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SR	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	SS	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	TA	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	TF	NE
+f4bdeab0-eba1-11ea-8511-474d7bc12993	TN	NE
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	DS	NA
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	MF	NA
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	FS	NA
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	SO	NA
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	TF	NA
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	TN	NA
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	FN	NA
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	DS	ND
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	MF	ND
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	FS	ND
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	SS	ND
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	DS	NE
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	MF	NE
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	FS	NE
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	SO	NE
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	TF	NE
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	TN	NE
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	FN	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	2+	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	3+	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	5+	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	6+	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	7+	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	DO	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	DS	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	FN	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	FS	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	MF	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	S+	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SF	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SO	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SR	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SS	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	TA	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	TF	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	TN	NA
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	DO	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	DS	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	FS	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	MF	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SF	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SO	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SR	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SS	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	ST	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SW	ND
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	2+	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	3+	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	5+	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	6+	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	7+	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	DO	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	DS	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	FN	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	FS	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	MF	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	S+	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SF	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SO	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SR	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	SS	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	TA	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	TF	NE
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	TN	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	2+	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	3+	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	5+	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	6+	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	7+	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	DO	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	DS	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	FN	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	FS	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	MF	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	S+	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SF	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SO	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SR	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SS	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	TA	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	TF	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	TN	NA
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	DO	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	DS	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	FS	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	MF	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SF	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SO	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SR	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SS	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	ST	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SW	ND
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	2+	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	3+	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	5+	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	6+	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	7+	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	DO	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	DS	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	FN	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	FS	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	MF	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	S+	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SF	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SO	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SR	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	SS	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	TA	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	TF	NE
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	TN	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	2+	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	3+	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	5+	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	6+	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	7+	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	DO	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	DS	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	FN	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	FS	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	MF	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	S+	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SF	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SO	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SR	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SS	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	TA	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	TF	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	TN	NA
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	DO	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	DS	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	FS	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	MF	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SF	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SO	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SR	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SS	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	ST	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SW	ND
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	2+	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	3+	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	5+	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	6+	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	7+	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	DO	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	DS	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	FN	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	FS	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	MF	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	S+	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SF	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SO	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SR	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	SS	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	TA	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	TF	NE
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	TN	NE
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	FN	NA
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	FS	NA
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	SO	NA
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	FS	ND
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	SO	ND
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	FN	NE
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	FS	NE
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	SO	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	2+	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	3+	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	5+	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	6+	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	7+	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	DO	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	DS	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	FN	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	FS	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	MF	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	S+	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SF	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SO	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SR	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SS	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	TA	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	TF	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	TN	NA
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	DO	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	DS	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	FS	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	MF	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SF	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SO	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SR	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SS	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	ST	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SW	ND
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	2+	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	3+	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	5+	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	6+	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	7+	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	DO	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	DS	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	FN	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	FS	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	MF	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	S+	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SF	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SO	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SR	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	SS	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	TA	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	TF	NE
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	TN	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	DS	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	SF	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	SS	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	TF	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	TN	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	2+	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	7+	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	DO	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	SO	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	S+	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	TA	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	FN	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	FS	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	6+	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	MF	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	SR	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	3+	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	5+	NE
+c8036ecc-1b72-4cf7-a374-f676311f7811	TA	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	TF	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	DO	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	MF	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	SR	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	FS	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	SS	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	2+	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	5+	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	SF	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	DS	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	FN	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	S+	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	SO	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	TN	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	3+	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	6+	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	7+	NA
+c8036ecc-1b72-4cf7-a374-f676311f7811	SR	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	SO	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	DS	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	FS	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	MF	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	SF	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	SS	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	ST	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	SW	ND
+c8036ecc-1b72-4cf7-a374-f676311f7811	DO	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	TF	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	7+	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SO	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	FS	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SF	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SS	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	TN	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	DO	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	DS	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	6+	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	MF	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SR	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	3+	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	5+	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	S+	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	TA	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	2+	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	FN	NA
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	DS	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	MF	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SF	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SR	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SS	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	ST	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SW	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	DO	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	FS	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SO	ND
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	5+	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	FS	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	DS	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	FN	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	MF	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	S+	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SF	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	TA	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	TN	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	2+	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	6+	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	7+	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	DO	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SR	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SS	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	3+	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	SO	NE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	TF	NE
+\.
+
+
+--
+-- Data for Name: offer_history; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offer_history (id, offer_id, user_id, modify_date, event, note, trace) FROM stdin;
+1	029007c6-5762-11eb-9147-c71d2095ad3f	1	2021-01-15 18:46:42.63373	CREATE		d837e9cc8ab4d25b1fc58635864177a9
+2	029007c6-5762-11eb-9147-c71d2095ad3f	1	2021-01-15 18:51:28.049019	PROMOTE		e1737caa7a3a2f4bda4110c777a8b820
+3	029007c6-5762-11eb-9147-c71d2095ad3f	1	2021-01-15 18:57:37.411202	MODIFY		a8466f53101b5d9e3ca9465e1c514db2
+4	029007c6-5762-11eb-9147-c71d2095ad3f	1	2021-01-15 18:58:14.665833	PROMOTE		551503af0986b902e342c11192a74969
+5	029007c6-5762-11eb-9147-c71d2095ad3f	1	2021-02-01 22:45:40.238665	MODIFY		b00185e971c77519077e9d708c61aa52
+6	029007c6-5762-11eb-9147-c71d2095ad3f	1	2021-02-01 22:46:52.666266	PROMOTE		116cbd46bd74f7745b6766b6eba7a989
+7	029007c6-5762-11eb-9147-c71d2095ad3f	1	2021-02-16 22:45:14.834562	MODIFY		1fcecffcb0181da573abcbbafc10617f
+8	029007c6-5762-11eb-9147-c71d2095ad3f	1	2021-02-16 22:46:34.196218	PROMOTE		bd1c929528b67dbd46cb13fd5d425bbf
+9	029007c6-5762-11eb-9147-c71d2095ad3f	1	2022-01-05 20:28:17.071716	MODIFY		9d193b7b71f51cdb36a104aaf86e0037
+10	029007c6-5762-11eb-9147-c71d2095ad3f	1	2022-01-05 20:30:43.794768	PROMOTE		3eb1eafcaa0dac33938c26ac94c22bb5
+11	033d3303-de4b-11ea-a319-6320d3f2fb09	2	2020-08-14 16:27:14.647735	CREATE		
+12	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2020-08-14 17:17:30.319223	PROMOTE		
+13	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2020-10-15 16:21:53.758209	MODIFY		48f6377d8bf78fbfa2b86ae9fe8bb6cc
+14	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2020-10-16 15:03:17.518569	PROMOTE		8834163123fc109ecd402c169e34fb6e
+15	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2020-12-18 16:42:36.282137	MODIFY		12d0812bd28e17923c948cfcad9f5e38
+16	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2020-12-22 14:34:29.068617	PROMOTE		60d0eeb47b2226380affc9a3f9a0449c
+17	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2021-11-22 17:29:05.785085	MODIFY		dcb7198fb1b66dbaf747fb3ccb291868
+18	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2021-11-22 17:29:43.734467	PROMOTE		f4666e9377b0908989bbfe1435a5f143
+19	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2022-06-06 14:57:08.391923	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	481296efd28eee3e52172433e0ea71e5
+20	033d3303-de4b-11ea-a319-6320d3f2fb09	1	2022-06-06 15:14:19.883382	PROMOTE		a26dad620993485e8ef9db0f9c46e57c
+21	034a69ad-d0d7-11ea-ad31-6380fc00472d	1	2020-07-28 13:34:07.997588	CREATE		
+22	034a69ad-d0d7-11ea-ad31-6380fc00472d	1	2020-07-28 18:31:13.037656	PROMOTE		
+23	034a69ad-d0d7-11ea-ad31-6380fc00472d	1	2020-12-18 17:32:08.906866	MODIFY	This 1 wk free offer should not be retired per DGP 8/2020\n12/21/20 added Care Placement	a83118c1f02ba84f150e18121b72ce16
+24	034a69ad-d0d7-11ea-ad31-6380fc00472d	1	2020-12-22 14:34:14.424029	PROMOTE		2f94792eaade76c7ab347fd42ecb3d11
+25	034a69ad-d0d7-11ea-ad31-6380fc00472d	1	2021-04-12 21:34:43.800206	MODIFY		13e7e3172fe43803b094bcce35f21e68
+26	034a69ad-d0d7-11ea-ad31-6380fc00472d	1	2021-04-12 21:55:27.824895	PROMOTE		534d1598f7ceb7e6ea79a019dfd0239d
+27	034a69ad-d0d7-11ea-ad31-6380fc00472d	1	2021-11-23 15:21:43.004335	MODIFY		d42a7362cf31692193faed064645522a
+28	034a69ad-d0d7-11ea-ad31-6380fc00472d	1	2021-11-23 15:24:59.950328	PROMOTE		027901a8218d298e6c3c7d78cd371c7f
+29	03552c9c-55d7-11eb-ae62-ee80a113c273	1	2021-01-13 19:39:12.71754	CREATE		99cf1b3fc9a4b599164259ba81fddbc7
+30	03552c9c-55d7-11eb-ae62-ee80a113c273	1	2021-01-13 19:39:41.267202	PROMOTE		0b21e0b922241744fbb1df3b21d458f5
+31	03552c9c-55d7-11eb-ae62-ee80a113c273	1	2021-04-19 16:04:06.523937	MODIFY		4b042c3d3130226887fe1843e36824ac
+32	03552c9c-55d7-11eb-ae62-ee80a113c273	1	2021-04-19 16:11:32.812936	PROMOTE		acc6df5265b877fa62878a86d0192e30
+33	03552c9c-55d7-11eb-ae62-ee80a113c273	1	2021-11-23 15:23:52.040296	MODIFY		dd726f32ab6c99d673e6a46ddf954044
+34	03552c9c-55d7-11eb-ae62-ee80a113c273	1	2021-11-23 15:25:31.322552	PROMOTE		abd995623d6da94a4ebbfe304f9a3d86
+35	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-03-29 14:10:41.652544	CREATE		c9066f6ee594e7ebbd4951d64320750e
+36	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-03-30 18:55:48.541522	MODIFY		f77ec6adcde014aad5a9f2d68bd715dc
+37	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-03-30 18:56:24.164583	MODIFY	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	42753c67f3b876e7830bd9cc9ffbe30d
+38	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-04-11 19:59:55.393723	MODIFY		2d0921a3f6105382289c27f386855b07
+39	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-04-13 16:24:18.135612	MODIFY		35752a49eeb3d2b25e8894191008f258
+40	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-04-13 16:25:06.658055	MODIFY		9e20d8297522986701bd1dcc496c6f66
+41	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-04-13 16:28:18.934203	PROMOTE		94c35b6630158b31ff4a7d277fbe5d2e
+42	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-04-20 21:43:09.767468	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	cd7c95c2a982d01bd2b46b20903513de
+43	0461584d-af6a-11ec-9421-5a740a103fd6	1	2022-04-20 21:47:21.783855	PROMOTE		8f12564e4e5dcb997be98033bdd17cbb
+44	048d3b39-f8f1-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:21:03.539283	CREATE		
+45	048d3b39-f8f1-11ea-aca5-1c2b82b39a01	1	2020-09-17 20:27:40.059064	PROMOTE		
+46	048d3b39-f8f1-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:01:44.682659	MODIFY		085833639080b0d649c405ce43cf3239
+47	048d3b39-f8f1-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:20:34.451584	PROMOTE		de2808757e4ed7afef2f57035dec5b69
+48	048d3b39-f8f1-11ea-aca5-1c2b82b39a01	1	2020-11-19 21:55:16.637185	MODIFY		21ca171f0333ce44143ae06e2603d3fa
+49	048d3b39-f8f1-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:07:50.31443	PROMOTE		94b974e1b1d6e84fc1faa9b60ad7c690
+50	04d08681-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:27:20.216336	CREATE		
+51	04d08681-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:53:26.321682	PROMOTE		
+52	04d08681-cda9-11ea-b464-e4d44f10848e	1	2020-12-18 16:30:38.294905	MODIFY	12/21/20 added Care Placement	b8c7ccbf30ccd650355511253ae2e670
+53	04d08681-cda9-11ea-b464-e4d44f10848e	1	2020-12-22 14:39:09.044872	PROMOTE		92d8e40f467598df267f5170c14c2845
+54	04d08681-cda9-11ea-b464-e4d44f10848e	1	2021-04-12 21:52:38.464682	MODIFY		25cfdef88323b8a0a522a8628814f205
+55	04d08681-cda9-11ea-b464-e4d44f10848e	1	2021-04-12 21:55:53.604547	PROMOTE		c6817536b34e702387443b967f9b0b43
+56	04d08681-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:22:25.475245	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	98858c33513dc281c368eaa5e940c654
+57	04d08681-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:54:17.705672	PROMOTE		cd447102ffaa7584470a3414ddbd1dd6
+58	04d08681-cda9-11ea-b464-e4d44f10848e	1	2021-11-19 16:33:45.71498	MODIFY	 Retired as part of EDU Decom per C Bland	afabad0e6a2fd174ed5c0d2c294c6dc7
+59	04d08681-cda9-11ea-b464-e4d44f10848e	1	2021-11-19 16:33:55.81155	PROMOTE		9e40a35af564d5dc43ed472240205d0c
+60	04d70792-b856-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:25:19.94101	CREATE		
+61	04d70792-b856-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:59:03.024641	PROMOTE		
+62	04d70792-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-03 18:23:15.005459	MODIFY		
+63	04d70792-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:45:35.041372	PROMOTE		
+64	04d70792-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-25 12:36:20.264262	MODIFY		
+65	04d70792-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-25 12:44:43.041621	PROMOTE		
+66	04d70792-b856-11e9-b8ef-27f7ec03ccac	2	2020-08-28 17:25:18.897764	MODIFY		
+67	04d70792-b856-11e9-b8ef-27f7ec03ccac	2	2020-08-28 17:25:28.13554	PROMOTE		
+68	04d70792-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-19 17:37:45.616194	MODIFY	added USD to name	c3687f5eef51d4277a59492b2833a9b5
+69	04d70792-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-19 17:38:09.575094	PROMOTE		35092f9c03630c9ff3861c3c5aa3d2ac
+70	04d70792-b856-11e9-b8ef-27f7ec03ccac	1	2022-01-26 15:24:47.427275	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	25a005bacf5242a221dd60ec74ba23cb
+71	04d70792-b856-11e9-b8ef-27f7ec03ccac	1	2022-01-26 15:32:47.759977	PROMOTE		0887ec82c7344c837b1fd720611d5c79
+72	05174641-48fe-11ea-bb45-b6d1d9c3f1b9	1	2020-02-06 16:30:43.252592	CREATE		
+73	05174641-48fe-11ea-bb45-b6d1d9c3f1b9	1	2020-02-14 21:47:17.650084	MODIFY		
+74	05174641-48fe-11ea-bb45-b6d1d9c3f1b9	1	2020-02-25 20:14:49.965115	MODIFY		
+75	05174641-48fe-11ea-bb45-b6d1d9c3f1b9	1	2020-02-28 20:26:26.817253	MODIFY		
+76	05174641-48fe-11ea-bb45-b6d1d9c3f1b9	1	2020-02-28 20:34:08.484141	MODIFY		
+77	05174641-48fe-11ea-bb45-b6d1d9c3f1b9	1	2020-03-02 14:14:30.003105	MODIFY		
+78	05174641-48fe-11ea-bb45-b6d1d9c3f1b9	4	2020-06-10 17:57:17.128855	PROMOTE		
+79	052f6daa-0a29-11ea-906e-925cd985ab3d	1	2019-11-18 17:29:48.515271	CREATE		
+80	052f6daa-0a29-11ea-906e-925cd985ab3d	4	2020-06-10 17:57:04.864085	PROMOTE		
+81	052f6daa-0a29-11ea-906e-925cd985ab3d	1	2020-11-20 17:28:42.397603	MODIFY		5752ab9db11ef9ece3f0e7a2d8954d68
+82	052f6daa-0a29-11ea-906e-925cd985ab3d	1	2020-11-20 17:28:52.407176	PROMOTE		be778e7fc3fea09c1df3e4661c0e3dbf
+83	052f6daa-0a29-11ea-906e-925cd985ab3d	2	2020-11-20 21:02:22.002737	MODIFY		59601188d5bc4800fd1b51e05f8d6b2d
+84	052f6daa-0a29-11ea-906e-925cd985ab3d	2	2020-11-20 21:02:31.524962	PROMOTE		ac27f8c20b3958888a4dd9b6fd863233
+85	059f1452-d0ed-11ea-ad31-6380fc00472d	1	2020-07-28 16:11:40.835954	CREATE		
+86	059f1452-d0ed-11ea-ad31-6380fc00472d	1	2020-07-28 19:48:00.340444	PROMOTE		
+87	059f1452-d0ed-11ea-ad31-6380fc00472d	1	2020-08-21 17:11:30.743663	MODIFY		
+88	059f1452-d0ed-11ea-ad31-6380fc00472d	1	2020-08-21 18:48:59.239522	PROMOTE		
+89	059f1452-d0ed-11ea-ad31-6380fc00472d	2	2020-08-26 22:55:45.858423	MODIFY		
+90	059f1452-d0ed-11ea-ad31-6380fc00472d	2	2020-08-26 22:55:54.182137	PROMOTE		
+91	05e63469-d036-11ea-a072-340cee6a52b6	1	2020-07-27 18:21:43.400564	CREATE		
+92	05e63469-d036-11ea-a072-340cee6a52b6	1	2020-07-27 19:12:14.827056	PROMOTE		
+93	05e63469-d036-11ea-a072-340cee6a52b6	1	2021-03-08 20:07:30.472975	MODIFY		1e0c9e54de33e922a0bbf69f0660c3eb
+94	05e63469-d036-11ea-a072-340cee6a52b6	1	2021-03-08 20:08:02.432359	PROMOTE		42fef16af0fb29c940bfbfc0a5019350
+95	05e63469-d036-11ea-a072-340cee6a52b6	1	2021-03-08 20:31:08.33899	MODIFY		d3198ba0fadcef03248c73083fbb578f
+96	05e63469-d036-11ea-a072-340cee6a52b6	1	2021-03-08 20:31:19.851627	PROMOTE		d8c56b79611060226057386239e789c6
+97	05e63469-d036-11ea-a072-340cee6a52b6	1	2021-10-28 14:29:12.551872	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	99d7e57256da35da185964e6c23f0695
+98	05e63469-d036-11ea-a072-340cee6a52b6	1	2021-10-28 14:54:15.709642	PROMOTE		66e80ae602b8d720fadafe01b876b78f
+99	05e63469-d036-11ea-a072-340cee6a52b6	1	2021-11-19 15:09:09.26993	MODIFY	11/19/21 - Acquisition no longer desired - retired per C Bland	e143b0f1a4062a976acc51a25b30219e
+100	05e63469-d036-11ea-a072-340cee6a52b6	1	2021-11-19 15:12:42.532633	PROMOTE		ba4b1bb5a60cd648d1c9cc8226b5bfbe
+101	06d93d03-d039-11ea-aff7-6ff2a1213fc4	1	2020-07-27 18:43:13.483498	CREATE		
+102	06d93d03-d039-11ea-aff7-6ff2a1213fc4	1	2020-07-27 19:18:06.877009	PROMOTE		
+103	06d93d03-d039-11ea-aff7-6ff2a1213fc4	1	2020-11-09 15:46:35.571531	MODIFY		215e162405f5b705e052cb5783fc9e2f
+104	06d93d03-d039-11ea-aff7-6ff2a1213fc4	1	2020-11-09 15:46:35.623443	MODIFY		3875e14bb45456c820cbd34ab4a4b930
+105	06d93d03-d039-11ea-aff7-6ff2a1213fc4	1	2020-11-09 16:21:08.874983	PROMOTE		d476ba2827b4ec6397f66277d3d5a1f7
+106	08016838-0a34-11ea-906e-925cd985ab3d	2	2019-11-18 18:48:37.710857	CREATE		
+107	08016838-0a34-11ea-906e-925cd985ab3d	4	2020-06-10 17:58:43.796879	PROMOTE		
+108	08016838-0a34-11ea-906e-925cd985ab3d	1	2021-03-08 20:41:00.250189	MODIFY		40cc1092bc92ddcbd6776ccad79882dd
+109	08016838-0a34-11ea-906e-925cd985ab3d	1	2021-03-08 20:41:29.813242	PROMOTE		a37e5221e38b866cda0b640fd4f0b89b
+110	08016838-0a34-11ea-906e-925cd985ab3d	1	2021-11-09 14:26:20.012361	MODIFY	Retired and Remove audience 119717 and added to OM-10020 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	426d8d328d9b8c3b52239d544ec59af0
+111	08016838-0a34-11ea-906e-925cd985ab3d	1	2021-11-15 14:44:38.655283	MODIFY		a77f36542a37427a3ad48616182a1102
+112	08016838-0a34-11ea-906e-925cd985ab3d	1	2021-11-15 14:48:02.969072	PROMOTE		6809de970dd392a17ef1513ab406653c
+113	0967ccde-f6b4-11ea-86ee-6b82e87912c1	2	2020-09-14 17:59:30.056532	CREATE		
+114	0967ccde-f6b4-11ea-86ee-6b82e87912c1	2	2020-09-14 18:00:26.309537	PROMOTE		
+115	0967ccde-f6b4-11ea-86ee-6b82e87912c1	1	2020-11-09 15:58:26.111796	MODIFY		8934efe94050c9fca2e12fe13cd1d2c1
+116	0967ccde-f6b4-11ea-86ee-6b82e87912c1	1	2020-12-01 15:26:56.583735	PROMOTE		7f6ecd9ea9114bb46e2d32fafee7cf9a
+117	099edc98-0a35-11ea-906e-925cd985ab3d	1	2019-11-18 18:55:49.917202	CREATE		
+118	099edc98-0a35-11ea-906e-925cd985ab3d	4	2020-06-10 17:57:10.068712	PROMOTE		
+119	099edc98-0a35-11ea-906e-925cd985ab3d	1	2021-03-19 13:24:40.335393	MODIFY	3/19/2021 - removed Audience 119643 and retired offer - Audience moved to OM-10906	d3c42a53bde491354f4bd462b1ff0da0
+120	099edc98-0a35-11ea-906e-925cd985ab3d	1	2021-03-19 13:35:22.872621	PROMOTE		b8789c9508a656a7607a5ad5173d8f42
+121	099edc98-0a35-11ea-906e-925cd985ab3d	1	2022-03-24 22:20:33.033778	MODIFY	Correction - Audience moved to OM-10020	c4931154daa1953912fa94a26d112b76
+122	099edc98-0a35-11ea-906e-925cd985ab3d	1	2022-04-15 15:44:27.913269	PROMOTE		0e167f843b51bf20ba9fc93964c21989
+123	0a3ff9f6-e940-11ea-873f-74f46cae88b8	5	2020-08-28 15:06:24.736515	CREATE		
+124	0a3ff9f6-e940-11ea-873f-74f46cae88b8	5	2020-09-03 20:48:24.655537	PROMOTE		
+125	0a3ff9f6-e940-11ea-873f-74f46cae88b8	1	2020-09-18 15:07:50.015633	MODIFY		
+126	0a3ff9f6-e940-11ea-873f-74f46cae88b8	1	2020-09-18 15:08:01.477503	PROMOTE		
+127	0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	1	2022-04-01 14:07:18.701426	CREATE	Created Test Offer for QA testing of offer chains using UUID instead of OC	40c5d30efe8a33e75cacbe32d4bd5660
+128	0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	1	2022-04-01 16:40:31.401955	MODIFY		73e46d9670a8e1428b4b815f4c743924
+129	0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	1	2022-04-19 18:44:53.917083	PROMOTE		cf9a11430bb1e9c81568dca7b36e8b35
+130	0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	1	2022-04-19 18:46:20.09168	MODIFY		6d5f4c3d352f613de10b6a0d186b2370
+131	0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	1	2022-04-19 18:46:36.362389	PROMOTE		e1227e2ce4e9f0cc3a7d712c7332a0db
+132	0d40a8da-ee27-11ea-8a86-0bd413f6e205	2	2020-09-03 20:50:08.169802	CREATE		
+133	0d40a8da-ee27-11ea-8a86-0bd413f6e205	2	2020-09-04 13:49:34.816485	PROMOTE		
+134	0d40a8da-ee27-11ea-8a86-0bd413f6e205	1	2020-09-16 18:14:23.639281	MODIFY		
+135	0d40a8da-ee27-11ea-8a86-0bd413f6e205	1	2020-09-16 18:14:31.31901	PROMOTE		
+136	0d40a8da-ee27-11ea-8a86-0bd413f6e205	1	2020-11-11 19:51:02.361946	MODIFY		a86709e692632856c2554407dee95d29
+137	0d40a8da-ee27-11ea-8a86-0bd413f6e205	1	2020-11-11 19:57:58.189391	PROMOTE		777d129e52a38504c91f30847852a1fb
+138	0d40a8da-ee27-11ea-8a86-0bd413f6e205	2	2020-11-19 22:05:14.664788	MODIFY		3a2c061cb14118188f974056abcf7f0c
+139	0d40a8da-ee27-11ea-8a86-0bd413f6e205	2	2020-11-19 22:05:22.183688	PROMOTE		d582698edf2d04976f17d1b9a01e40e2
+140	0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	1	2021-05-28 13:53:16.868255	CREATE	Created per DGP, Cooking international pricing - ROW high-conversion markets only	c925d07ddc92e05c52468fcc77a24a96
+141	0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	1	2021-05-28 14:04:14.009381	PROMOTE		a2492d933a7722fa504a9ff36308a7f9
+142	0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	1	2021-11-23 15:40:59.19752	MODIFY		89bbd6534ba3bc75a953bb252e785541
+143	0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	1	2021-11-23 15:41:20.789954	PROMOTE		e51c586bbab1825d1dc4857ec6a46405
+144	0fd0fb67-cdae-11ea-b464-e4d44f10848e	1	2020-07-24 13:03:26.157914	CREATE		
+145	0fd0fb67-cdae-11ea-b464-e4d44f10848e	1	2020-07-27 13:14:14.332438	PROMOTE		
+146	0fd0fb67-cdae-11ea-b464-e4d44f10848e	1	2020-11-09 15:40:09.359805	MODIFY		16ab4dec919f19db1eb6486b0b7cbc4d
+147	0fd0fb67-cdae-11ea-b464-e4d44f10848e	1	2020-11-09 16:20:55.917395	PROMOTE		e96a621fa6de84bdd32b7ae3b1f9907b
+148	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-07-27 16:48:56.63251	CREATE		
+149	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-07-27 16:58:24.375959	PROMOTE		
+150	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-08-24 17:01:14.17179	MODIFY		
+151	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-08-24 17:01:25.500423	PROMOTE		
+152	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-09-03 12:46:42.467474	MODIFY		
+153	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-09-03 12:46:55.389415	PROMOTE		
+154	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-10-08 19:12:30.238825	MODIFY		01ed84fa240c19a6e567fb49158a4fc9
+155	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-10-08 19:12:43.690065	PROMOTE		c12ac32b08f5aa3f5df9718a256bbac8
+156	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-10-15 17:19:46.77381	MODIFY		6557435b33c45d5b85bac979e44ff057
+157	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-10-16 15:03:08.755213	PROMOTE		38917a0391e40b1e91adb83082da7ccc
+158	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-11-20 20:15:52.997894	MODIFY		6544db9ebe66e2782536f6b49d9aa1ec
+159	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-11-20 20:16:39.947967	MODIFY		c2e21631d0d9f153415836fae6128852
+160	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2020-11-20 20:16:50.776109	PROMOTE		a1eef9a59585779342ba9716fee56bf9
+161	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2021-04-12 21:34:08.796602	MODIFY		a6fa80ed002da4276f64ef0290f9cfcc
+162	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2021-04-12 21:55:24.312785	PROMOTE		d23935da4897c35e526d0f4b0dd617f9
+163	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2021-11-23 14:55:07.841651	MODIFY		5a740d1c9d28a85701392ab85aea7d79
+164	0fd8cf46-d029-11ea-a072-340cee6a52b6	1	2021-11-23 14:57:27.537377	PROMOTE		ff81f257b998015334dc09204ec136e8
+165	107ef951-a403-11e9-b054-57354076a64c	3	2019-07-11 17:41:08.012478	CREATE		
+166	107ef951-a403-11e9-b054-57354076a64c	1	2020-02-14 21:30:29.185746	MODIFY		
+167	107ef951-a403-11e9-b054-57354076a64c	4	2020-06-10 17:55:24.424206	PROMOTE		
+168	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2020-07-24 12:20:32.912185	CREATE		
+169	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2020-07-24 12:52:58.786959	PROMOTE		
+170	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2020-07-29 14:19:19.851019	MODIFY		
+171	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2020-07-29 14:19:42.821029	MODIFY		
+172	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2020-08-03 18:05:02.498515	MODIFY		
+173	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2020-08-05 19:21:25.494939	PROMOTE		
+174	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2020-11-09 15:14:16.740984	MODIFY		c3b74694810e848add11205c388189d3
+175	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2020-11-09 16:27:10.310852	PROMOTE		23a5a9204e249339781b1d7614f08c58
+176	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2021-04-19 15:58:18.31838	MODIFY		e897aab1aa86c6606aaaed00418ea104
+177	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2021-04-19 16:11:10.907064	PROMOTE		6c99e622ea0224ded59a720f4b7bc949
+178	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2021-11-19 18:10:26.473862	MODIFY		b4b59db5adf70a28598054907b3b9964
+179	120ad7dc-cda8-11ea-b464-e4d44f10848e	1	2021-11-19 18:10:53.284081	PROMOTE		18d2fa79972b2b8084cb7f25ca361df0
+180	1215fdec-a405-11e9-9b37-8232a257eff4	3	2019-07-11 17:55:29.673376	CREATE		
+181	1215fdec-a405-11e9-9b37-8232a257eff4	1	2020-02-04 19:52:02.958392	MODIFY		
+182	1215fdec-a405-11e9-9b37-8232a257eff4	1	2020-02-14 21:31:41.07533	MODIFY		
+183	1215fdec-a405-11e9-9b37-8232a257eff4	1	2020-02-28 20:20:07.253023	MODIFY		
+184	1215fdec-a405-11e9-9b37-8232a257eff4	4	2020-06-10 17:56:57.373919	PROMOTE		
+185	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-07-27 16:41:51.599362	CREATE		
+186	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-07-27 16:55:43.941492	PROMOTE		
+187	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-07-29 20:53:49.513912	MODIFY		
+188	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-08-03 20:08:57.222744	MODIFY		
+189	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-08-05 19:53:05.91836	PROMOTE		
+190	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-08-24 17:03:22.648198	MODIFY		
+191	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-08-24 17:03:31.232785	PROMOTE		
+192	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-09-03 12:47:37.868597	MODIFY		
+193	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-09-03 12:47:57.016562	PROMOTE		
+194	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-10-15 17:18:50.530384	MODIFY		48041d07174fa0f012076757bdb8462a
+195	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-10-16 15:03:02.392612	PROMOTE		eec6ec1dca28dec7ff2bf18e675dfa41
+196	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-11-20 19:58:06.100008	MODIFY		0c4f1723bb6a587193083934d07af90c
+197	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-11-20 19:58:15.710187	PROMOTE		15a86f31b9e9ed6c122cbc6c01070705
+198	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-11-20 21:25:34.441034	MODIFY		d8c9a789aedcf3217e3a5488593dc16a
+199	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2020-11-20 21:25:57.589638	PROMOTE		702fde2d0edb52ca803fc055072abbc2
+200	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2021-11-22 19:22:48.353463	MODIFY		7bc2996f4a4794d8803b92546fde91ee
+201	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2021-11-22 19:23:33.844383	PROMOTE		d040f6afdec4c8d53ee6db143e59b823
+202	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2022-02-17 20:07:56.629271	MODIFY	Updated name to include INTL per Caseys request - OC request states "These offers should only be used in the UK, Europe, India, and ROW. They should NOT be used in Canada and Australia.'	ec09bd1390e6293d49706bd05ce58797
+203	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2022-02-17 20:08:10.889625	PROMOTE		b789f82b2a7fe81c950c96665fdeda64
+204	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2022-02-17 20:35:20.378218	MODIFY		12e7be455171ad7eabd850f08cd7833c
+205	1281e5fc-d028-11ea-a072-340cee6a52b6	1	2022-02-17 20:35:33.34679	PROMOTE		658bfccbc59e9a317c16b9b2a6719db1
+206	1397b922-bfb9-11eb-b23b-9ac57c61bc8b	1	2021-05-28 13:31:58.350171	CREATE	Created per DGP, Games international annual offer - ROW low-conversion market	8d296e3f0c65239e51f2ecc41ca06355
+207	1397b922-bfb9-11eb-b23b-9ac57c61bc8b	1	2021-05-28 14:03:43.892804	PROMOTE		0c339802496062a0ade23df9ed37ecd2
+208	1397b922-bfb9-11eb-b23b-9ac57c61bc8b	1	2021-11-23 15:31:05.777589	MODIFY		966e11156a141742db3607cfd01749af
+209	1397b922-bfb9-11eb-b23b-9ac57c61bc8b	1	2021-11-23 15:32:28.462737	PROMOTE		aee529748e7eeb627a0e521bf4c384aa
+210	14269461-d8c7-11ea-96df-09ccd10d7717	1	2020-08-07 16:00:13.638565	CREATE		
+211	14269461-d8c7-11ea-96df-09ccd10d7717	1	2020-08-07 16:00:23.922126	PROMOTE		
+212	14269461-d8c7-11ea-96df-09ccd10d7717	1	2021-02-05 14:19:04.257776	MODIFY		caa0c879a22af16e90019cf36ad39fb7
+213	14269461-d8c7-11ea-96df-09ccd10d7717	1	2021-02-05 14:19:15.652084	PROMOTE		c3fb7737b525998631e2cd468cd7c5e6
+214	14269461-d8c7-11ea-96df-09ccd10d7717	1	2021-02-16 14:18:40.707588	MODIFY		f11a450764340a32ef833276fc63c600
+215	14269461-d8c7-11ea-96df-09ccd10d7717	1	2021-02-16 14:24:47.925001	PROMOTE		c5097a35201951bb81f355d5a5789220
+216	14269461-d8c7-11ea-96df-09ccd10d7717	1	2021-02-16 22:42:30.087901	MODIFY		8f694a3d1bb60dd03e6ac2f13fca38c9
+217	14269461-d8c7-11ea-96df-09ccd10d7717	1	2021-02-16 22:44:23.501179	PROMOTE		3f398710c4b17e46e7d2866540e123ae
+218	14269461-d8c7-11ea-96df-09ccd10d7717	1	2021-12-01 16:19:32.577972	MODIFY		b7845991214a10195a0d3f5c5d19cb1c
+219	14269461-d8c7-11ea-96df-09ccd10d7717	1	2021-12-01 16:20:28.170751	PROMOTE		4d0495b68271630c46a207eb6bdec16a
+220	14d76c02-e641-11ea-88ad-572ccad7258d	1	2020-08-24 19:36:18.514644	CREATE		
+221	14d76c02-e641-11ea-88ad-572ccad7258d	1	2020-08-25 16:25:48.712183	PROMOTE		
+222	15e8baa0-cac0-11ea-8f53-5e33337a53ad	1	2020-07-20 19:34:53.832677	CREATE		
+223	15e8baa0-cac0-11ea-8f53-5e33337a53ad	1	2020-07-24 12:42:16.935032	PROMOTE		
+224	15e8baa0-cac0-11ea-8f53-5e33337a53ad	1	2020-11-09 15:44:53.208835	MODIFY		5464ae440e7fc58a02a384201cee8326
+225	15e8baa0-cac0-11ea-8f53-5e33337a53ad	1	2020-11-09 16:19:47.753699	PROMOTE		d5790833c870dad182bf0db69824c08a
+226	16106c3e-ebd9-11ea-a5d4-0e3f852a5fd7	2	2020-08-31 22:26:59.88271	CREATE		
+227	16106c3e-ebd9-11ea-a5d4-0e3f852a5fd7	2	2020-08-31 22:27:19.570705	PROMOTE		
+228	16106c3e-ebd9-11ea-a5d4-0e3f852a5fd7	1	2020-11-09 15:56:52.356967	MODIFY		d0985ade252484374e2525a5c5061305
+229	16106c3e-ebd9-11ea-a5d4-0e3f852a5fd7	1	2020-11-09 16:25:09.432178	PROMOTE		4d25e26cb280bc5b8370d6ecafe70fc9
+230	170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	1	2022-03-22 15:16:47.02206	CREATE		8afcea75e74819d7ea38606ee096eb96
+231	170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	2	2022-03-22 15:59:40.318897	PROMOTE		e2dec4dedca8b56eafb1c1402b9dfcad
+232	170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	1	2022-03-22 16:46:54.712759	MODIFY		9fdb6d8735cb2b84de265cb749f21f16
+233	170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	1	2022-03-22 16:47:08.326389	PROMOTE		ea59b04bf4b7c4d00c9c72da68e81d51
+234	17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	1	2020-12-01 18:14:46.439055	CREATE		0301d2939ee75d67f9e28087f8b62341
+235	17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	1	2020-12-01 18:16:23.956664	PROMOTE		80ad03a79b88eb38463bedb4df0f04c5
+236	17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	1	2021-10-04 16:51:01.539989	MODIFY	Name Changed from HD Premium 50% off for 24 weeks RC2 2020 - Premium removed and promo changed from PEN I11 + RDGT Pending Launch	b0116dff6e622e6ac1dd21924f688a67
+237	17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	1	2021-10-11 16:03:11.703954	PROMOTE		a447b2a52fe675e655cb07727a317695
+238	17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	1	2022-05-31 16:40:14.921254	MODIFY		9c435109a602a943ec20bed569cc0f07
+239	17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	1	2022-05-31 16:41:29.641551	PROMOTE		a4d1a8aa4123bac6e93456970c710b70
+240	1836d5c0-aa0b-11ec-8de1-96d53f801633	1	2022-03-22 18:08:36.925296	CREATE		f3218328c4c7e4ccff1cb81a134663f3
+241	1836d5c0-aa0b-11ec-8de1-96d53f801633	1	2022-03-22 18:09:02.922035	PROMOTE		964f8dcce13ee0d48d9264af1f0c4af3
+242	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-07-27 18:54:39.309903	CREATE	Created per S Wang - see OC request	21aa7d1033c0e507398145db102636f1
+243	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-07-28 13:35:06.608644	PROMOTE		4a5c0fb267315beec46cbb8c77273e0e
+244	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-10-22 17:29:38.301703	MODIFY		64c944230291796edf972e3ac3af099e
+245	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-10-22 17:31:54.662093	MODIFY	Added Type=Cancel the Cancel and Placement=Account per Megan Elliotts request https://jira.nyt.net/browse/MOI-11360	4fe6b906c565b7c88cae8c44217e1c6f
+246	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-10-22 17:56:25.963156	PROMOTE		bbb0d161a1f6347e9c8345f397852b9d
+247	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-11-23 17:50:07.075631	MODIFY		a779c56b88541c44fabcd0f9ecd81312
+248	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-11-23 17:51:11.62194	PROMOTE		ead548f6d5b628a8c806caad39dd7ec0
+249	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-12-09 14:28:54.114054	MODIFY	Added OLC per M Elliott -https://docs.google.com/spreadsheets/d/1UUEfG3nEWSoXHSTLTItqZiBW536_wL_i9O_Gx9EcacM/edit#gid=1153944505	063a86e28a497d2f5710af92ab668c35
+250	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2021-12-09 15:47:29.660878	PROMOTE		16ae8b26085ec6d27b53dab956c6718e
+251	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2022-04-20 21:35:28.532082	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	e3dcae66104ab4bdcad7fe159e8d35a0
+252	18689d2d-ef0c-11eb-a542-97973f1f4bd8	1	2022-04-20 21:42:16.93353	PROMOTE		04367ae702d1e6e3985be7629c4cddeb
+253	1904c3a1-324d-11ea-a70d-8a8989bb29aa	1	2020-01-08 19:28:50.1835	CREATE		
+254	1904c3a1-324d-11ea-a70d-8a8989bb29aa	4	2020-06-10 17:58:12.218072	PROMOTE		
+255	1904c3a1-324d-11ea-a70d-8a8989bb29aa	1	2020-08-03 19:59:55.581605	MODIFY		
+256	1904c3a1-324d-11ea-a70d-8a8989bb29aa	1	2020-08-05 19:48:32.637177	PROMOTE		
+257	1904c3a1-324d-11ea-a70d-8a8989bb29aa	1	2021-01-11 16:24:26.435744	MODIFY		e0f828585172089eef04cb8cad783bdb
+258	1904c3a1-324d-11ea-a70d-8a8989bb29aa	1	2021-01-11 16:24:38.004433	PROMOTE		c692a800bac8dbeacdb98c85a7cfe6a0
+259	1904c3a1-324d-11ea-a70d-8a8989bb29aa	1	2021-04-19 15:52:09.035468	MODIFY		eaaad735e9cac2634f88c168ea5db4d2
+260	1904c3a1-324d-11ea-a70d-8a8989bb29aa	1	2021-04-19 16:11:04.025924	PROMOTE		5b413e7b7c1a897b63f5a38dfbaa7d9d
+261	1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	1	2021-08-09 20:19:29.213847	CREATE		05db03a6b33b3efb303562a064f6a6a0
+262	1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	1	2021-08-10 13:41:54.430517	PROMOTE		6bfdb3c8dc9cb68028f5038d2bdc67b0
+263	1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	1	2021-11-23 17:50:47.387715	MODIFY		080244bfda0ac354c685aeaa512fa215
+264	1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	1	2021-11-23 17:51:20.63199	PROMOTE		6e3cc0e2fbbbd12ff61ff8134355353a
+265	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-04 13:46:57.829413	CREATE		
+266	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-16 18:02:37.275139	MODIFY		
+267	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-16 18:02:46.400313	PROMOTE		
+268	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:44:48.821155	MODIFY		05bb8595575928ca16c1e6a9b789769a
+269	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:46:49.580355	MODIFY		5947fc37ecc06e568b763232d648717a
+270	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:48:34.495732	PROMOTE		2cd665b88ba98a881701f79eff52fea5
+271	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:40:51.989298	MODIFY		034cc75fc6038da3db2ab9fbc1957775
+272	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:58:32.852688	PROMOTE		e8ded4d9435965e120a161c7c430e8b9
+273	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:14:43.499897	MODIFY		c6174ca1aba8782a3cf6f1bae3653f7b
+274	19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	1	2020-11-19 22:19:16.189292	PROMOTE		f6f235abbced566f90a4fe5dc32d9cd1
+275	1a55c799-0a2a-11ea-906e-925cd985ab3d	1	2019-11-18 17:37:33.495494	CREATE		
+276	1a55c799-0a2a-11ea-906e-925cd985ab3d	1	2020-04-17 18:33:55.650956	MODIFY		
+277	1a55c799-0a2a-11ea-906e-925cd985ab3d	4	2020-06-10 17:57:37.115107	PROMOTE		
+278	1a81898a-d0e2-11ea-ad31-6380fc00472d	1	2020-07-28 14:53:31.410474	CREATE		
+279	1a81898a-d0e2-11ea-ad31-6380fc00472d	1	2020-07-28 18:31:42.272006	PROMOTE		
+280	1a81898a-d0e2-11ea-ad31-6380fc00472d	1	2020-12-18 17:43:45.671144	MODIFY	12/21/20 added Care Placement	7a40c6c05b320a0510df09156358adb7
+281	1a81898a-d0e2-11ea-ad31-6380fc00472d	1	2020-12-22 14:34:04.851573	PROMOTE		7c32bc45e127a88e480bfde98d0b6c0c
+282	1a81898a-d0e2-11ea-ad31-6380fc00472d	1	2021-02-12 16:32:56.245883	MODIFY		367f8f56ed4841d997ad2af0ad32ba71
+283	1a81898a-d0e2-11ea-ad31-6380fc00472d	1	2021-02-12 16:39:10.526879	PROMOTE		a0b82ca2fbc31e7c8d7d2baa672c3738
+284	1a81898a-d0e2-11ea-ad31-6380fc00472d	1	2021-11-23 15:23:14.144791	MODIFY		8a3ae0c8bb5f0c2484bb8524ac5278ce
+285	1a81898a-d0e2-11ea-ad31-6380fc00472d	1	2021-11-23 15:25:22.438995	PROMOTE		c144bf758cd782814131aca4e426bde1
+286	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2019-12-10 18:37:25.187014	CREATE		
+287	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-21 16:23:55.074248	MODIFY		
+288	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-22 20:09:42.26963	MODIFY		
+289	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-02-14 16:49:18.079741	MODIFY		
+290	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-02-21 13:32:23.285925	MODIFY		
+291	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	4	2020-06-10 17:57:50.052104	PROMOTE		
+292	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-07-27 16:49:58.566016	MODIFY		
+293	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-08-03 13:40:06.162271	MODIFY		
+294	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-08-05 20:11:45.21891	PROMOTE		
+295	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-08-17 17:00:22.904247	MODIFY		
+296	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-08-17 17:00:57.958798	PROMOTE		
+297	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-11-20 20:24:16.360864	MODIFY		6ef7303b14aa304c385cf616a4ef8780
+298	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2020-11-20 20:26:29.43043	PROMOTE		47914858e57a47cc3a7d2fbfbda90782
+299	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2021-09-28 16:11:27.586826	MODIFY		cf685dd1608a478ccbab3dd44422047e
+300	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2021-09-28 17:25:39.750517	PROMOTE		ff6b8e1fe5cca5c394bfa6027263f2b8
+301	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2022-03-04 15:37:31.369209	MODIFY	3/4/2022 Added OnLine Cancel Placement per request in Monday	f9768d8494d6cfdffde40043feaec16c
+302	1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	1	2022-03-04 15:38:40.956419	PROMOTE		4d6bb37f04f9aef040cd31b0106bf01e
+303	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	1	2021-08-10 16:07:51.046098	CREATE	Set up for SPSO - https://docs.google.com/spreadsheets/d/1c65TIboHyoM3zyqtpPTcHlmsGuAo10aWXZidv226nWk/edit#gid=1153944505	5466a8edd8705feb4b8289889631bea6
+304	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	1	2021-08-10 16:27:20.50942	MODIFY	corrected link - https://docs.google.com/spreadsheets/d/1CX_3x_LtCIEvTBn48Gl7KAEQOH7Sytv29RUweU1QoRk/edit#gid=0	280470a95aeca91d085a3d7cb36afd08
+305	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	2	2021-08-10 17:04:48.165268	PROMOTE		cf554dd7798ea359934fa7ac328741fd
+306	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	2	2021-11-09 17:52:49.852878	MODIFY	Added cancel the cancel and account per Megan Elliotts request 	f239a82ca7e4457427d3ee49b1fd1362
+307	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	2	2021-11-09 17:52:59.652184	PROMOTE		9bd8acd3a0c38ce4e28dcee263d18685
+308	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	1	2021-11-23 18:08:18.667185	MODIFY		59ec93d13a9e2511658fbbbb07bfef25
+309	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	1	2021-11-23 18:40:27.960878	PROMOTE		b81586bb9c6141b867b8177a7896be68
+310	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	1	2021-12-09 14:32:11.523231	MODIFY	Added OLC per M Elliott -https://docs.google.com/spreadsheets/d/1UUEfG3nEWSoXHSTLTItqZiBW536_wL_i9O_Gx9EcacM/edit#gid=1153944505	f8af76d977ece80d4d31774ec0c476db
+311	1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	1	2021-12-09 15:47:16.04976	PROMOTE		488e0acdaefbb0c27b1e784654998abd
+312	1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	5	2020-11-03 21:25:38.447156	CREATE		6c915501725707e6fa215cdee623830d
+313	1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	1	2020-11-05 16:45:03.834875	MODIFY		d56bc942f11715eb1f56307179e8d5ff
+314	1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	1	2020-11-10 17:56:57.195162	PROMOTE		2a754a85e763d2ef6533d3c82081f23c
+315	1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	1	2021-10-04 17:07:24.730971	MODIFY	Premium removed and promo changed from PEN I15 + RDGT Pending Launch	6f8da21c65ebb6ff71c9545752b7d3c6
+316	1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	1	2021-10-11 16:03:39.662453	PROMOTE		09f98c76020f85fa55a907f6089a4635
+317	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2020-11-17 21:09:04.900156	CREATE		eccf402f5860b40b40a3bd51de036622
+318	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2020-11-17 21:12:53.717719	PROMOTE		f5b85931cb2ff49635ea5fa16de1bcb8
+319	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2020-12-18 17:41:12.058133	MODIFY	12/21/20 added Care Placement	0ed76a79d351475c88e99d7bb38ab796
+320	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2020-12-22 14:38:38.44022	PROMOTE		44452432059026f5e3879f87ed19060c
+321	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2021-02-18 15:45:40.737542	MODIFY		702b2331d5c1ec25a7f943c73c4866c6
+322	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2021-02-18 15:47:08.940901	PROMOTE		1c8d71ecdd020e5f12a4f0b3c52acd99
+323	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2021-04-12 21:45:44.591227	MODIFY		5901ff867667253b9344a5ed3a548880
+324	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2021-04-12 21:56:06.341978	PROMOTE		c1b0be954e03d736f35bbf17cd9ff296
+325	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2021-04-19 16:02:32.752569	MODIFY		8d1456608ed4903e502fad92d5fcd088
+326	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2021-04-19 16:11:29.101204	PROMOTE		ba9849735b0e07a9a6fd81b49e4130a8
+327	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2021-11-23 15:22:14.365222	MODIFY		91a2086298ee67bae5d336c118bd8c46
+328	1fc731ee-2919-11eb-888e-7775a2a63ef9	1	2021-11-23 15:25:10.083122	PROMOTE		75aefb0ce54408fc96318dd16cd15121
+329	1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	1	2021-08-10 14:20:33.916243	CREATE	Set up for SPSO - https://docs.google.com/spreadsheets/d/1c65TIboHyoM3zyqtpPTcHlmsGuAo10aWXZidv226nWk/edit#gid=1153944505	4d8cad4588d80fd7e2e28a318cd3b4fa
+330	1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	1	2021-08-10 16:24:21.740954	MODIFY	corrected link - https://docs.google.com/spreadsheets/d/1CX_3x_LtCIEvTBn48Gl7KAEQOH7Sytv29RUweU1QoRk/edit#gid=0	55906d30b0710c9c929277d49b9f6bd6
+331	1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	2	2021-08-10 16:58:53.840292	PROMOTE		87c5ef9b21c03f67b9b6a36e16e31a4a
+332	1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	1	2021-11-23 14:39:57.813063	MODIFY		798c32d4c1b31612942149e74d8dc810
+333	1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	1	2021-11-23 14:40:16.601892	PROMOTE		0961ccb319f4870bb347c8061f97a157
+334	1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	1	2022-04-20 21:36:13.589706	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	36cca2f4240a70a6b40a668a5e93bd02
+335	1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	1	2022-04-20 21:42:21.223511	PROMOTE		31ccdf45f4234c7bb1631d68108837eb
+336	203cc375-a94e-11ec-b2de-ce44c8f6c5cb	1	2022-03-21 19:35:55.504104	CREATE		7d0abecaf71e5b1043ddee0b133ad1da
+337	203cc375-a94e-11ec-b2de-ce44c8f6c5cb	2	2022-03-22 15:59:54.454842	PROMOTE		d2531fd8e36d83b1d4108c656d60e3d1
+338	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2020-07-28 15:50:57.138397	CREATE		
+339	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2020-07-28 19:48:04.847395	PROMOTE		
+340	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2020-09-24 00:21:00.748712	MODIFY		
+341	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2020-09-24 00:21:10.236719	PROMOTE		
+342	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2020-12-18 16:14:54.928438	MODIFY	12/18/20 Added Care Placement	eb3b9256483ab9ce6bb3c3e48df73ad1
+343	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2020-12-22 14:38:48.165808	PROMOTE		a56699d207650b6b289d9640e31ebef4
+344	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2021-04-12 21:51:57.388903	MODIFY		9d4d1ba69796c7e006faa3b78e74ff79
+345	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2021-04-12 21:55:59.20549	PROMOTE		5c70ad98a334d5073b502f2c17ae8342
+346	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2021-09-28 16:33:03.159623	MODIFY		296c5a0faa386b36479ca8824e076900
+347	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2021-09-28 17:27:22.094343	PROMOTE		0fb173be258f56a884cac9fc05ae638a
+348	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2021-10-28 14:32:17.364292	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	df08b6ab53e2bf76006f3313dea5b27e
+349	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2021-10-28 14:53:51.692008	PROMOTE		666dadef1e4dcc40a01319f8ce37f541
+350	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2022-01-26 15:09:47.547959	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	de64b3b7c1856b4ce7fc8ace18ade362
+351	2051e481-d0ea-11ea-ad31-6380fc00472d	1	2022-01-26 15:31:26.654552	PROMOTE		124de88830dee090beea6f97e4754af9
+352	209a4678-bf11-11eb-93f5-024cda8b295f	1	2021-05-27 17:29:44.726623	CREATE	Created for STS use per S Wang.	930793210c7c61db9ef806be658d23aa
+353	209a4678-bf11-11eb-93f5-024cda8b295f	1	2021-05-27 17:42:21.926417	PROMOTE		76aa057b9bc28c44c520722f708d943f
+354	209a4678-bf11-11eb-93f5-024cda8b295f	1	2021-11-23 15:30:27.137709	MODIFY		07c59a57802a4d15102fe65fe6ad9db0
+355	209a4678-bf11-11eb-93f5-024cda8b295f	1	2021-11-23 15:32:35.999897	PROMOTE		f51c7ed780c6f0fb6538e6760dd2abc1
+356	20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-01-12 17:21:50.250062	CREATE		2cc95a1405ef00e718b861ae8cb0b56b
+357	20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-01-12 17:25:02.097075	PROMOTE		8b4086c57f7f1bf4ca0e3c29d3364c7b
+358	20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-01-13 15:38:53.299565	MODIFY		7ef8200c22b9b7cdd8db2da8b6a836d4
+359	20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-01-13 15:43:22.612208	PROMOTE		479c8153b038dd096e270a06074dbffb
+360	20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-03-02 16:51:42.31802	MODIFY	3/2/22 Updated name to include 'International Only' per request of Care.	0f9c154f39330cb82cb215bfe4c4a9d4
+361	20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-03-02 16:52:17.661782	PROMOTE		78193b91e687f0d8160e7e435ddcefe7
+362	2240d7ed-7e7d-11ea-aba8-ebb789216ef1	1	2020-04-14 18:24:09.890817	CREATE		
+363	2240d7ed-7e7d-11ea-aba8-ebb789216ef1	2	2020-04-16 14:59:30.338885	MODIFY		
+364	2240d7ed-7e7d-11ea-aba8-ebb789216ef1	4	2020-06-10 18:00:10.392192	PROMOTE		
+365	2240d7ed-7e7d-11ea-aba8-ebb789216ef1	1	2021-03-01 16:39:50.110846	MODIFY		a16d2be72342be074f2d079eaa20b657
+366	2240d7ed-7e7d-11ea-aba8-ebb789216ef1	1	2021-03-01 21:15:54.885037	PROMOTE		54b1738cf7420e0d29c6e707eb5d805f
+367	2240d7ed-7e7d-11ea-aba8-ebb789216ef1	1	2021-11-09 14:29:30.867175	MODIFY	Retired and Remove audience 129984, 129986, 129996, 129997, 130000, 130001, 130006, 130018, 130021, 130022, 130026 and added to OM-10048 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	a80ff4a19734f6bb42020d1fc78208c1
+368	2240d7ed-7e7d-11ea-aba8-ebb789216ef1	1	2021-11-15 14:45:41.208712	MODIFY		7db54836c103bbeb331c792f06bd9745
+369	2240d7ed-7e7d-11ea-aba8-ebb789216ef1	1	2021-11-15 14:48:33.803284	PROMOTE		a9449bb8d36576f0fae966df88da8702
+370	22a4e2d9-f218-11ea-890e-e07cb89de251	1	2020-09-08 21:13:26.258992	CREATE		
+371	22a4e2d9-f218-11ea-890e-e07cb89de251	1	2020-09-08 21:13:40.296188	PROMOTE		
+372	22a4e2d9-f218-11ea-890e-e07cb89de251	1	2020-12-18 16:38:05.827768	MODIFY	12/21/20 added Care Placement	7d03177f6db9c0f33883791c09ef06ce
+373	22a4e2d9-f218-11ea-890e-e07cb89de251	1	2020-12-22 14:33:30.675623	PROMOTE		449849561d8e3431369093e5cb951cd4
+374	22a4e2d9-f218-11ea-890e-e07cb89de251	1	2021-09-28 17:20:17.304325	MODIFY		81eb0e01c1a150915a5694bc9d07bb84
+375	22a4e2d9-f218-11ea-890e-e07cb89de251	1	2021-09-28 17:24:13.772247	PROMOTE		5bde18b6b10b5116d42fec57a78ce24a
+376	22df322a-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:28:10.644132	CREATE		
+377	22df322a-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:53:30.186502	PROMOTE		
+378	22df322a-cda9-11ea-b464-e4d44f10848e	1	2020-11-09 15:24:55.156196	MODIFY		6dc90e340034856032dad5e11fb2a762
+379	22df322a-cda9-11ea-b464-e4d44f10848e	1	2020-11-09 16:19:59.160401	PROMOTE		b31343682cc7aac126c1cf2fc89c1af1
+380	22df322a-cda9-11ea-b464-e4d44f10848e	1	2021-01-11 21:41:26.454465	MODIFY	1/11/21 - reactivated for usage by Magnolia\n11/8/20 - retired - not needed by Magnolia	0651975ee1e4a83ae3b6a9fce1bb72d6
+381	22df322a-cda9-11ea-b464-e4d44f10848e	1	2021-01-11 21:41:39.094272	PROMOTE		f84f980d7e2a6853fabb2b0f3e13c44e
+382	22df322a-cda9-11ea-b464-e4d44f10848e	1	2021-04-12 21:53:04.624992	MODIFY		9cbc4b21f952f7be9320f0348b46f171
+383	22df322a-cda9-11ea-b464-e4d44f10848e	1	2021-04-12 21:55:51.486975	PROMOTE		b4ae1d0fb0935775c8a82683705b7382
+384	22df322a-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:23:34.126947	MODIFY	Retired per T Searcy - EDU Retirement project (LP phase)	804f6e1fdfa4b033e5ea8c36b6523b95
+385	22df322a-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:54:21.861675	PROMOTE		92f2df8f931f97e77e42ae78adc5dcd9
+386	2314003e-0775-11ec-8cc0-ec7300fce8a8	2	2021-08-27 20:27:02.272807	CREATE	Intended for use in all countries except for Canada, Australia, UK, Europe and the US, otherwise known as Rest of World (ROW). 	62118bf102a17d1b4965da9dd7bdeeae
+387	2314003e-0775-11ec-8cc0-ec7300fce8a8	2	2021-08-27 20:27:21.612345	PROMOTE		35cf59cbf5b616ae1cf413a7b242c7b1
+388	2314003e-0775-11ec-8cc0-ec7300fce8a8	1	2021-11-23 18:08:39.322777	MODIFY		34b19e19e6bb543f3788f7b9a26caead
+389	2314003e-0775-11ec-8cc0-ec7300fce8a8	1	2021-11-23 18:40:30.212726	PROMOTE		7f9907e51e216c054326a92469dcb5f9
+390	2396092c-2b71-11eb-9088-e65d3b6c1fba	1	2020-11-20 20:44:09.326634	CREATE		317e3f894a4f89269283bb73b7c7e521
+391	2396092c-2b71-11eb-9088-e65d3b6c1fba	1	2020-11-20 20:50:19.519354	PROMOTE		011e1fc84484c0ae8f6c01f0ddd8b743
+392	2396092c-2b71-11eb-9088-e65d3b6c1fba	1	2021-09-28 17:20:45.219271	MODIFY		dabd2bbe94a0dacd663a6abff64fe633
+393	2396092c-2b71-11eb-9088-e65d3b6c1fba	1	2021-09-28 17:25:57.415085	PROMOTE		f81ae51404af9fd31d6f7427f163723b
+394	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-04 19:32:55.680877	CREATE		
+395	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-04 19:54:02.585457	MODIFY		
+396	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-04 22:09:24.355054	MODIFY		
+397	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-06 17:08:59.728467	MODIFY		
+398	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-14 18:32:09.991178	MODIFY		
+399	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-14 21:43:34.890589	MODIFY		
+400	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-26 20:32:49.886982	MODIFY		
+401	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-27 21:36:38.631873	MODIFY		
+402	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-02-28 18:08:15.088038	MODIFY		
+403	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-03-02 14:31:50.594737	MODIFY		
+404	247ff222-4785-11ea-bc06-273bd7be5b42	4	2020-06-10 17:57:00.431465	PROMOTE		
+405	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-08-10 15:51:23.301753	MODIFY		
+406	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-08-10 15:51:38.442515	PROMOTE		
+407	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-08-24 17:02:35.16317	MODIFY		
+408	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-08-24 17:02:46.627644	PROMOTE		
+409	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-10-19 13:47:45.045441	MODIFY		c5e0950f6f17f15713702e550fa02884
+410	247ff222-4785-11ea-bc06-273bd7be5b42	1	2020-11-09 18:38:08.243753	PROMOTE		ce39786554591f9b46818b9c0156021d
+411	247ff222-4785-11ea-bc06-273bd7be5b42	2	2020-11-20 21:15:03.314553	MODIFY		4b9af6c02a76472a6d8fa297df461e1f
+412	247ff222-4785-11ea-bc06-273bd7be5b42	2	2020-11-20 21:15:08.976231	PROMOTE		f8feabf6668c5bbd62cb5ee111111b73
+413	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-03-19 13:23:44.921458	MODIFY	3/19/2021 - removed audience 119642 moved to OM-10906	6bb76761778a607acd220469469e9c8a
+414	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-03-19 13:35:13.941395	PROMOTE		37305f6ccdfe5ae37420d5a79bab3814
+415	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-04-23 14:02:09.361314	MODIFY	Added 119635, 119651, 119661, 119636, 119652, 119662 (originally attached to OM-10080 per S Wang	65d65a8a8151b002281d3ff3a024b4ec
+416	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-04-26 13:06:09.007494	PROMOTE		cb4cc4391e30cf87b110fa8fb955c333
+417	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-11-04 12:55:04.232792	MODIFY		31b24707d6347d1faf4068bd234001e7
+418	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-11-04 12:55:17.998316	PROMOTE		5575ab38c76ba4f29c9de0f953592942
+419	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-11-09 14:47:11.45992	MODIFY	Add 119642, 119643, 119638, 119639, 119716, 119724, 119718, 119723, 119725, 119717 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657\t	6d3a517d54ab28a944923aa779b79946
+420	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-11-15 14:46:48.940487	PROMOTE		6709291c22ae8526d5584bcf77687891
+421	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-11-23 14:54:30.068823	MODIFY		9353b953a26f1f39cd01f25f130d08f2
+422	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-11-23 14:57:15.664705	PROMOTE		9234a072c294a2feb900d4cb04926ef6
+423	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-12-06 19:28:14.691013	MODIFY		918c545fd60965df8c938a67173b6376
+424	247ff222-4785-11ea-bc06-273bd7be5b42	1	2021-12-07 19:04:25.694493	PROMOTE		4197f5ed7499f1d788d50fefaa374ec1
+425	247ff222-4785-11ea-bc06-273bd7be5b42	1	2022-04-20 21:33:56.837676	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	e520067f1c733c966d136a605043c291
+426	247ff222-4785-11ea-bc06-273bd7be5b42	1	2022-04-27 14:43:07.896024	PROMOTE		bef1a2474f2532fe2e9f696253217b80
+427	247ff222-4785-11ea-bc06-273bd7be5b42	1	2022-05-23 19:42:16.903732	MODIFY	Added audience 268352 for STS-RCT https://docs.google.com/spreadsheets/d/1JbsIsn3D1HNauwkfNXrH_hGYq49xnZd1PwHITv2_Y24/edit#gid=1153944505	e2ec53f9bf7dece0eba53cf601b55ab0
+428	247ff222-4785-11ea-bc06-273bd7be5b42	1	2022-05-25 12:05:49.579594	PROMOTE		e7fd7c1944a5bbe3e245fb37304963fe
+429	248bb918-b854-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:11:54.141112	CREATE		
+430	248bb918-b854-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:59:04.948061	PROMOTE		
+431	248bb918-b854-11e9-b8ef-27f7ec03ccac	1	2020-08-03 18:24:23.820157	MODIFY		
+432	248bb918-b854-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:45:46.133086	PROMOTE		
+433	248bb918-b854-11e9-b8ef-27f7ec03ccac	1	2020-08-25 12:43:21.731568	MODIFY		
+434	248bb918-b854-11e9-b8ef-27f7ec03ccac	1	2020-08-25 12:43:37.660902	PROMOTE		
+435	248bb918-b854-11e9-b8ef-27f7ec03ccac	2	2020-08-28 17:26:01.998306	MODIFY		
+436	248bb918-b854-11e9-b8ef-27f7ec03ccac	2	2020-08-28 17:26:11.701768	PROMOTE		
+437	248bb918-b854-11e9-b8ef-27f7ec03ccac	1	2021-09-28 16:36:09.777855	MODIFY		3e3201c37518f543d3359fe289216af5
+438	248bb918-b854-11e9-b8ef-27f7ec03ccac	1	2021-09-28 17:28:02.334793	PROMOTE		37665b7c25ee2ee24db906dc2c54697c
+439	248bb918-b854-11e9-b8ef-27f7ec03ccac	1	2022-01-26 15:25:17.210779	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	d82d056857e41044f35a78df2bb5940a
+440	248bb918-b854-11e9-b8ef-27f7ec03ccac	1	2022-01-26 15:32:43.656687	PROMOTE		0018f153ae9e9d61271ae05902bf3d1c
+441	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2021-01-15 18:47:39.937352	CREATE		06743762387b814cc3e9598d736ce18d
+442	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2021-01-15 18:51:31.111001	PROMOTE		186ee78693ea528e15cf1253169a2457
+443	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2021-01-15 18:58:05.189591	MODIFY		be0ee1bf66159a75bfb6fc79baac539f
+444	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2021-01-15 18:58:16.905974	PROMOTE		1593ffaaed2574d221610bc0b5f709cb
+445	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2021-02-01 22:46:09.106133	MODIFY		616ab7b3d28a08a1cec31e6507a61068
+446	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2021-02-01 22:46:54.613886	PROMOTE		941445b20ff51edf81612cf2721dfc5f
+447	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2021-02-16 22:45:56.86136	MODIFY		71205485296734481ac935789f67cb7f
+448	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2021-02-16 22:46:38.170828	PROMOTE		486dc4a6cac7abfc705464814172ea91
+449	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2022-01-05 20:28:38.313001	MODIFY		26cbcd4158c68bb54ee7a9c135c80875
+450	24b7de5a-5762-11eb-8740-dfb6b15824e5	1	2022-01-05 20:30:47.607407	PROMOTE		2de2ec63303546f9462f988c16b4c926
+451	25a6ee78-d0ec-11ea-ad31-6380fc00472d	1	2020-07-28 16:05:25.077775	CREATE		
+452	25a6ee78-d0ec-11ea-ad31-6380fc00472d	1	2020-07-28 19:48:02.55828	PROMOTE		
+453	25a6ee78-d0ec-11ea-ad31-6380fc00472d	1	2020-08-21 12:15:27.896811	MODIFY		
+454	25a6ee78-d0ec-11ea-ad31-6380fc00472d	1	2020-08-21 12:15:39.17232	PROMOTE		
+455	25a6ee78-d0ec-11ea-ad31-6380fc00472d	2	2020-08-26 14:45:51.596642	MODIFY		
+456	25a6ee78-d0ec-11ea-ad31-6380fc00472d	2	2020-08-26 14:46:04.694498	PROMOTE		
+457	2657293f-ebd2-11ea-933b-690094bd8ad3	2	2020-08-31 21:37:20.712739	CREATE		
+458	2657293f-ebd2-11ea-933b-690094bd8ad3	2	2020-08-31 21:37:50.832275	PROMOTE		
+459	2657293f-ebd2-11ea-933b-690094bd8ad3	1	2020-09-03 13:44:20.546638	MODIFY		
+460	2657293f-ebd2-11ea-933b-690094bd8ad3	1	2020-09-03 13:44:32.413227	PROMOTE		
+461	2657293f-ebd2-11ea-933b-690094bd8ad3	1	2020-10-15 16:21:17.528423	MODIFY		36367fe76a7c3d50d080cdb0db84b26b
+462	2657293f-ebd2-11ea-933b-690094bd8ad3	1	2020-10-16 15:03:13.032656	PROMOTE		39d7531c9e6c46253564d37e508b1b22
+463	2657293f-ebd2-11ea-933b-690094bd8ad3	1	2020-12-18 16:40:26.865589	MODIFY	12/21/20 added Care Placement	bf25024060cbfd5012e44941328d894e
+464	2657293f-ebd2-11ea-933b-690094bd8ad3	1	2020-12-22 14:34:09.047601	PROMOTE		38c2560af4b2b7a6de2b46bc18ccdfc1
+465	2657293f-ebd2-11ea-933b-690094bd8ad3	1	2021-11-22 17:00:19.079664	MODIFY		ed0996926741aad82a8f64134b814e85
+466	2657293f-ebd2-11ea-933b-690094bd8ad3	1	2021-11-22 17:06:13.879028	PROMOTE		2dce0be44d31fe728aa6b5187e20e60e
+467	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	1	2020-04-14 18:38:35.996671	CREATE		
+468	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	2	2020-04-16 15:12:09.939255	MODIFY		
+469	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	2	2020-04-16 16:23:42.796471	MODIFY		
+470	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	4	2020-06-10 18:00:12.491345	PROMOTE		
+471	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	1	2021-03-01 16:37:30.298591	MODIFY		b1ebb5fe9154388426b1249508f25b29
+472	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	1	2021-03-01 21:15:47.610722	PROMOTE		d036415dc8a682b765cf7cad51dbdde2
+473	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	2	2021-03-24 21:33:33.074604	MODIFY		b12e83d0f6bfc582c20a5d116e1cfc89
+474	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	2	2021-03-24 21:33:45.233731	PROMOTE		028c1a1cd2ed4ea362024c1262a1de7a
+475	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	1	2021-05-18 14:07:42.375632	MODIFY	5/21/21 - removed audiences: 129998, 130002, 130003, 130019, 130023, 130027, 129987, 129982 moved to OM-10048 per S Wang.  Retired offer.	653986e5aea697b96cb585c28439a267
+476	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	1	2021-05-18 14:08:14.50683	MODIFY		8c80263b60c0dd95ffeafe839c8c8c72
+477	267e1bd6-7e7f-11ea-aba8-ebb789216ef1	1	2021-05-20 11:56:45.846248	PROMOTE		c209d7cb363ca30a03c3321aa06e9d79
+478	2712ea42-dc00-11ea-9596-859e83a0873f	1	2020-08-11 18:26:20.188324	CREATE		
+479	2712ea42-dc00-11ea-9596-859e83a0873f	1	2020-08-11 20:41:06.810278	PROMOTE		
+480	2712ea42-dc00-11ea-9596-859e83a0873f	1	2020-10-15 16:56:33.6396	MODIFY		49074b9bd93cec6a9131489d491d6e69
+481	2712ea42-dc00-11ea-9596-859e83a0873f	1	2020-10-16 15:02:50.40065	PROMOTE		46ab853dfe3a25e38061a641964be9d1
+482	2712ea42-dc00-11ea-9596-859e83a0873f	1	2020-12-18 16:56:11.262415	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia\n12/21/20 added Care Placement	63cfc6f60dd03e66bfac644aae567a8c
+483	2712ea42-dc00-11ea-9596-859e83a0873f	1	2020-12-22 14:33:47.44728	PROMOTE		4a19b845c18623ec8f2936028fa0d9ab
+484	2712ea42-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:32:13.850531	MODIFY	Adding Magnolia placement back 1/12/2021. Was previously marked as not needed but appears to be used on a source doc. https://docs.google.com/spreadsheets/d/1iMt_tncT1tQ0sbxogV1AoO5iC-o30LU7fktFWY7raEs/edit#gid=0	7f5de9f0aac3085f781ac85dce91da8e
+485	2712ea42-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:32:23.967375	PROMOTE		fda00f78e5409cdb43f98901f2afbab9
+486	2712ea42-dc00-11ea-9596-859e83a0873f	1	2021-09-28 16:47:34.75129	MODIFY		ff8e98bc301507f5615115d7b33f819b
+487	2712ea42-dc00-11ea-9596-859e83a0873f	1	2021-09-28 17:26:38.904285	PROMOTE		3af9664dc1cc461afddde29a11822062
+572	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-10-22 14:07:25.398675	MODIFY		0eb111841c3d9325e436018ac27c8d4c
+573	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-10-22 14:07:36.804629	PROMOTE		4167b70416effa1b040d0fa67808aecd
+488	2712ea42-dc00-11ea-9596-859e83a0873f	1	2022-06-06 14:55:37.44359	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	e6ed5c9a916aa1b017638469288f39e6
+489	2712ea42-dc00-11ea-9596-859e83a0873f	1	2022-06-06 15:14:04.896651	PROMOTE		cc73fdda7bd8c94f36105014771cd63c
+490	27a90e97-bccf-11ec-abcb-b2200e125161	1	2022-04-15 15:17:25.12857	CREATE		31ca615aa6627e8ad17bf7fb8341f8ea
+491	27a90e97-bccf-11ec-abcb-b2200e125161	1	2022-04-19 18:28:01.53996	MODIFY		532fe51caf91fcdc6b35e972968073f3
+492	27a90e97-bccf-11ec-abcb-b2200e125161	1	2022-04-19 18:44:36.710879	PROMOTE		b9e2512a3898672e24abfa239d7c5270
+493	283d8c1b-ccc5-11ec-831a-c27d9c4b082d	1	2022-05-05 22:46:09.738862	CREATE		53b548a0a466009ecd6afe8a76820fe5
+494	283d8c1b-ccc5-11ec-831a-c27d9c4b082d	1	2022-05-09 12:02:38.073111	PROMOTE		0648112f79f5e1d50534476379270d7d
+495	289fa8e1-04c0-11eb-84d6-c926cd9b312e	5	2020-10-02 15:01:32.67162	CREATE		
+496	289fa8e1-04c0-11eb-84d6-c926cd9b312e	5	2020-10-02 16:05:27.689933	PROMOTE		
+497	289fa8e1-04c0-11eb-84d6-c926cd9b312e	1	2020-11-11 20:14:04.355801	MODIFY		6f167d0639731d281a5c952e12d51e84
+498	289fa8e1-04c0-11eb-84d6-c926cd9b312e	1	2020-11-11 20:20:43.262455	PROMOTE		0a5bbfaa51eff9fd5648d3a85c0d876c
+499	289fa8e1-04c0-11eb-84d6-c926cd9b312e	1	2020-11-19 21:56:46.028792	MODIFY		9dc957e751251cbc70a780035a083e3e
+500	289fa8e1-04c0-11eb-84d6-c926cd9b312e	1	2020-11-19 22:07:43.358908	PROMOTE		9f118db6126caaaa5c07b0856544c593
+501	28da0792-2b7b-11eb-a8a3-0715bbac1279	1	2020-11-20 21:55:53.128131	CREATE		83a14070820f79e4e293e27dd0c1439b
+502	28da0792-2b7b-11eb-a8a3-0715bbac1279	1	2020-11-20 21:57:15.909832	PROMOTE		7f824d8fe5cc4375cf0f4030622edddf
+503	28da0792-2b7b-11eb-a8a3-0715bbac1279	1	2020-11-21 22:03:27.065988	MODIFY		76f2cb5500d75cf6f4d7fe25cdfbe752
+504	28da0792-2b7b-11eb-a8a3-0715bbac1279	1	2020-11-21 22:03:54.297441	PROMOTE		e5a679ee42988871843a99a58a8f75e6
+505	28da0792-2b7b-11eb-a8a3-0715bbac1279	1	2021-10-04 16:20:50.610201	MODIFY	Name Changed from HD Premium 50% off for 24 weeks RC1 2021,Premium removed and promo changed from PEN 421 + RDGT Pending Launch	12b00476e55435816d858dbcc4f2072e
+506	28da0792-2b7b-11eb-a8a3-0715bbac1279	1	2021-10-11 16:03:08.81582	PROMOTE		1886ff2e1d07b00d0b95125586742524
+507	28da0792-2b7b-11eb-a8a3-0715bbac1279	1	2022-05-31 16:41:13.257379	MODIFY		a7c14cb7f756cb053a420b79a73f6329
+508	28da0792-2b7b-11eb-a8a3-0715bbac1279	1	2022-05-31 16:41:27.051588	PROMOTE		53b1f33b496462ffb056616c8249e4a6
+509	2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	5	2020-11-03 21:33:06.509013	CREATE		46e616b9524eae899e1aa7dafa6f729a
+510	2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	1	2020-11-05 16:45:44.466064	MODIFY		7a37380e61ea2d43f0afd3005264f7db
+511	2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	1	2020-11-10 17:57:15.529847	PROMOTE		c2f6b8addeb9e4165318fd81e02a6dfd
+512	2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	1	2021-10-04 17:12:31.641562	MODIFY	Premium removed and promo changed from PEN I19 + RDGT Pending Launch	8fdbeca9060d17e3f824388e859f0f34
+513	2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	1	2021-10-11 16:03:43.156786	PROMOTE		738244d4bb74013656169209788370c5
+514	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2020-07-23 20:29:08.829223	CREATE		
+515	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2020-07-24 12:52:53.566415	PROMOTE		
+516	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2020-07-29 14:21:54.619166	MODIFY		
+517	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2020-08-03 18:06:16.274714	MODIFY		
+518	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2020-08-05 19:21:50.328175	PROMOTE		
+519	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2021-07-07 14:38:53.306708	MODIFY	Added Placement for Account to be used for Product Switch.	88cdec55debafc444966aca5087e99a9
+520	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2021-07-07 18:27:49.517323	PROMOTE		fbdb494864c4f395ba6f5322c42bc2a6
+521	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2021-11-22 16:10:03.821599	MODIFY		d487d3d0c7c1141d7031b71b950a7951
+522	29470968-cd23-11ea-a987-5cfa3cfcb595	1	2021-11-22 16:11:00.425051	PROMOTE		68edb58f81c2d016184c11354f0777fd
+523	2a63601e-b856-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:26:22.936481	CREATE		
+524	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2020-02-26 18:51:32.889475	MODIFY		
+525	2a63601e-b856-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:58:58.638434	PROMOTE		
+526	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-03 18:25:29.564582	MODIFY		
+527	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:45:55.473555	PROMOTE		
+528	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-25 12:46:09.252701	MODIFY		
+529	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-25 12:46:20.167215	PROMOTE		
+530	2a63601e-b856-11e9-b8ef-27f7ec03ccac	2	2020-08-28 17:32:44.970949	MODIFY		
+531	2a63601e-b856-11e9-b8ef-27f7ec03ccac	2	2020-08-28 17:33:04.424476	PROMOTE		
+532	2a63601e-b856-11e9-b8ef-27f7ec03ccac	2	2020-11-20 21:08:55.73673	MODIFY		a57446e8811712724a0e65a2fb51195f
+533	2a63601e-b856-11e9-b8ef-27f7ec03ccac	2	2020-11-20 21:09:01.957702	PROMOTE		f14daceeafcf2208b41de4b5167cc68a
+534	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-19 17:39:20.873948	MODIFY	Added USD to name	46c18492b00901c0b2a32c83a484cd1b
+535	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-19 17:39:30.410827	PROMOTE		b9e8e388f0ca743c706d6b769d8595d1
+536	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2022-02-02 20:11:22.8495	MODIFY	2/2/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505\nChristina Malis confirmed retiremenet - Audiences will not be reassigned.	bd67440ab3afb268ba4cf112ff2745fd
+537	2a63601e-b856-11e9-b8ef-27f7ec03ccac	1	2022-04-15 15:47:22.733363	PROMOTE		79a211e2ffb7452fa683c02da9c54d83
+538	2ac880fe-d036-11ea-a072-340cee6a52b6	1	2020-07-27 18:22:45.281615	CREATE		
+539	2ac880fe-d036-11ea-a072-340cee6a52b6	1	2020-07-27 19:12:18.132825	PROMOTE		
+540	2ac880fe-d036-11ea-a072-340cee6a52b6	1	2020-12-18 16:39:20.914472	MODIFY		8506e2a687b82c4a9e2c51518f5eef13
+541	2ac880fe-d036-11ea-a072-340cee6a52b6	1	2020-12-22 14:33:28.124731	PROMOTE		cf62cd364695c1a131beb2f1b0f46c07
+542	2ac880fe-d036-11ea-a072-340cee6a52b6	1	2021-04-12 21:31:40.494729	MODIFY		a47c8023b138e7eceeae40279ae39930
+543	2ac880fe-d036-11ea-a072-340cee6a52b6	1	2021-04-12 21:31:50.223422	PROMOTE		f71a7152f283e7e36f581932172f3386
+544	2ac880fe-d036-11ea-a072-340cee6a52b6	1	2021-09-28 16:49:12.093019	MODIFY		7378968bbdd28247509ca96feceef349
+545	2ac880fe-d036-11ea-a072-340cee6a52b6	1	2021-09-28 17:24:08.445111	PROMOTE		b9f76f9d2612313dbc73c13a7024d7ed
+546	2ae71452-50ff-11eb-9f46-5048fd92b8b2	1	2021-01-07 15:44:03.160179	CREATE		a828db2dd2df280ce81d334d6839971c
+547	2ae71452-50ff-11eb-9f46-5048fd92b8b2	1	2021-01-07 15:45:35.211232	PROMOTE		6211b53872d51690771ba90665bf6c4b
+548	2ae71452-50ff-11eb-9f46-5048fd92b8b2	1	2021-02-01 22:46:33.999183	MODIFY		13d2cbcbd4b88f3c509083a7ecf4b4ec
+549	2ae71452-50ff-11eb-9f46-5048fd92b8b2	1	2021-02-01 22:46:56.1769	PROMOTE		27f44e484c661ebfc0fe8383796076b3
+550	2ae71452-50ff-11eb-9f46-5048fd92b8b2	1	2021-02-16 22:46:14.657849	MODIFY		03281ad155a3620c10827d457e6d01d8
+551	2ae71452-50ff-11eb-9f46-5048fd92b8b2	1	2021-02-16 22:46:40.170614	PROMOTE		10b5378370f97607d733265c5ae5ad46
+552	2ae71452-50ff-11eb-9f46-5048fd92b8b2	1	2022-01-05 20:30:29.28531	MODIFY		d3824a5146d3ee9d1afa1ddae9d73a98
+553	2ae71452-50ff-11eb-9f46-5048fd92b8b2	1	2022-01-05 20:30:49.481422	PROMOTE		d9ac80e81eb7c565193a352ec8153b07
+554	2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	1	2021-09-23 20:59:41.10722	CREATE		3b27855c2aebe118a37e465ba1217cb0
+555	2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	1	2021-09-23 21:02:36.605433	PROMOTE		568eb5ec5b7d77e51df012cd057a702a
+556	2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	1	2021-09-27 16:56:45.214571	MODIFY	removed STS availability per Casey and DGP	ae9961ddc4bddf4b7804f9e61e295cce
+557	2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	1	2021-09-27 16:56:56.204077	PROMOTE		be1973ba5c936e7f65dc7492967bca74
+558	2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	1	2021-11-23 17:52:43.943293	MODIFY		09c1e79076fd77d033d259b4bda73dc7
+559	2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	1	2021-11-23 17:53:04.744319	PROMOTE		77517b8f0077044984331b70dfdf962d
+560	2e11e39d-6abd-11e9-8dc5-f7410aee3f10	6	2019-04-29 20:27:16.579833	CREATE		
+561	2e11e39d-6abd-11e9-8dc5-f7410aee3f10	1	2020-02-14 21:33:41.052638	MODIFY		
+562	2e11e39d-6abd-11e9-8dc5-f7410aee3f10	1	2020-02-28 20:24:44.513713	MODIFY		
+563	2e11e39d-6abd-11e9-8dc5-f7410aee3f10	1	2020-02-28 20:33:43.138645	MODIFY		
+564	2e11e39d-6abd-11e9-8dc5-f7410aee3f10	4	2020-06-10 17:57:02.621175	PROMOTE		
+565	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:39:05.527759	CREATE		
+566	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	2	2020-08-10 13:39:06.987077	MODIFY		
+567	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:42:51.795185	PROMOTE		
+568	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:43:16.394864	MODIFY		
+569	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:43:24.234048	PROMOTE		
+570	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-09-16 17:27:02.430076	MODIFY		
+571	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-09-16 17:27:11.58731	PROMOTE		
+574	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-12-11 15:53:27.469601	MODIFY		833a893620478747ba859dbc60ced0ea
+575	2e6f7a10-d907-11ea-94d3-9a1933fc44f2	1	2020-12-11 15:56:41.772814	PROMOTE		63d01d05e6929ee95010c06a745b2602
+576	2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	1	2020-08-17 16:10:35.631992	CREATE		
+577	2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	1	2020-08-19 13:24:47.797596	PROMOTE		
+578	2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	1	2020-12-28 16:52:07.922673	MODIFY		c7e27a276ed48e3697dd8b566655afcc
+579	2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	1	2020-12-28 16:53:17.332184	PROMOTE		d4325ddaaa3f6ee2ecb3b88622269ec7
+580	2f240ecc-d0cb-11ea-ad31-6380fc00472d	1	2020-07-28 12:09:27.60522	CREATE		
+581	2f240ecc-d0cb-11ea-ad31-6380fc00472d	1	2020-07-28 14:00:47.433507	PROMOTE		
+582	2f240ecc-d0cb-11ea-ad31-6380fc00472d	2	2020-08-20 22:29:28.97183	MODIFY		
+583	2f240ecc-d0cb-11ea-ad31-6380fc00472d	2	2020-08-20 22:29:44.960902	PROMOTE		
+584	2f240ecc-d0cb-11ea-ad31-6380fc00472d	2	2020-08-28 17:16:27.534572	MODIFY		
+585	2f240ecc-d0cb-11ea-ad31-6380fc00472d	2	2020-08-28 17:16:41.991249	PROMOTE		
+586	2f240ecc-d0cb-11ea-ad31-6380fc00472d	2	2020-08-28 17:17:09.437324	MODIFY		
+587	2f240ecc-d0cb-11ea-ad31-6380fc00472d	2	2020-08-28 17:17:18.271135	PROMOTE		
+588	2f240ecc-d0cb-11ea-ad31-6380fc00472d	2	2020-08-28 17:18:14.244652	MODIFY		
+589	2f240ecc-d0cb-11ea-ad31-6380fc00472d	2	2020-08-28 17:18:23.526789	PROMOTE		
+590	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2020-07-24 12:35:41.129519	CREATE		
+591	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2020-07-27 13:13:40.267161	PROMOTE		
+592	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2020-12-18 16:37:11.004594	MODIFY	12/21/20 added Care Placement	ae3971508cd502a9ff978c92d0e5da77
+593	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2020-12-22 14:39:05.176823	PROMOTE		77549b935817c7ab7a0746d568bd673d
+594	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2021-03-08 20:40:17.625481	MODIFY		a6a483bb7bd0c54161842faf4bb39433
+595	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2021-03-08 20:40:28.413455	PROMOTE		96df239695d03e39f8d558cdb8a31905
+596	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2021-10-28 14:27:21.625821	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	b05d81a3db6f00507493071a625d7cb3
+597	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2021-10-28 14:54:11.775678	PROMOTE		d7a06d29d6e46d8da89d4d88cac99aa6
+598	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2021-11-19 17:30:30.458127	MODIFY	Retired as part of EDU Decom per C Bland	26662a6240b76a8c5cccd9eff6811c01
+599	2f61cfb5-cdaa-11ea-b464-e4d44f10848e	1	2021-11-19 17:31:00.926001	PROMOTE		a9dd6a2545880bcc7117f369ba07d7cc
+600	2f9948a2-1ded-11eb-93fa-e4ace959c4d0	2	2020-11-03 15:56:50.796152	CREATE		7c85bfb91868d80ab34d021f288b7708
+601	2f9948a2-1ded-11eb-93fa-e4ace959c4d0	1	2020-11-05 16:48:20.062331	MODIFY		dfc0ac9c33ae07280a123d06651afb57
+602	2f9948a2-1ded-11eb-93fa-e4ace959c4d0	1	2020-11-10 17:57:29.4639	PROMOTE		5477a1212f29d4b75eebf6776be29c81
+603	2f9948a2-1ded-11eb-93fa-e4ace959c4d0	1	2021-10-04 17:50:32.912886	MODIFY	Premium removed and promo changed from PEN I50 + RDGT Pending Launch	01dc01677abd343deadac7c269688756
+604	2f9948a2-1ded-11eb-93fa-e4ace959c4d0	1	2021-10-11 16:04:03.487347	PROMOTE		c284cf48fe8bc0f857ee5f12d0daa735
+605	308e98dd-cc18-11ea-8798-a88ae0f89479	1	2020-07-22 12:38:05.415451	CREATE		
+606	308e98dd-cc18-11ea-8798-a88ae0f89479	1	2020-07-29 14:13:27.32285	MODIFY		
+607	308e98dd-cc18-11ea-8798-a88ae0f89479	1	2020-07-29 16:51:23.178098	MODIFY		
+608	308e98dd-cc18-11ea-8798-a88ae0f89479	1	2020-08-03 20:11:05.326897	MODIFY		
+609	308e98dd-cc18-11ea-8798-a88ae0f89479	1	2020-08-05 19:56:57.37151	PROMOTE		
+610	308e98dd-cc18-11ea-8798-a88ae0f89479	1	2021-09-28 16:09:52.490466	MODIFY		65db8c0ed38ba7aa2f81bc30cda8329a
+611	308e98dd-cc18-11ea-8798-a88ae0f89479	1	2021-09-28 17:26:53.60956	PROMOTE		b72a79fd5226a40430c53f8246bfa891
+612	3159074c-1de0-11eb-9a88-1e812b8dd455	1	2020-11-03 14:23:50.273025	CREATE		5e36311894db75784df7ba2b7b81c4f3
+613	3159074c-1de0-11eb-9a88-1e812b8dd455	1	2020-11-05 16:43:59.68222	MODIFY		38087e330d1d2a13df60ed772c457018
+614	3159074c-1de0-11eb-9a88-1e812b8dd455	1	2020-11-10 17:56:50.24241	PROMOTE		160733e79da5a19e8c06d15a571a883f
+615	3159074c-1de0-11eb-9a88-1e812b8dd455	1	2021-10-04 16:45:43.769973	MODIFY	Premium removed and promo changed from PEN I09 + RDGT Pending Launch	8c0d888570b386a974654276fbfc1a73
+616	3159074c-1de0-11eb-9a88-1e812b8dd455	1	2021-10-11 16:03:34.902354	PROMOTE		ee615f5d7a5a527803fc43ccab811863
+617	32315eaf-f8f1-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:22:20.112453	CREATE		
+618	32315eaf-f8f1-11ea-aca5-1c2b82b39a01	1	2020-09-17 20:27:42.555544	PROMOTE		
+619	32315eaf-f8f1-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:02:12.792892	MODIFY		9275328a3833226ce8eb050ebab67b4b
+620	32315eaf-f8f1-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:20:36.920887	PROMOTE		0c1b61e3e30f58e138c5431bba795722
+621	32315eaf-f8f1-11ea-aca5-1c2b82b39a01	1	2020-11-19 21:55:54.751387	MODIFY		8822b7d32359314fcc49d325d2fbf09f
+622	32315eaf-f8f1-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:07:48.61634	PROMOTE		45d69d80da1c0fd26fe3e8bde1e708f2
+623	328b82cd-0286-11eb-b789-fd537ec536af	5	2020-09-29 19:01:36.180917	CREATE		
+624	328b82cd-0286-11eb-b789-fd537ec536af	1	2020-09-30 13:57:57.211191	PROMOTE		
+625	328b82cd-0286-11eb-b789-fd537ec536af	1	2020-10-22 15:45:11.125304	MODIFY		6081aee711bce66c9158e7262c3108dd
+626	328b82cd-0286-11eb-b789-fd537ec536af	1	2020-10-22 15:45:20.302069	PROMOTE		e5b953b0544cf44ee8949e1a30f52e9b
+627	328b82cd-0286-11eb-b789-fd537ec536af	1	2020-11-05 17:20:59.889382	MODIFY		1778984f9707387c82ac599663d7f7d6
+628	328b82cd-0286-11eb-b789-fd537ec536af	1	2020-11-05 17:22:58.457189	PROMOTE		49e849c4ebaec7eaf41e915cd534c065
+629	328b82cd-0286-11eb-b789-fd537ec536af	1	2021-10-04 14:50:28.841016	MODIFY	Name Changed from $1 wk for 12 weeks Premium HD WCM,Premium removed and promo changed from PEN 287 + RDGT Pending Launch	00122a316483207c76c4ee37a5c1df32
+630	328b82cd-0286-11eb-b789-fd537ec536af	1	2021-10-11 16:02:01.795179	PROMOTE		f845c5ae8ebe777810b58eef92b1ddf6
+631	339ad763-d590-11ea-9001-bc80ca56468d	1	2020-08-03 13:49:50.601412	CREATE		
+632	339ad763-d590-11ea-9001-bc80ca56468d	1	2020-08-05 20:17:33.711138	PROMOTE		
+633	339ad763-d590-11ea-9001-bc80ca56468d	1	2020-09-16 16:34:30.533472	MODIFY		
+634	339ad763-d590-11ea-9001-bc80ca56468d	1	2020-09-16 16:34:45.704481	PROMOTE		
+635	339ad763-d590-11ea-9001-bc80ca56468d	1	2020-09-17 13:12:39.851984	MODIFY		
+636	339ad763-d590-11ea-9001-bc80ca56468d	1	2020-09-17 13:12:48.144453	PROMOTE		
+637	339ad763-d590-11ea-9001-bc80ca56468d	1	2020-10-22 13:55:18.686571	MODIFY		d0898fd153046cc1c757951948b9e290
+638	339ad763-d590-11ea-9001-bc80ca56468d	1	2020-10-22 13:55:27.834246	PROMOTE		d0526cfbf2c594165f4bd013b7e6352e
+639	339ad763-d590-11ea-9001-bc80ca56468d	1	2021-01-12 22:14:38.641017	MODIFY		3938ed73a0ef460dead561cb46178102
+640	339ad763-d590-11ea-9001-bc80ca56468d	1	2021-01-12 22:16:36.420612	PROMOTE		ec8a87df9e6388170aaed2490191d69f
+641	339ad763-d590-11ea-9001-bc80ca56468d	1	2021-10-04 15:53:32.792669	MODIFY	Name Changed from Acquisition ONLY HD Prem 75% off for 12/wk, regular rate thereafter,Premium removed and promo changed from PEN 406 + RDGT Pending Launch	d580a52b52363fddfd7ab2450dfa9c10
+642	339ad763-d590-11ea-9001-bc80ca56468d	1	2021-10-11 16:02:49.82586	PROMOTE		0998f8f8019d280f29485c82e2a08fb6
+643	339ad763-d590-11ea-9001-bc80ca56468d	1	2021-10-11 19:26:32.884953	MODIFY		83a72185d13459d05bfc78c323554c63
+644	339ad763-d590-11ea-9001-bc80ca56468d	1	2021-10-11 19:27:00.197353	PROMOTE		84b30031dd5f60df1dc0724db0493f37
+645	34b69151-3966-11eb-9995-5fa4d68055de	1	2020-12-08 15:01:09.875967	CREATE		8f1beaa875dd2e63cad79542c2c20b99
+646	34b69151-3966-11eb-9995-5fa4d68055de	1	2020-12-11 15:56:50.83318	PROMOTE		a4ac7320e2c0459f0d5d53dfb8069415
+647	34b69151-3966-11eb-9995-5fa4d68055de	1	2021-10-18 21:02:57.03685	MODIFY		43ee94ff7b73fb4c579734a80e262eef
+648	34b69151-3966-11eb-9995-5fa4d68055de	1	2021-10-18 21:06:23.873323	PROMOTE		d681e453cc397bd47be4a9daa9cc0dfa
+649	35502ba4-d1a6-11ea-adee-46f743f2255f	1	2020-07-29 14:17:17.744433	CREATE		
+650	35502ba4-d1a6-11ea-adee-46f743f2255f	1	2020-08-03 18:03:38.228466	MODIFY		
+651	35502ba4-d1a6-11ea-adee-46f743f2255f	1	2020-08-05 19:21:04.094942	PROMOTE		
+652	35a42b17-d0d1-11ea-ad31-6380fc00472d	1	2020-07-28 12:52:35.491513	CREATE		
+653	35a42b17-d0d1-11ea-ad31-6380fc00472d	1	2020-07-28 14:02:41.380698	PROMOTE		
+654	35a42b17-d0d1-11ea-ad31-6380fc00472d	1	2020-08-21 17:07:09.631422	MODIFY		
+655	35a42b17-d0d1-11ea-ad31-6380fc00472d	1	2020-08-21 18:47:35.829207	PROMOTE		
+656	35a42b17-d0d1-11ea-ad31-6380fc00472d	2	2020-08-28 17:21:28.16801	MODIFY		
+657	35a42b17-d0d1-11ea-ad31-6380fc00472d	2	2020-08-28 17:21:39.617339	PROMOTE		
+658	35f28e96-f8ef-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:08:07.41823	CREATE		
+659	35f28e96-f8ef-11ea-aca5-1c2b82b39a01	1	2020-09-17 17:24:22.849434	PROMOTE		
+660	35f28e96-f8ef-11ea-aca5-1c2b82b39a01	1	2020-10-22 15:42:52.298675	MODIFY		2ede855596da2863a1f9ad74ea7aeefc
+661	35f28e96-f8ef-11ea-aca5-1c2b82b39a01	1	2020-10-22 15:42:59.813684	PROMOTE		ba6693324436f9e00d68510984131a56
+2438	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2020-08-05 19:57:10.627479	PROMOTE		
+662	35f28e96-f8ef-11ea-aca5-1c2b82b39a01	1	2021-10-04 14:38:03.430924	MODIFY	Name Changed from $18 4wks for 12wks SO_+HD Prem WCM,Premium removed and promo changed from PEN 218 + RDGT Pending Launch	abba026c66599cbd49923713a03883a6
+663	35f28e96-f8ef-11ea-aca5-1c2b82b39a01	1	2021-10-04 14:53:25.984526	MODIFY		8e255d6c1cd134e70e34870470978474
+664	35f28e96-f8ef-11ea-aca5-1c2b82b39a01	1	2021-10-11 16:02:08.472845	PROMOTE		940bbb5c56cc37fbc44ea7629ed810e1
+665	368c20e0-ebd0-11ea-933b-690094bd8ad3	2	2020-08-31 21:23:28.909952	CREATE		
+666	368c20e0-ebd0-11ea-933b-690094bd8ad3	2	2020-08-31 21:24:00.588849	PROMOTE		
+667	368c20e0-ebd0-11ea-933b-690094bd8ad3	1	2020-11-09 15:47:55.68458	MODIFY		021909aac8df78fa17ce17adf74cd973
+668	368c20e0-ebd0-11ea-933b-690094bd8ad3	1	2020-11-09 16:24:40.585991	PROMOTE		bb28c714d06cc765d3a526294eef7d08
+669	36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:15:18.653734	CREATE		
+670	36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	1	2020-09-17 20:27:34.474032	PROMOTE		
+671	36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:19:31.607735	MODIFY		18f475b4d6ff606c219959fd8067b1b1
+672	36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:21:01.355452	PROMOTE		b80603efd618f20691f5f5e55e603cdb
+673	36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:07:13.556588	MODIFY		fe0cb7e6ce952e7ea60f0de4f7a89410
+674	36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:07:26.765016	PROMOTE		3fa6f0e498cc959069f92f8fd1f4112e
+675	37127982-0328-11eb-a043-4ecfbb3db7bb	1	2020-09-30 14:21:22.246496	CREATE		
+676	37127982-0328-11eb-a043-4ecfbb3db7bb	1	2020-09-30 14:21:48.685559	PROMOTE		
+677	37127982-0328-11eb-a043-4ecfbb3db7bb	1	2020-10-21 14:06:00.621554	MODIFY		8c622dc2cbc4e48fff5958c0b2d52b28
+678	37127982-0328-11eb-a043-4ecfbb3db7bb	1	2020-10-21 14:06:11.66667	PROMOTE		a193839f20ec2bca529d550d2505e578
+679	37127982-0328-11eb-a043-4ecfbb3db7bb	1	2021-10-04 16:07:13.979919	MODIFY	Name Changed from 75%_12wk_HD-premium_2020 WCM,Premium removed and promo changed from PEN 406 + RDGT Pending Launch	b01a5804091dda04726bd6a1e7c5c23d
+680	37127982-0328-11eb-a043-4ecfbb3db7bb	1	2021-10-11 16:02:42.244437	PROMOTE		92e6757be894f50d7af197a8b0aecb11
+681	37127982-0328-11eb-a043-4ecfbb3db7bb	1	2021-10-11 19:25:55.323418	MODIFY		6f133851085ccbfc9be4d59d4716eec6
+682	37127982-0328-11eb-a043-4ecfbb3db7bb	1	2021-10-11 19:26:04.452192	PROMOTE		9d354fc44f7bf74cc169cf5b9377f561
+683	3778bf6c-c058-11ea-9fdc-62535fa6b94d	1	2020-07-07 13:46:10.853675	CREATE		
+684	3778bf6c-c058-11ea-9fdc-62535fa6b94d	1	2020-07-07 13:47:53.103912	PROMOTE		
+685	3778bf6c-c058-11ea-9fdc-62535fa6b94d	1	2020-08-03 18:07:16.312295	MODIFY		
+686	3778bf6c-c058-11ea-9fdc-62535fa6b94d	1	2020-08-17 14:32:38.824747	PROMOTE		
+687	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-07-27 16:42:55.632715	CREATE		
+688	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-07-27 16:58:11.633891	PROMOTE		
+689	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-08-10 15:59:16.850734	MODIFY		
+690	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-08-10 15:59:25.811705	PROMOTE		
+691	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-10-15 17:19:22.247322	MODIFY		c81bf3f93f2fb0e6cb527d6741e00303
+692	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-10-16 15:03:10.78449	PROMOTE		67fba67312d355c42e42dfb258094df4
+693	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-11-20 20:03:46.546931	MODIFY		f709b13a06e30e19bbe1cd12261156f0
+694	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-11-20 20:05:33.419469	MODIFY		81b7cbaea3dbe0967b896df6e695f0f4
+695	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-11-20 20:05:51.766449	PROMOTE		53eae825ef97cf53ccd08a3f1988edf9
+696	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-12-18 17:24:57.346505	MODIFY	10/21/20 added Subscriber Advocacy Placement\n12/21/20 added Care Placement	3053d502170e6689ceed99e7aa045a4b
+697	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2020-12-22 14:34:07.01655	PROMOTE		24399d7acd7208b3d6a284835a82ee1f
+698	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2021-11-23 14:46:51.756438	MODIFY		b6a0d64ec4986c82fa4cacfff76575a6
+699	38ac9cd3-d028-11ea-a072-340cee6a52b6	1	2021-11-23 14:48:59.500783	PROMOTE		e36ef09fe9992d6214360be59e6a423e
+700	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2020-07-29 21:12:34.729971	CREATE		
+701	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2020-08-03 14:06:33.274734	MODIFY		
+702	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2020-08-05 20:24:00.084051	PROMOTE		
+703	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2020-12-28 16:51:07.742178	MODIFY		35b6e0276255760fd7031446ac35cce0
+704	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2020-12-28 16:53:37.703813	PROMOTE		fdb7b80fb57de1d0e8f0115f235cfbcf
+705	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2021-02-16 14:20:04.641199	MODIFY		45d2be7634c5bdad98e32c5fecd68b50
+706	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2021-02-16 14:24:49.805102	PROMOTE		1e0db6cd71bdd2a82901b9dd2d7107d1
+707	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2021-02-16 22:43:14.335905	MODIFY		5c7e9e6cd6e8012ab3a79cb434a947a8
+708	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2021-02-16 22:44:25.666618	PROMOTE		063b3081b10fe5816367586804dcadac
+709	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2021-12-01 16:19:55.336812	MODIFY		8ede4f65096f3d3d163c26a199b8946b
+710	38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	1	2021-12-01 16:20:29.935324	PROMOTE		335659d0c089c4deaff6074a43fa8a9d
+711	3a6ebc75-324c-11ea-b065-caa26301f1d5	1	2020-01-08 19:22:36.74605	CREATE		
+712	3a6ebc75-324c-11ea-b065-caa26301f1d5	4	2020-06-10 17:58:14.197728	PROMOTE		
+713	3a6ebc75-324c-11ea-b065-caa26301f1d5	1	2021-01-11 16:06:56.367356	MODIFY		5cc45ab82fbb729c957786296efda495
+714	3a6ebc75-324c-11ea-b065-caa26301f1d5	1	2021-01-11 16:07:08.326329	PROMOTE		e36de5a245bd297ed400ed5b81406fbb
+715	3a6ebc75-324c-11ea-b065-caa26301f1d5	1	2021-04-19 15:52:38.382663	MODIFY		9248591b01f82ad0db2325ff47855961
+716	3a6ebc75-324c-11ea-b065-caa26301f1d5	1	2021-04-19 16:11:05.905691	PROMOTE		a2e865547f93863998e0c0ff1c69c8dd
+717	3a6ebc75-324c-11ea-b065-caa26301f1d5	1	2021-11-22 16:08:48.553352	MODIFY		568e98ba4802a29b70633a9dd6207978
+718	3a6ebc75-324c-11ea-b065-caa26301f1d5	1	2021-11-22 16:10:46.423418	PROMOTE		a19e09099c56e0300076ad3ed991a60b
+719	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2020-08-11 20:57:12.654911	CREATE		
+720	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2020-08-11 20:57:36.338318	PROMOTE		
+721	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2020-09-17 13:19:01.812257	MODIFY		
+722	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2020-09-17 13:19:09.906264	PROMOTE		
+723	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2020-10-22 13:59:59.473623	MODIFY		2083c3da2e208d7087fc912cabb37287
+724	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2020-10-22 14:00:10.541981	PROMOTE		c7f23a843242d1f9c8e18bd8d3e46433
+725	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2021-01-07 21:42:02.903888	MODIFY	1/7/21 - name changed from Premium HD for Veterans - 50% off for 52 weeks as promo is till forbid	64dd694421686d0da73ec73fd96991db
+726	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2021-01-07 21:42:22.085233	PROMOTE		c6ccd566f991aeb6bc613254e62a929d
+727	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2021-01-28 19:12:58.55664	MODIFY	Retired per DGP - replaced with OM-10710	e727f59059272f12580cbd06abc10f93
+728	3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	1	2021-01-28 19:13:26.580149	PROMOTE		fa377d0704ed5389b2f402e3572754cd
+729	3b385b10-7fe5-11ea-b471-6dc5734f4dbe	1	2020-04-16 13:21:50.600888	CREATE		
+730	3b385b10-7fe5-11ea-b471-6dc5734f4dbe	1	2020-04-17 19:30:36.600337	MODIFY		
+731	3b385b10-7fe5-11ea-b471-6dc5734f4dbe	4	2020-06-10 17:59:20.518314	PROMOTE		
+732	3b385b10-7fe5-11ea-b471-6dc5734f4dbe	1	2021-03-08 15:23:54.962971	MODIFY		9523db165e344af9d11801820f026055
+733	3b385b10-7fe5-11ea-b471-6dc5734f4dbe	1	2021-03-08 16:21:52.557392	PROMOTE		d84c19f6add761c099c1dd3203f53f7f
+734	3b385b10-7fe5-11ea-b471-6dc5734f4dbe	1	2021-11-23 14:46:21.818985	MODIFY		d62349a25c57d7368347c0962e502aaf
+735	3b385b10-7fe5-11ea-b471-6dc5734f4dbe	1	2021-11-23 14:48:48.131555	PROMOTE		a5c328b4d365711f9e1b05967b45c9e2
+736	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2021-07-20 16:12:08.851526	CREATE	https://docs.google.com/spreadsheets/d/13h2rHNTUVtaLN_1IOFOjhdkZMr48zlSe09FBoKX-Eo0/edit#gid=1153944505	1d37794d2d7feb813087740286316d06
+737	3bca9b12-e975-11eb-b8d5-738bc22ed287	2	2021-07-20 18:06:32.578622	PROMOTE		1c3c5192165ccf96ccf6b4e2c6d38864
+738	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2021-07-21 13:16:49.832181	MODIFY		b66ec9931c4cd1b6966801d921e8a238
+739	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2021-07-21 13:18:33.922145	PROMOTE		34f91b52653ddef8959d999e1a8d2d72
+740	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2021-09-28 17:19:44.664195	MODIFY		c1a6f31bd1bf61192a2709efba495c85
+741	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2021-09-28 17:21:58.146717	PROMOTE		3d81aa343b15cb84f0fecbf39ea5745a
+742	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2021-11-23 17:49:48.693422	MODIFY		73c98d995a83c47a4c647a89f364d78c
+743	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2021-11-23 17:51:09.034214	PROMOTE		fbcec7811fd36cd8a873b716f44dd35c
+744	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2022-03-04 15:38:08.513423	MODIFY	3/4/2022 Added OnLine Cancel Placement per request in Monday	d66e0944d2c766a4496c5670a0a8ffe3
+2521	c3e7bccf-de4a-11ea-a319-6320d3f2fb09	1	2020-08-14 17:17:27.387409	PROMOTE		
+745	3bca9b12-e975-11eb-b8d5-738bc22ed287	1	2022-03-04 15:38:48.740712	PROMOTE		76f08763b19ee00f2e4b390256f355b7
+746	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	1	2021-05-27 17:37:40.368896	CREATE	Created for STS use per S Wang.	213e7939e29448457dea0c1238f19446
+747	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	1	2021-05-27 17:42:18.441219	PROMOTE		5184a43920abcbc199b5934ed1559096
+748	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	1	2021-05-27 18:42:15.338162	MODIFY		90f57a31e079d373a1c7c473caed8cbc
+749	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	1	2021-05-27 18:42:26.714434	PROMOTE		cd7376f0e3752723f80add6571a0d919
+750	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	2	2021-07-14 13:37:26.409417	MODIFY	Adding landing page per https://docs.google.com/spreadsheets/d/1gKJa6e7fEPgoslOUWojxH49cQ_2wCH92c3pax-TbbSo/edit?ts=60ee185f#gid=0	8e684a0cb0192e8e129b5f2116f5b746
+751	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	2	2021-07-14 13:39:59.870989	PROMOTE		8a380bb7a2c1cd22c3cd4ac920aed2f8
+752	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	2	2021-07-14 13:41:34.368855	MODIFY		40c63dd0c1f270d495dfc54e47563f65
+753	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	2	2021-07-14 13:42:14.206985	PROMOTE		3239acd4f1c231e1d894189980b42960
+754	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	2	2021-08-26 21:44:02.643185	MODIFY	Updated description to remove STS and lay out price in terms of every 52 weeks instead of weekly per Katie Friedman's request 	652f631e0755094022b28aadc5d69a09
+755	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	2	2021-08-26 21:44:12.273822	PROMOTE		00161224143aa6bdc51ec1470426dd32
+756	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	1	2021-11-23 15:30:45.003535	MODIFY		9c944824d536903587dc12ce88e7c11c
+757	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	1	2021-11-23 15:32:26.153113	PROMOTE		5c4fbba38aa8eec4b12604f7a8f51e1c
+758	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	1	2022-05-03 17:53:37.229897	MODIFY		3ece4ef33981850fb732adc430bb5648
+759	3c196b87-bf12-11eb-8a2c-97ac9d3345e4	1	2022-05-03 17:54:18.341886	PROMOTE		045baaf231bba59f72b638234d70d627
+760	3cb5f742-3964-11eb-8781-6119ce7d1b1e	1	2020-12-08 14:47:04.300321	CREATE		abef50dc2623374f05445edccc0e607c
+761	3cb5f742-3964-11eb-8781-6119ce7d1b1e	1	2020-12-11 15:56:33.926409	PROMOTE		77bf1ab56be0d5201dbf4404c1decec9
+762	3cb5f742-3964-11eb-8781-6119ce7d1b1e	1	2021-02-10 15:43:11.116143	MODIFY		25d11fe3601c2ff0c31cd350dbbf5f3b
+763	3cb5f742-3964-11eb-8781-6119ce7d1b1e	1	2021-02-10 15:43:31.053726	MODIFY		daef3f5fb02ac03b27321b508ee3cab4
+764	3cb5f742-3964-11eb-8781-6119ce7d1b1e	1	2021-02-18 17:23:06.08076	PROMOTE		db7e92c3206dcdaa75945b47d0c947c7
+765	3cb5f742-3964-11eb-8781-6119ce7d1b1e	1	2021-10-18 21:01:45.315318	MODIFY		942c7ccc83b6972e7c7a7b68febeb1bd
+766	3cb5f742-3964-11eb-8781-6119ce7d1b1e	1	2021-10-18 21:06:19.74747	PROMOTE		57417df1b62b58e47588a663966e696e
+767	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2020-01-08 19:29:51.701934	CREATE		
+768	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	4	2020-06-10 17:58:18.848574	PROMOTE		
+769	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2020-08-03 20:01:11.896725	MODIFY		
+770	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2020-08-05 19:48:40.875595	PROMOTE		
+771	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2021-01-11 16:28:37.139768	MODIFY		4d6f2b76722b071bfe8171f2c516b870
+772	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2021-02-05 14:19:39.28865	PROMOTE		35567d7a1a1c697d685b4c4ded95c01e
+773	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2021-04-19 15:53:21.557825	MODIFY		cd7e59d5a9eab157477707769b883aba
+774	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2021-04-19 16:11:08.569091	PROMOTE		fcffbd9c75deb4f62a81ee17667af0c7
+775	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2021-08-10 13:58:09.271449	MODIFY	Offer retired and replaced by OM-10751 per Sam Wang.   \nhttps://docs.google.com/spreadsheets/d/1UqIomJB8dcCLL7I5ZRSGJJEBmsNr-OexY3nV4vpVBes/edit#gid=1153944505	6d2157d2f9083fa14e5a370cc912ae94
+776	3dafbc9f-324d-11ea-a70d-8a8989bb29aa	1	2021-08-10 13:58:20.736819	PROMOTE		84519af2f09234e65f09b1bdbd937951
+777	3e53d189-e0d6-11eb-a95f-d82c366b6d5b	1	2021-07-09 16:53:53.824017	CREATE	created duplicate (of OM-10081) offer w/o audience so it would be available to agents	b6e0bf0ab579c4ea501cd53400c68e02
+778	3e53d189-e0d6-11eb-a95f-d82c366b6d5b	1	2021-07-09 16:54:15.563994	PROMOTE		d40340dfc2674d17e86c3feda4d55c5a
+779	3e53d189-e0d6-11eb-a95f-d82c366b6d5b	1	2021-09-28 16:05:11.727717	MODIFY		caa8e74fe9703d97fc7ad8292e602e41
+780	3e53d189-e0d6-11eb-a95f-d82c366b6d5b	1	2021-09-28 17:23:57.894149	PROMOTE		b1aaec80db29ae60f4ad1396194dbca1
+781	3e5b7e25-988f-11eb-8c98-100c795c8520	1	2021-04-08 17:24:15.886085	CREATE		6f254e78cda625bafc9bd73a6a7fbdd0
+782	3e5b7e25-988f-11eb-8c98-100c795c8520	1	2021-04-08 17:41:39.770556	PROMOTE		5b6248de23d14d82673c362376422fa4
+783	3e5b7e25-988f-11eb-8c98-100c795c8520	1	2021-08-19 16:07:46.586844	MODIFY	added 'NYT' to name - requested by C Bland 8/19/21	8c88d74858514685ce8250379fe43951
+784	3e5b7e25-988f-11eb-8c98-100c795c8520	1	2021-08-19 16:08:41.112508	PROMOTE		6f761578d20199832f9dc20d29c89bee
+785	3e5b7e25-988f-11eb-8c98-100c795c8520	1	2021-10-04 16:38:48.659439	MODIFY	Name Changed from NYT Employee Premium HD 2021,Premium removed and promo changed from PEN 714 + RDGT Pending Launch	682694b4a5a5670360fe0c664bc7c018
+786	3e5b7e25-988f-11eb-8c98-100c795c8520	1	2021-10-11 16:04:04.926972	PROMOTE		a9df418ebbfa98d9ac42f18f0dc3d64d
+787	3ff386eb-eb98-11ea-8511-474d7bc12993	1	2020-08-31 14:42:52.870226	CREATE		
+788	3ff386eb-eb98-11ea-8511-474d7bc12993	2	2020-09-04 14:11:59.661524	PROMOTE		
+789	3ff386eb-eb98-11ea-8511-474d7bc12993	1	2020-10-02 13:52:36.217455	MODIFY		
+790	3ff386eb-eb98-11ea-8511-474d7bc12993	1	2020-10-20 17:00:55.278647	PROMOTE		e544588acecc6c2f0787f6781d87d75d
+791	42120255-e93b-11ea-873f-74f46cae88b8	5	2020-08-28 14:32:10.904024	CREATE		
+792	42120255-e93b-11ea-873f-74f46cae88b8	5	2020-09-03 20:43:17.429658	PROMOTE		
+793	42120255-e93b-11ea-873f-74f46cae88b8	1	2020-12-18 16:34:06.038094	MODIFY	12/21/20 added Care Placement	5071f4b6c8738a38a856b0fd4ccb9f55
+794	42120255-e93b-11ea-873f-74f46cae88b8	1	2020-12-22 14:39:11.192826	PROMOTE		add6fda29b313865ebb80caecbc32cea
+795	42120255-e93b-11ea-873f-74f46cae88b8	1	2021-10-28 14:52:13.357205	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	5479a2752c2cd32f2907177a0bf1087c
+796	42120255-e93b-11ea-873f-74f46cae88b8	1	2021-10-28 14:54:19.832278	PROMOTE		c743237816c0c7793c1175730df8bf92
+797	42120255-e93b-11ea-873f-74f46cae88b8	1	2021-11-19 16:41:31.836206	MODIFY	Retired as part of EDU Decom per C Bland	1ee1080c16730f276e85ffba34a097a8
+798	42120255-e93b-11ea-873f-74f46cae88b8	1	2021-11-19 16:41:41.487648	PROMOTE		d187ddfce225985219bafefb03ab7991
+799	42459d57-bfbc-11eb-93f5-024cda8b295f	1	2021-05-28 13:54:45.154752	CREATE	Created per DGP, BAU international offer for ROW low conversion markets	47e526670be7ad715be2e67101cbba77
+800	42459d57-bfbc-11eb-93f5-024cda8b295f	1	2021-05-28 14:04:33.169525	PROMOTE		16f092384fb6bbe8b41cbc9857608d29
+801	42459d57-bfbc-11eb-93f5-024cda8b295f	1	2021-11-23 17:46:32.863026	MODIFY		fee066e9253347fb8287ce6805721d5c
+802	42459d57-bfbc-11eb-93f5-024cda8b295f	1	2021-11-23 17:48:38.932194	PROMOTE		ab9f27e96b47a1411a13eb22ca98f6e7
+803	429c0cfd-6d96-11ec-b727-98a0485555b6	1	2022-01-04 19:41:07.169404	CREATE	Created for L Sparks for use on LP	07d91de8db7b06c3f885d7cd3b5e9865
+804	429c0cfd-6d96-11ec-b727-98a0485555b6	1	2022-01-04 20:21:34.719538	PROMOTE		7678f609ef7787a8e19c7530c07eac92
+805	436dd75e-1b7b-11ea-8a1a-54900ccd666e	1	2019-12-10 18:31:21.442086	CREATE		
+806	436dd75e-1b7b-11ea-8a1a-54900ccd666e	1	2020-01-21 16:25:43.527956	MODIFY		
+807	436dd75e-1b7b-11ea-8a1a-54900ccd666e	2	2020-03-02 21:37:46.285732	MODIFY		
+808	436dd75e-1b7b-11ea-8a1a-54900ccd666e	4	2020-06-10 17:57:58.851507	PROMOTE		
+809	436dd75e-1b7b-11ea-8a1a-54900ccd666e	2	2020-08-24 21:51:50.127201	MODIFY		
+810	436dd75e-1b7b-11ea-8a1a-54900ccd666e	2	2020-08-24 21:52:32.568127	PROMOTE		
+811	436dd75e-1b7b-11ea-8a1a-54900ccd666e	1	2020-08-25 20:34:27.029163	MODIFY		
+812	436dd75e-1b7b-11ea-8a1a-54900ccd666e	1	2020-08-25 20:34:37.794949	PROMOTE		
+813	436dd75e-1b7b-11ea-8a1a-54900ccd666e	2	2020-08-31 13:43:42.57442	MODIFY		
+814	436dd75e-1b7b-11ea-8a1a-54900ccd666e	2	2020-08-31 13:44:19.08739	PROMOTE		
+815	436dd75e-1b7b-11ea-8a1a-54900ccd666e	1	2021-11-23 14:55:27.558485	MODIFY		6d23d9b56409e24b3d7f35c17a3c52e5
+816	436dd75e-1b7b-11ea-8a1a-54900ccd666e	1	2021-11-23 14:57:35.363894	PROMOTE		ec12fc4a86b9ba849fe158343a8e595f
+817	436dd75e-1b7b-11ea-8a1a-54900ccd666e	1	2021-11-24 15:34:48.764905	MODIFY		6e5cb750e52ddf0593e83b7501a7bfa4
+818	436dd75e-1b7b-11ea-8a1a-54900ccd666e	1	2021-11-24 15:37:37.33101	PROMOTE		2df4c20366a37d68b94a71821ce52b36
+819	45200554-2b72-11eb-9e03-1d27ccbcdf62	2	2020-11-20 20:52:15.092468	CREATE		fadbb78cf8e96a79b8143241c07cbfb7
+820	45200554-2b72-11eb-9e03-1d27ccbcdf62	2	2020-11-20 20:52:25.66554	PROMOTE		ba3699f90e572b1fab06f5faa6fc688a
+821	45200554-2b72-11eb-9e03-1d27ccbcdf62	1	2021-11-19 16:18:29.532029	MODIFY		3bb45211c217d5dc5958e4662cc0f603
+987	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-02-12 16:35:38.173341	PROMOTE		4ec3041156d59924eb33ada522671690
+822	45200554-2b72-11eb-9e03-1d27ccbcdf62	1	2021-11-19 16:19:23.444246	MODIFY	Added USD to name per C Bland	0cfbe369753d6ca9ab593042d9cdc56f
+823	45200554-2b72-11eb-9e03-1d27ccbcdf62	1	2021-11-19 16:19:37.062445	PROMOTE		51238c312d362959f647805f5d736a03
+824	45200554-2b72-11eb-9e03-1d27ccbcdf62	1	2022-01-26 15:09:18.769167	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	be407e0dea53ff715d4d1831cf3d5db8
+825	45200554-2b72-11eb-9e03-1d27ccbcdf62	1	2022-01-26 15:32:01.061353	PROMOTE		9bdbfa1a96f4dc3318511cf70bbc6b8f
+826	45a4681d-b853-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:05:40.170963	CREATE		
+827	45a4681d-b853-11e9-b8ef-27f7ec03ccac	1	2020-04-16 19:23:37.056653	MODIFY		
+828	45a4681d-b853-11e9-b8ef-27f7ec03ccac	1	2020-04-17 18:32:37.96368	MODIFY		
+829	45a4681d-b853-11e9-b8ef-27f7ec03ccac	1	2020-04-21 18:37:56.393985	MODIFY		
+830	45a4681d-b853-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:59:22.383729	PROMOTE		
+831	45a4681d-b853-11e9-b8ef-27f7ec03ccac	1	2020-08-03 18:27:24.607636	MODIFY		
+832	45a4681d-b853-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:46:43.032273	PROMOTE		
+833	45a4681d-b853-11e9-b8ef-27f7ec03ccac	2	2020-08-26 14:35:10.305035	MODIFY		
+834	45a4681d-b853-11e9-b8ef-27f7ec03ccac	2	2020-08-26 14:35:25.076752	PROMOTE		
+835	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-08-07 15:40:09.997996	CREATE		
+836	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-08-21 12:30:26.328182	PROMOTE		
+837	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-09-16 17:59:03.537555	MODIFY		
+838	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-09-16 17:59:15.139896	PROMOTE		
+839	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-11-11 19:50:06.434565	MODIFY		096d7a58fe3af1eeb05ca7546fa37c32
+840	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-11-11 19:58:28.64605	PROMOTE		336bab8ea7b146444cd03f0d56cde133
+841	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-11-17 18:10:40.445715	MODIFY		840af2f5dc41c8be377b76ca06690263
+842	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-11-17 18:10:48.321367	PROMOTE		902815e556bad3d938c9945a0d89960b
+843	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-11-20 21:53:11.057667	MODIFY		42f91b40eafcf20af3957916c52b2122
+844	46b99aab-d8c4-11ea-96df-09ccd10d7717	1	2020-11-20 21:53:21.823238	PROMOTE		62310e9a6cc8c7fea1881ea7c41f2d2c
+845	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2020-07-28 15:59:12.756725	CREATE		
+846	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2020-07-28 19:48:07.319659	PROMOTE		
+847	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2020-12-18 16:17:27.669452	MODIFY	10/21/20 added Care Placement	3fe2373a147e532decadc8c014bb9840
+848	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2020-12-22 14:39:18.971708	PROMOTE		340d5e22b321df8908b6ef36f303fb78
+849	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2021-04-12 21:50:38.190274	MODIFY		1edc7b65e9c56031499854d88d57a6b5
+850	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2021-04-12 21:56:16.109394	PROMOTE		a3e5bd4791b0b8a79494548a73f13f50
+851	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2021-09-28 16:33:35.425124	MODIFY		cfe0521439f91f898282904b8a8557ff
+852	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2021-09-28 17:27:56.925292	PROMOTE		c0098a30d1bede65caf2aaedd8299c90
+853	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2021-10-28 14:48:25.310214	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	c5dffc2155948265ffefcffebf268a95
+854	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2021-10-28 14:54:25.948306	PROMOTE		07b50f5991604ac28b0fd8d7d6e50f18
+855	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2022-01-26 15:10:58.90502	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	13b0befa413afc5d2f22b3ac14dd770e
+856	47bb3f72-d0eb-11ea-ad31-6380fc00472d	1	2022-01-26 15:32:07.88039	PROMOTE		4ccc3539c67b8924f9a3a64c24af7a6e
+857	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	2	2020-08-08 00:08:30.276792	CREATE		
+858	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:23:23.850011	PROMOTE		
+859	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2020-10-02 16:03:29.904374	MODIFY		
+860	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2020-10-20 17:09:37.712522	PROMOTE		91d0f964b4dcc940646694a3cfad83c4
+861	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2020-10-22 19:50:23.491805	MODIFY		67c53e30aa9c2582d6b9a71d0736cab0
+862	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2020-10-22 19:50:37.081941	PROMOTE		4e1a43f40de92d55e52ca123ee46a401
+863	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2020-10-22 20:42:54.420555	MODIFY		6eccc94e16e0a82f87bce358329aa483
+864	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2020-10-23 13:53:32.477443	MODIFY		3f3e3a570cbe7512b0ff527464fd6793
+865	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2020-10-23 13:55:30.965116	PROMOTE		2d78dc854fb9482af04ffd66eff4de4d
+866	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2021-02-16 14:23:56.100003	MODIFY		3859581da61dc062de90225c6ece7cf9
+867	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2021-02-16 14:24:51.994454	PROMOTE		5cb50fcf7740d7c9e22ddda5d6907e7e
+868	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2021-02-16 22:43:32.949255	MODIFY		f968f2a6f30c6259c6c539a8126f1882
+869	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2021-02-16 22:44:27.574455	PROMOTE		8f6e33eea60a52e8dabc497a0c8a31f6
+870	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2021-12-01 16:20:16.658219	MODIFY		096db4421f1faeefc08efe783e3bf5c5
+871	4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	1	2021-12-01 16:20:31.81624	PROMOTE		7a7b7b7ed97e5e61e985597eef984981
+872	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2019-12-10 18:38:44.151168	CREATE		
+873	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-21 16:29:11.618697	MODIFY		
+874	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-22 20:12:31.984283	MODIFY		
+875	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	4	2020-06-10 17:57:52.952429	PROMOTE		
+876	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2020-08-04 11:32:12.358024	MODIFY		
+877	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2020-08-05 20:12:21.486958	PROMOTE		
+878	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	2	2020-11-20 21:16:51.42422	MODIFY		04991cac6a089581ec67b80abc6015a4
+879	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	2	2020-11-20 21:16:57.750638	PROMOTE		d10b3f9fb37097c874d1282d2222d582
+880	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2021-02-26 15:49:14.325989	MODIFY		e952b3de070fcd1919a3b2532ede3b76
+881	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2021-02-26 15:49:24.05481	PROMOTE		da58dc0e251bb71dc65b644d50cd79a8
+882	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2021-04-23 16:16:43.364474	MODIFY		31003e69472cfc9cb914dbae11a98006
+883	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2021-04-23 16:16:54.259577	PROMOTE		fd23ef3973074b111e7f18c8c7f197ff
+884	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-23 14:57:01.078575	MODIFY		cc60b1bf5b7a0b6a722f709de9414447
+885	4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-23 14:58:05.795924	PROMOTE		c0fb9f71f24ac5a630942a8580d5a79e
+886	4c6cd9dd-d1d9-11ea-b100-0199b90aa60b	1	2020-07-29 20:23:00.853198	CREATE		
+887	4c6cd9dd-d1d9-11ea-b100-0199b90aa60b	1	2020-08-03 18:08:50.374812	MODIFY		
+888	4c6cd9dd-d1d9-11ea-b100-0199b90aa60b	1	2020-08-05 19:22:16.290631	PROMOTE		
+889	4d3f9dd5-f1dc-11ea-942b-2b10751285b6	1	2020-09-08 14:05:07.933539	CREATE		
+890	4d3f9dd5-f1dc-11ea-942b-2b10751285b6	1	2020-09-17 13:08:49.329429	MODIFY		
+891	4d3f9dd5-f1dc-11ea-942b-2b10751285b6	1	2020-09-17 13:08:58.069273	PROMOTE		
+892	4d3f9dd5-f1dc-11ea-942b-2b10751285b6	1	2020-11-11 20:16:47.233429	MODIFY		51f8b8eb1e6bc3e954e5432ed0250e3f
+893	4d3f9dd5-f1dc-11ea-942b-2b10751285b6	1	2020-11-11 20:20:47.483994	PROMOTE		7ac5f9f7a86a48a52dc78aed24cf967a
+894	4d3f9dd5-f1dc-11ea-942b-2b10751285b6	1	2020-11-19 22:05:06.944932	MODIFY		cbf9185b3ec1c2e9ffef57bc02752b91
+895	4d3f9dd5-f1dc-11ea-942b-2b10751285b6	1	2020-11-19 22:07:37.984828	PROMOTE		b0f058209e35aec94268114f5ab6379b
+896	4dd2029f-b856-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:27:22.381794	CREATE		
+897	4dd2029f-b856-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:59:00.538331	PROMOTE		
+898	4dd2029f-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-04 11:36:25.481669	MODIFY		
+899	4dd2029f-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-05 20:13:41.442353	PROMOTE		
+900	4e22b692-d0ec-11ea-ad31-6380fc00472d	1	2020-07-28 16:06:32.997854	CREATE		
+901	4e22b692-d0ec-11ea-ad31-6380fc00472d	1	2020-07-28 19:47:57.735872	PROMOTE		
+902	4e22b692-d0ec-11ea-ad31-6380fc00472d	1	2020-07-29 21:05:11.442338	MODIFY		
+903	4e22b692-d0ec-11ea-ad31-6380fc00472d	1	2020-08-04 11:40:01.708524	MODIFY		
+904	4e22b692-d0ec-11ea-ad31-6380fc00472d	1	2020-08-05 20:15:20.019279	PROMOTE		
+905	4e22b692-d0ec-11ea-ad31-6380fc00472d	1	2020-11-09 16:12:48.971949	MODIFY		04e753dbeb3f87e6c99713bfc1a46089
+906	4e22b692-d0ec-11ea-ad31-6380fc00472d	1	2020-11-09 16:21:38.799698	PROMOTE		0fa004dfa05708047323a5c2a696f60b
+907	4e479351-de4a-11ea-a319-6320d3f2fb09	2	2020-08-14 16:22:11.048127	CREATE		
+908	4e479351-de4a-11ea-a319-6320d3f2fb09	1	2020-08-14 17:17:02.196707	PROMOTE		
+909	4e479351-de4a-11ea-a319-6320d3f2fb09	1	2020-08-27 16:32:56.366212	MODIFY		
+910	4e479351-de4a-11ea-a319-6320d3f2fb09	1	2020-08-27 16:33:07.765884	PROMOTE		
+911	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:29:25.045933	CREATE		
+912	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:53:34.381343	PROMOTE		
+1147	5c850a25-e87f-11ea-a5df-5346faa6bcb7	5	2020-08-27 16:07:09.893487	CREATE		
+913	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2020-12-18 16:33:00.783483	MODIFY	12/21/20 added Care Placement	ca035a9a37a4cd433f5329036fe4cabf
+914	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2020-12-22 14:38:54.502083	PROMOTE		d2a3feeb567322dfb26258e90f2aa7e6
+915	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2021-04-12 21:35:35.35699	MODIFY		35609544c9ea35281dac019d717d21ed
+916	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2021-04-12 21:55:57.310948	PROMOTE		9967b704fb3b0fed2a5d9ffabd450435
+917	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2021-09-28 16:35:45.087858	MODIFY		1e34576b1f79628b352048771f8843ec
+918	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2021-09-28 17:27:45.210865	PROMOTE		1010d3382e7adc3f8267c54d5bc960f1
+919	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:25:53.12933	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	4a362a34e4c93c9f3d5eb5899584e6af
+920	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:53:57.433174	PROMOTE		13bfd7a21bd38aa3c2959fa9de5cc4a3
+921	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2021-11-19 16:38:19.343457	MODIFY	Retired as part of EDU Decom per C Bland	73db01a01735a0ce1d944278df2b9159
+922	4f38029a-cda9-11ea-b464-e4d44f10848e	1	2021-11-19 16:38:29.623613	PROMOTE		bb09e1a79a08e888f87ce5654fad8a69
+923	500a771c-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-04 13:48:28.757584	CREATE		
+924	500a771c-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-16 18:04:29.869254	MODIFY		
+925	500a771c-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-16 18:04:39.335564	PROMOTE		
+926	500a771c-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:45:15.087399	MODIFY		ccd655c4e9537b05ed3cc49774f06f26
+927	500a771c-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:47:16.274935	MODIFY		fbd2e61328d915623f2ae7c7d40e1a48
+928	500a771c-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:48:36.783144	PROMOTE		2ca79428c9c21a9c4278274179128906
+929	500a771c-eeb5-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:41:19.30563	MODIFY		c7b81358807261903a89b1ab6085bbd0
+930	500a771c-eeb5-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:58:23.644474	PROMOTE		1fa6364a078157a4620c0ccbabe49454
+931	500a771c-eeb5-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:15:06.018649	MODIFY		1dfcaa7e3cbcc08bb1d06bf5cccc7bf1
+932	500a771c-eeb5-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:15:28.236046	PROMOTE		e554fdbe0deb1254c3b3b471d08d69ab
+933	502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	1	2020-04-16 13:15:16.265499	CREATE		
+934	502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	1	2020-04-17 19:11:40.346964	MODIFY		
+935	502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	4	2020-06-10 17:59:14.330308	PROMOTE		
+936	502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	1	2021-03-08 15:26:25.049735	MODIFY		47ce27bd040864b27b026413814496c7
+937	502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	1	2021-03-08 16:22:09.863625	PROMOTE		b3c16f90785ae7602f4233fc44bdd996
+938	502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	1	2021-11-22 19:20:10.736569	MODIFY		64d33b73e69ba6bf2a232a573a0d74e5
+939	502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	1	2021-11-22 19:23:21.514812	PROMOTE		2653f90149db8f59e9792c92b3a6a155
+940	50ca652f-ef0c-11eb-9f4f-540712121ab7	1	2021-07-27 18:56:13.902348	CREATE	Created per S Wang - see OC request	ad7caa6a87d674fe77cb0b00520b9be4
+941	50ca652f-ef0c-11eb-9f4f-540712121ab7	1	2021-07-28 13:35:08.567127	PROMOTE		4c5962d77ee2433e8eb6fcc25f2d61ec
+942	50ca652f-ef0c-11eb-9f4f-540712121ab7	1	2021-10-22 17:31:19.084889	MODIFY	Added Type=Cancel the Cancel and Placement=Account per Megan Elliotts request https://jira.nyt.net/browse/MOI-11360	b1a400f55f1544d916243a828405e5e2
+943	50ca652f-ef0c-11eb-9f4f-540712121ab7	1	2021-10-22 17:56:27.838653	PROMOTE		5b20c09828f834312734a2cfd3ce4982
+944	50ca652f-ef0c-11eb-9f4f-540712121ab7	1	2021-11-23 17:50:28.363817	MODIFY		767c1708255d99b633fe91e8f906417a
+945	50ca652f-ef0c-11eb-9f4f-540712121ab7	1	2021-11-23 17:51:16.698462	PROMOTE		ee3596aa9b33a16b920f22bb8b362483
+946	50ca652f-ef0c-11eb-9f4f-540712121ab7	1	2021-12-09 14:30:19.470311	MODIFY	Added OLC per M Elliott -https://docs.google.com/spreadsheets/d/1UUEfG3nEWSoXHSTLTItqZiBW536_wL_i9O_Gx9EcacM/edit#gid=1153944505	da1e7540618646fa470a5900339aa550
+947	50ca652f-ef0c-11eb-9f4f-540712121ab7	1	2021-12-09 15:47:18.593427	PROMOTE		2b571e07f0086acfeb180a8efe923614
+948	51108742-1dec-11eb-a6f2-0b1d65fcee1f	2	2020-11-03 15:50:37.44573	CREATE		016ddb0e17e6f6ac6a6c9df3854eb6f4
+949	51108742-1dec-11eb-a6f2-0b1d65fcee1f	2	2020-11-03 15:55:07.436297	MODIFY		2317b52d3bc9acefe9b75bca30a5310e
+950	51108742-1dec-11eb-a6f2-0b1d65fcee1f	1	2020-11-10 17:57:34.657265	PROMOTE		2075380b55a9b3261036d7e27cf7bfc0
+951	51108742-1dec-11eb-a6f2-0b1d65fcee1f	1	2021-10-04 17:47:02.827062	MODIFY	Premium removed and promo changed from PEN I36 + RDGT Pending Launch	d41237bc33cd1930dbe6afdd44c6aca8
+952	51108742-1dec-11eb-a6f2-0b1d65fcee1f	1	2021-10-11 16:03:58.883394	PROMOTE		167b00fc07729f2713a27e578dfbb839
+953	5122dd81-dc02-11ea-9596-859e83a0873f	1	2020-08-11 18:41:49.750621	CREATE		
+954	5122dd81-dc02-11ea-9596-859e83a0873f	1	2020-08-11 20:41:29.434823	PROMOTE		
+955	5122dd81-dc02-11ea-9596-859e83a0873f	1	2020-10-15 17:13:06.033136	MODIFY		b7e21b38a2f5b5dfbbd79ad4c59ca206
+956	5122dd81-dc02-11ea-9596-859e83a0873f	1	2020-10-16 15:02:42.383475	PROMOTE		35ad197b2009cb133953503b1be70952
+957	5122dd81-dc02-11ea-9596-859e83a0873f	1	2020-12-18 17:08:25.177608	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia\n12/21/20 added Care Placement	be089938e0bb140343f039ca991d592b
+958	5122dd81-dc02-11ea-9596-859e83a0873f	1	2020-12-22 14:33:39.342591	PROMOTE		2f2c3430ef81167b823c007215fe792e
+959	5122dd81-dc02-11ea-9596-859e83a0873f	2	2021-01-12 23:30:25.807109	MODIFY	Adding Magnolia placement back 1/12/2021. Was previously marked as not needed but appears to be used on a source doc. https://docs.google.com/spreadsheets/d/1iMt_tncT1tQ0sbxogV1AoO5iC-o30LU7fktFWY7raEs/edit#gid=0	287fe317ac82fb967ea57447259528b7
+960	5122dd81-dc02-11ea-9596-859e83a0873f	2	2021-01-12 23:30:41.442458	PROMOTE		e0de16b84a2128d0eaca645e351c1dbb
+961	5122dd81-dc02-11ea-9596-859e83a0873f	1	2021-04-12 21:33:26.261841	MODIFY		60209b8c79d93408e5f09f0f949d9f40
+962	5122dd81-dc02-11ea-9596-859e83a0873f	1	2021-04-12 21:55:10.739097	PROMOTE		f7d7702ef146db3bb4a7f02df3632bd6
+963	5122dd81-dc02-11ea-9596-859e83a0873f	1	2021-09-28 16:47:08.380811	MODIFY		17f497b9cfc1b4b3b5eefe81f9449f1a
+964	5122dd81-dc02-11ea-9596-859e83a0873f	1	2021-09-28 17:26:41.191199	PROMOTE		4de76642c367f5edb34d580366e2ea76
+965	5122dd81-dc02-11ea-9596-859e83a0873f	1	2022-06-06 14:54:40.74707	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	2e595a3315535f9117e4395df3fb81b3
+966	5122dd81-dc02-11ea-9596-859e83a0873f	1	2022-06-06 15:14:07.085334	PROMOTE		6dd4cc43510d8e215ff2ff427d502feb
+967	515a960e-b854-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:13:09.316561	CREATE		
+968	515a960e-b854-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:58:54.506107	PROMOTE		
+969	515a960e-b854-11e9-b8ef-27f7ec03ccac	1	2020-08-03 18:26:18.818716	MODIFY		
+970	515a960e-b854-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:46:04.192152	PROMOTE		
+971	515a960e-b854-11e9-b8ef-27f7ec03ccac	1	2020-08-25 12:46:49.864509	MODIFY		
+972	515a960e-b854-11e9-b8ef-27f7ec03ccac	1	2020-08-25 12:47:00.647187	PROMOTE		
+973	515a960e-b854-11e9-b8ef-27f7ec03ccac	2	2020-08-28 17:41:04.000281	MODIFY		
+974	515a960e-b854-11e9-b8ef-27f7ec03ccac	2	2020-08-28 17:41:14.787392	PROMOTE		
+975	515a960e-b854-11e9-b8ef-27f7ec03ccac	1	2021-09-28 16:36:42.087679	MODIFY		28abb79ee2cee80f1b899da05e731e19
+976	515a960e-b854-11e9-b8ef-27f7ec03ccac	1	2021-09-28 17:27:59.480156	PROMOTE		046ca30fcc66e61c67c9ff03f941fc07
+977	515a960e-b854-11e9-b8ef-27f7ec03ccac	1	2022-01-26 15:26:14.931399	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	db16c52134a709a111862c51fd7a3dd0
+978	515a960e-b854-11e9-b8ef-27f7ec03ccac	1	2022-01-26 15:32:13.061482	PROMOTE		bbf08cddb81971f37ae690adb0e341fa
+979	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2020-11-17 21:10:28.188551	CREATE		f44c137aeccd24121e48010ed1784755
+980	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2020-11-17 21:12:48.570485	PROMOTE		69f98006adbb5a9a07978341917f1427
+981	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2020-12-18 17:41:36.433684	MODIFY	12/21/20 added Care Placement	ecf726a1409c0f4b8f42b2984f444244
+982	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2020-12-22 14:34:37.500689	PROMOTE		5cdfbb32f50e46658f668513a94f8d1d
+983	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-01-13 19:01:40.383846	MODIFY		15a1685a15d993a8c22d167700265d67
+984	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-01-13 19:02:30.262389	MODIFY	1/13/21 - Corrected name 	03b428f305506571113c1e20767c7546
+985	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-01-13 19:02:44.145439	PROMOTE		4d73671ed22a56f782d60874670b388b
+986	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-02-12 16:35:16.408154	MODIFY		b1f52fc9af72a88524e1ce1a70823454
+1148	5c850a25-e87f-11ea-a5df-5346faa6bcb7	1	2020-08-27 17:25:22.866191	PROMOTE		
+988	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-02-18 15:44:37.118486	MODIFY		8e7404895315edc4fc3950ab70addbb7
+989	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-02-18 15:45:20.235165	MODIFY		d3706dbd33f69c11ecb3ec59a883d206
+990	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-02-18 15:47:06.538869	PROMOTE		9ab1f01384060c1e04b99295d7d0b81d
+991	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-04-19 16:03:03.153428	MODIFY		863a86f2cc42636387fdbebf2fe6c304
+992	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-04-19 16:11:27.13666	PROMOTE		814b3a21ff7c5b1cfb58dc862f6554aa
+993	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-09-10 15:55:54.362169	MODIFY	Removed LP Placement - Vladimir confirmed via slack not in use	b81e4d023765f3de802b9b515aaeac7c
+994	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-09-10 15:56:04.662566	PROMOTE		beae8f15f596b3a44d0cb426860c54da
+995	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-09-20 20:50:44.393605	MODIFY	Offer retired per S Wang as part of Games OC review/retirement 	659724705c0c2b1ca5a7b1d808c9cce2
+996	516bff0a-2919-11eb-a40a-b3af9c52a8f2	1	2021-09-20 20:54:45.872525	PROMOTE		58e731f3f8112f58e1bde24e3e4a8edc
+997	534a79b9-d0d1-11ea-ad31-6380fc00472d	1	2020-07-28 12:53:25.235349	CREATE		
+998	534a79b9-d0d1-11ea-ad31-6380fc00472d	1	2020-07-28 14:02:45.667968	PROMOTE		
+999	534a79b9-d0d1-11ea-ad31-6380fc00472d	1	2020-08-21 17:07:51.472957	MODIFY		
+1000	534a79b9-d0d1-11ea-ad31-6380fc00472d	1	2020-08-21 18:47:40.284887	PROMOTE		
+1001	534a79b9-d0d1-11ea-ad31-6380fc00472d	2	2020-08-28 17:22:02.364577	MODIFY		
+1002	534a79b9-d0d1-11ea-ad31-6380fc00472d	2	2020-08-28 17:22:20.058859	PROMOTE		
+1003	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2020-08-07 15:47:40.979789	CREATE		
+1004	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2020-08-07 15:48:30.758132	PROMOTE		
+1005	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2020-10-22 15:44:14.968265	MODIFY		bb29a782b3109ebd91b11dc064943ac9
+1006	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2020-10-22 15:44:24.157965	PROMOTE		811725572f0325d185e3785d4cb540ab
+1007	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2021-01-12 22:15:48.048037	MODIFY		13373e4eca441a59395d5615412541f8
+1008	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2021-01-12 22:16:32.21904	PROMOTE		ee5e8af1c6d36f32858905dfce027a9c
+1009	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2021-10-04 14:44:08.45323	MODIFY	Name Changed from Acquisition ONLY $1 wk for 12 weeks Premium HD,Premium removed and promo changed from PEN 287 + RDGT Pending Launch	c1373c513ff4d6d10dcda814baa9da54
+1010	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2021-10-04 14:54:20.465448	MODIFY		3c3098746b0c6f52fd73e3a4d8cf3164
+1011	5387f6fc-d8c5-11ea-96df-09ccd10d7717	1	2021-10-11 16:02:43.808614	PROMOTE		e6bfe1a0b68130a2eb67eabb106a313a
+1012	544c7675-0a37-11ea-906e-925cd985ab3d	2	2019-11-18 19:12:14.199772	CREATE		
+1013	544c7675-0a37-11ea-906e-925cd985ab3d	4	2020-06-10 17:57:19.367971	PROMOTE		
+1014	544c7675-0a37-11ea-906e-925cd985ab3d	1	2021-02-12 16:22:23.958463	MODIFY		afbe18512fbf26a9978095d6af4ac782
+1015	544c7675-0a37-11ea-906e-925cd985ab3d	1	2021-02-12 16:37:00.034486	PROMOTE		db3a14d2f4b66569d2d0d038d9019fe3
+1016	544c7675-0a37-11ea-906e-925cd985ab3d	1	2021-03-19 13:35:54.354131	MODIFY		facb485cea18607e681783eb6e10389f
+1017	544c7675-0a37-11ea-906e-925cd985ab3d	1	2021-03-19 13:36:05.045084	PROMOTE		72f6aa5381031c9d3ba4640e1ea4d619
+1018	5552207f-eed8-11ea-8f09-c856356c0be4	2	2020-09-04 17:59:10.001373	CREATE		
+1019	5552207f-eed8-11ea-8f09-c856356c0be4	2	2020-09-04 17:59:27.951551	PROMOTE		
+1020	5552207f-eed8-11ea-8f09-c856356c0be4	1	2020-09-25 21:50:02.052716	MODIFY		
+1021	5552207f-eed8-11ea-8f09-c856356c0be4	1	2020-09-28 16:59:36.964667	PROMOTE		
+1022	5552207f-eed8-11ea-8f09-c856356c0be4	1	2020-09-28 17:06:58.447707	MODIFY		
+1023	5552207f-eed8-11ea-8f09-c856356c0be4	1	2020-09-30 16:02:35.817234	PROMOTE		
+1024	55a35de4-0a35-11ea-906e-925cd985ab3d	1	2019-11-18 18:57:57.453568	CREATE		
+1025	55a35de4-0a35-11ea-906e-925cd985ab3d	1	2020-04-27 13:43:16.094113	MODIFY		
+1026	55a35de4-0a35-11ea-906e-925cd985ab3d	4	2020-06-10 17:57:15.181901	PROMOTE		
+1027	55a35de4-0a35-11ea-906e-925cd985ab3d	1	2021-03-08 21:05:23.073097	MODIFY		e137efab6ad438ef881423c0e3f2e2c2
+1028	55a35de4-0a35-11ea-906e-925cd985ab3d	1	2021-03-08 21:05:39.044866	PROMOTE		e4f751fff55ef287693a51474f690f46
+1029	55a35de4-0a35-11ea-906e-925cd985ab3d	1	2021-11-09 14:28:16.945344	MODIFY	Retired and Remove audience 119730, 119734, 119763, 119767, 119772 and added to OM-10048 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	430dcd536bc2e0641161f43cbdcb84f7
+1030	55a35de4-0a35-11ea-906e-925cd985ab3d	1	2021-11-15 14:45:12.955669	MODIFY		10dbb20e844215d174401817c919c79e
+1031	55a35de4-0a35-11ea-906e-925cd985ab3d	1	2021-11-15 14:48:26.498397	PROMOTE		96137e5bb8411ad91ddd80b9e079c564
+1032	565fb28e-d0e7-11ea-ad31-6380fc00472d	1	2020-07-28 15:30:59.335646	CREATE		
+1033	565fb28e-d0e7-11ea-ad31-6380fc00472d	1	2020-07-28 18:34:41.518373	PROMOTE		
+1034	565fb28e-d0e7-11ea-ad31-6380fc00472d	1	2020-11-09 16:06:57.559221	MODIFY		d6234cef241091e534f00b82a8b20f99
+1035	565fb28e-d0e7-11ea-ad31-6380fc00472d	1	2020-11-09 16:21:26.461304	PROMOTE		9f95e89db55b375c447f9fbfc25b274b
+1036	565fb28e-d0e7-11ea-ad31-6380fc00472d	1	2021-02-18 15:44:13.928855	MODIFY		186d5aa293402845f6619b7317985ae5
+1037	565fb28e-d0e7-11ea-ad31-6380fc00472d	1	2021-02-18 15:47:03.517148	PROMOTE		11438af4a658fbdfcf6aefdbe882bded
+1038	58056667-d0e6-11ea-ad31-6380fc00472d	1	2020-07-28 15:23:52.602586	CREATE		
+1039	58056667-d0e6-11ea-ad31-6380fc00472d	1	2020-07-28 18:34:38.658767	PROMOTE		
+1040	58056667-d0e6-11ea-ad31-6380fc00472d	2	2020-08-20 22:28:06.626598	MODIFY		
+1041	58056667-d0e6-11ea-ad31-6380fc00472d	2	2020-08-20 22:28:48.653206	PROMOTE		
+1042	58056667-d0e6-11ea-ad31-6380fc00472d	2	2020-08-26 22:55:10.978762	MODIFY		
+1043	58056667-d0e6-11ea-ad31-6380fc00472d	2	2020-08-26 22:55:20.375449	PROMOTE		
+1044	582565ce-2b71-11eb-a8a3-0715bbac1279	1	2020-11-20 20:45:37.507698	CREATE		b518efda99e87cb14a5cdc6a85f9f12f
+1045	582565ce-2b71-11eb-a8a3-0715bbac1279	1	2020-11-20 20:50:31.00416	PROMOTE		d56ab51166494e367b955d85a2ce568c
+1046	58539053-e7c2-11ea-baa4-0cfa41e0bffc	1	2020-08-26 17:34:07.97646	CREATE		
+1047	58539053-e7c2-11ea-baa4-0cfa41e0bffc	1	2020-08-26 18:06:09.929506	PROMOTE		
+1048	58539053-e7c2-11ea-baa4-0cfa41e0bffc	1	2020-11-09 16:13:32.503175	MODIFY		fe8a07aeb9138aee9997150f634fa365
+1049	58539053-e7c2-11ea-baa4-0cfa41e0bffc	1	2020-11-09 16:22:55.242167	PROMOTE		d6d1aae1e17996bf1c528207679cde24
+1050	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-08-31 16:16:37.53664	CREATE		
+1051	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-09-16 17:59:56.312726	MODIFY		
+1052	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-09-16 18:00:04.576248	PROMOTE		
+1053	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-10-22 13:44:18.252305	MODIFY		e57c3b57b573425c9445db2a65d892ce
+1054	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-10-22 13:44:31.147299	PROMOTE		af380064a45eb2cb7db2d0ded592424f
+1055	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-10-22 13:46:25.35323	MODIFY		fa3d505e09c7ae8d13db141f92e45669
+1056	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-10-22 13:46:25.43683	MODIFY		e90782a947ca438d5573c4b97770eaef
+1057	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-10-22 13:48:32.00976	PROMOTE		3249a0bcb9e982b14938fa044c8826ab
+1058	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-11-11 19:40:03.575722	MODIFY		d2fbb9859007b089d959a8e2bad00c74
+1059	58838288-eba5-11ea-ad18-35b6d1b87db1	1	2020-11-11 19:58:31.009324	PROMOTE		73b4ce796ec396a8bbc1dc8c698cff23
+1060	58838288-eba5-11ea-ad18-35b6d1b87db1	2	2020-11-19 21:57:24.168241	MODIFY		bffd8d4ad7e9ea017cdecf6e2e58e1c1
+1061	58838288-eba5-11ea-ad18-35b6d1b87db1	2	2020-11-19 21:57:38.335395	PROMOTE		84b81809d3ce54a30263635492376969
+1062	58c3646b-e298-11ec-8877-e2cdefee7572	1	2022-06-02 17:20:49.375205	CREATE		48ee1e66848e4581cf5b6d91bf4cbe4c
+1063	58c3646b-e298-11ec-8877-e2cdefee7572	1	2022-06-02 17:23:14.799434	MODIFY		75a3a3f162aacd02c2e5caf0a24f8364
+1064	58c3646b-e298-11ec-8877-e2cdefee7572	2	2022-06-06 15:23:59.713871	PROMOTE		edae43cd8640e06bb251d25c474bb9a8
+1065	58c3646b-e298-11ec-8877-e2cdefee7572	1	2022-06-06 16:31:28.568189	MODIFY		93c552982f28bae91f4b19d8d5779f21
+1066	58c3646b-e298-11ec-8877-e2cdefee7572	1	2022-06-06 16:31:37.721003	PROMOTE		aa34bd11e33c4b7ffa4e1c3bcd4a958a
+1067	58c3646b-e298-11ec-8877-e2cdefee7572	1	2022-06-06 17:43:47.134465	PROMOTE		62162bd77b8b1425f7cf798fb2f84009
+1068	590d51cf-b05a-11ec-9421-5a740a103fd6	1	2022-03-30 18:51:02.923314	CREATE	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	ab5d2b83f2068e1f5ceb706c97b2577c
+1069	590d51cf-b05a-11ec-9421-5a740a103fd6	1	2022-03-30 19:00:15.562409	MODIFY		c3a7c1340fd7796ceb290aa741251731
+1070	590d51cf-b05a-11ec-9421-5a740a103fd6	1	2022-04-11 20:06:28.403843	MODIFY		9e695294e28d4533ef4cf0e6d41d89d8
+1071	590d51cf-b05a-11ec-9421-5a740a103fd6	1	2022-04-13 16:27:02.565748	MODIFY		8a6a922087a5b721cb53300674978ebc
+1072	590d51cf-b05a-11ec-9421-5a740a103fd6	1	2022-04-13 16:28:33.975333	PROMOTE		3392e2f2e7d8ce342cb724a89d159e9b
+1149	5c850a25-e87f-11ea-a5df-5346faa6bcb7	1	2020-11-09 15:15:12.062948	MODIFY		72d290ab3abdcd70bc257d807701d73c
+1073	590d51cf-b05a-11ec-9421-5a740a103fd6	1	2022-04-20 21:45:34.212987	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	046bc3968c52575813c38c65a952029d
+1074	590d51cf-b05a-11ec-9421-5a740a103fd6	1	2022-04-20 21:47:33.425238	PROMOTE		a430afedb74d248d162d2c6e4fb0f27a
+1075	5a4a811c-ec81-11ea-a052-cb28611c7be8	1	2020-09-01 18:31:29.799006	CREATE		
+1076	5a4a811c-ec81-11ea-a052-cb28611c7be8	1	2020-09-16 18:31:13.559916	MODIFY		
+1077	5a4a811c-ec81-11ea-a052-cb28611c7be8	1	2020-09-16 18:31:22.510687	PROMOTE		
+1078	5a4a811c-ec81-11ea-a052-cb28611c7be8	1	2020-11-11 19:53:42.78489	MODIFY		2114849a76b6360e7de7e470e9b6a583
+1079	5a4a811c-ec81-11ea-a052-cb28611c7be8	1	2020-11-11 19:58:02.735625	PROMOTE		b7f32443b4517cd13fddf4fd8a85cc59
+1080	5a4a811c-ec81-11ea-a052-cb28611c7be8	2	2020-11-19 22:01:26.20704	MODIFY		082643f6cc689ada4e554d9254595704
+1081	5a4a811c-ec81-11ea-a052-cb28611c7be8	2	2020-11-19 22:02:10.724852	PROMOTE		882b130de8e607a02ec3c53e97a6feb4
+1082	5a565718-3edc-11ea-8bf8-f059e0f9b984	1	2020-01-24 19:04:31.755658	CREATE		
+1083	5a565718-3edc-11ea-8bf8-f059e0f9b984	1	2020-05-28 16:12:12.532836	MODIFY		
+1084	5a565718-3edc-11ea-8bf8-f059e0f9b984	1	2020-08-07 16:57:06.857821	PROMOTE		
+1085	5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	1	2021-08-10 16:02:26.039098	CREATE	Set up for SPSO - https://docs.google.com/spreadsheets/d/1c65TIboHyoM3zyqtpPTcHlmsGuAo10aWXZidv226nWk/edit#gid=1153944505	2a38687a3b8bd2ad940ce6bd6646ac66
+1086	5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	1	2021-08-10 16:26:52.113342	MODIFY	corrected link - https://docs.google.com/spreadsheets/d/1CX_3x_LtCIEvTBn48Gl7KAEQOH7Sytv29RUweU1QoRk/edit#gid=0	68570436408122779031638e8f1f6514
+1087	5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	2	2021-08-10 17:04:13.17945	PROMOTE		1568b81b369c2d43bdd89d814e7d4197
+1088	5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	1	2021-10-29 17:18:35.075549	MODIFY	Updated to include Placement=Account and Type=Cancel the Cancel per M Elliott https://docs.google.com/spreadsheets/d/1cr5qW4rDx7LjQ8Bc7lntBHTk9OKMyRx7ux9DXviOzmA/edit#gid=0	0bcd3a14035b03205e6d1dea3b9c4624
+1089	5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	1	2021-10-29 17:20:46.669655	PROMOTE		c2d5866a9a5abf6401c8654c85145ffb
+1090	5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	1	2021-11-23 18:07:58.40247	MODIFY		172aeb8c19dd6bb1108e16fa81724205
+1091	5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	1	2021-11-23 18:40:25.613971	PROMOTE		5ff3cbd35cb0ae21e3b2aa39113fcf80
+1092	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:42:04.600883	CREATE		
+1093	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:58:52.905552	PROMOTE		
+1094	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2020-07-28 12:16:56.033437	MODIFY		
+1095	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2020-08-03 20:05:23.583527	MODIFY		
+1096	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:50:12.603768	PROMOTE		
+1097	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2021-10-28 14:18:59.286376	MODIFY		8c4b2c26f7c8481391e3d9de853ab0f1
+1098	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2021-10-28 14:21:17.106374	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	5e9dc052dce6507ed81f23e61da84411
+1099	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2021-10-28 14:54:01.069986	PROMOTE		469524657e1be966b425af8b1af1b1de
+1100	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2021-11-19 18:04:13.460564	MODIFY	Removed Acq and Prod Change - added USD to name per C Bland	c9042e02f648c829b0a98720d3d160f5
+1101	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2021-11-19 18:05:17.584893	PROMOTE		72b2c9932cf84333113e433b09024f24
+1102	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2022-01-26 15:26:43.46967	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	e60f458d1c09d8d1229272ac4052d750
+1103	5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	1	2022-01-26 15:31:31.317829	PROMOTE		7f89fafba6a8ee1c79e3f512fc498ac3
+1104	5bd51d4c-2b71-11eb-a8a3-0715bbac1279	2	2020-11-20 20:45:43.692438	CREATE		d7417e169c874ec7e3a1ee7766d9d20d
+1105	5bd51d4c-2b71-11eb-a8a3-0715bbac1279	2	2020-11-20 20:46:31.344718	PROMOTE		999e3442b2e252129b5cdf933768a97f
+1106	5bd51d4c-2b71-11eb-a8a3-0715bbac1279	1	2021-11-19 15:12:00.184556	MODIFY	11/19/21 - added USD to name per C Bland	170114614a3b96dfc54661bb6fae0936
+1107	5bd51d4c-2b71-11eb-a8a3-0715bbac1279	1	2021-11-19 15:36:03.926277	PROMOTE		011500158b0096cb084f63d243c1fb53
+1108	5bd51d4c-2b71-11eb-a8a3-0715bbac1279	1	2022-01-26 15:08:44.850095	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	00772f7119c559a4edd945c5117a5330
+1109	5bd51d4c-2b71-11eb-a8a3-0715bbac1279	1	2022-01-26 15:31:57.327321	PROMOTE		dea03f9e28edd0b3073d58091b3bb9f3
+1110	5c0dcc5d-432f-11ec-acc7-73e898f2ac94	2	2021-11-11 20:38:42.859396	CREATE	Requested by Charlotte Gordon to update our INTL gift pricing ahead of the 2021 holidays	e2f2519b6fc2d1b8a7b158d5183a3392
+1111	5c0dcc5d-432f-11ec-acc7-73e898f2ac94	2	2021-11-11 20:39:00.392952	PROMOTE		c3d6c4619b5d96cff28278dbc67badb4
+1112	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:54:41.140762	CREATE		
+1113	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:26:29.285037	MODIFY		
+1114	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:26:45.583613	PROMOTE		
+1115	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2020-09-16 20:10:11.568453	MODIFY		
+1116	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2020-09-16 20:10:19.464973	PROMOTE		
+1117	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2020-10-22 15:46:00.608485	MODIFY		a887dc713d2c825c6038cd3ef3cc5d59
+1118	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2020-10-22 15:46:20.350305	PROMOTE		4a312199a15f133642b6e13f8e7447a6
+1119	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2021-01-12 22:14:11.346236	MODIFY		e1215b8bdc1f580fc350a7a31e5d5291
+1120	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2021-01-12 22:16:34.344759	PROMOTE		28426a6a490cc7471f9760cb875ceadc
+1121	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2021-10-04 14:57:35.627904	MODIFY	Name Changed from Acquisition ONLY HD Prem 50% off for 26/wk, regular rate thereafter,Premium removed and promo changed from PEN 402 + RDGT Pending Launch	7e939451962653662332597c8ecbd06d
+1122	5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	1	2021-10-11 16:02:45.267865	PROMOTE		be8c584d423ca4f26561bc098a89a034
+1123	5c293251-dbff-11ea-9596-859e83a0873f	1	2020-08-11 18:20:39.756864	CREATE		
+1124	5c293251-dbff-11ea-9596-859e83a0873f	1	2020-08-11 20:40:51.55124	PROMOTE		
+1125	5c293251-dbff-11ea-9596-859e83a0873f	1	2020-10-15 16:49:17.008873	MODIFY		ca90fab6d87003c8ff7e92dc7e6cd354
+1126	5c293251-dbff-11ea-9596-859e83a0873f	1	2020-10-16 15:03:24.385098	PROMOTE		2e9aa6abc91679755c92b750a740957d
+1127	5c293251-dbff-11ea-9596-859e83a0873f	2	2021-04-13 15:44:30.488446	MODIFY		daec6aaf662d6f7cdf35e1065f6216f6
+1128	5c293251-dbff-11ea-9596-859e83a0873f	2	2021-04-13 15:44:37.785334	PROMOTE		67ccf630fe57a2434ce11fd7426dbad2
+1129	5c293251-dbff-11ea-9596-859e83a0873f	1	2021-11-22 18:24:53.678661	MODIFY		604f7b0b65e629cec070e6f127da3b37
+1130	5c293251-dbff-11ea-9596-859e83a0873f	1	2021-11-22 18:26:34.603904	PROMOTE		f7f73afaf53a5b65122dddecb410c6a0
+1131	5c293251-dbff-11ea-9596-859e83a0873f	1	2022-06-06 14:58:03.478404	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	c65c8ee0ba0e3dac474741bbf89bf12f
+1132	5c293251-dbff-11ea-9596-859e83a0873f	1	2022-06-06 15:14:15.994536	PROMOTE		f73e2a16033a1b10299fa30a734563ca
+1133	5c2fef60-e881-11ea-bee3-410e24c0cdb9	5	2020-08-27 16:21:28.329322	CREATE		
+1134	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2020-08-27 17:25:38.344567	PROMOTE		
+1135	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2020-09-03 13:45:26.765478	MODIFY		
+1136	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2020-09-17 13:56:36.637954	PROMOTE		
+1137	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2020-10-15 16:02:33.439747	MODIFY		021cba556f4c68d4cd9dc3faaa747c7f
+1138	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2020-10-16 15:03:05.18472	PROMOTE		3a7b1f3ea6f2f20b4895f4493a8c8f4a
+1139	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2020-12-18 16:20:14.234202	MODIFY	12/21/20 added Care Placement	b90270683c91f186c7f559b4a65d5ffb
+1140	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2020-12-22 14:33:59.370352	PROMOTE		d16c0965cc3e14236f350445c1d29da2
+1141	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2021-11-22 16:10:27.558714	MODIFY		22d55a726b9420ddfdf6a905daacde43
+1142	5c2fef60-e881-11ea-bee3-410e24c0cdb9	1	2021-11-22 16:11:07.57631	PROMOTE		3eb68a332b74abf3fe43a36c46253c87
+1143	5c6a9743-aa12-11ec-a49b-769203a1d08a	1	2022-03-22 19:00:37.826668	CREATE		faf96d9253f76c011a2ad0a8c3131f02
+1144	5c6a9743-aa12-11ec-a49b-769203a1d08a	1	2022-03-22 19:01:04.963221	PROMOTE		ecdf7615c8e4b18f05d1b9a20ce000be
+1145	5c6b8d5a-a94e-11ec-84c9-227543ace765	1	2022-03-21 19:37:36.473939	CREATE		54ca4c23dc80238b61bd68bf769dab39
+1146	5c6b8d5a-a94e-11ec-84c9-227543ace765	2	2022-03-22 15:59:48.24267	PROMOTE		baff5baf43e2c4034a4126b359243c53
+1150	5c850a25-e87f-11ea-a5df-5346faa6bcb7	1	2020-11-09 16:23:05.705345	PROMOTE		0a5dd31cae4e6b7d373587def9435d66
+1151	5e393ebf-1de0-11eb-8333-f1ad7e205cff	1	2020-11-03 14:25:05.562194	CREATE		edafa001eb9d92845f35b14b9e0d1c59
+1152	5e393ebf-1de0-11eb-8333-f1ad7e205cff	1	2020-11-05 16:44:19.720584	MODIFY		8cabd0b1aa1f76fd79b89bd5a8d680a6
+1153	5e393ebf-1de0-11eb-8333-f1ad7e205cff	1	2020-11-10 17:56:52.552336	PROMOTE		68e84f298fe3f664f785e5d5f9367ba8
+1154	5e393ebf-1de0-11eb-8333-f1ad7e205cff	1	2021-10-04 16:46:30.878402	MODIFY	Premium removed and promo changed from PEN I11 + RDGT Pending Launch	a717b79898bf77ec9b03300e1eeeacc1
+1155	5e393ebf-1de0-11eb-8333-f1ad7e205cff	1	2021-10-11 16:03:36.489996	PROMOTE		028124f7bd43e3fc427dfcf35c8bc8fa
+1156	5e393ebf-1de0-11eb-8333-f1ad7e205cff	1	2021-12-07 21:21:34.206249	MODIFY		cdc55b74ad05ea71f0796b4c7368ec79
+1157	5e393ebf-1de0-11eb-8333-f1ad7e205cff	1	2021-12-08 14:25:45.656644	PROMOTE		484491a1c53de9017c9965ec9f4dae22
+1158	5e9a4d79-324d-11ea-a70d-8a8989bb29aa	1	2020-01-08 19:30:46.926275	CREATE		
+1159	5e9a4d79-324d-11ea-a70d-8a8989bb29aa	4	2020-06-10 17:58:07.423608	PROMOTE		
+1160	5e9a4d79-324d-11ea-a70d-8a8989bb29aa	1	2020-08-03 20:04:07.4553	MODIFY		
+1161	5e9a4d79-324d-11ea-a70d-8a8989bb29aa	1	2020-08-05 19:49:33.622042	PROMOTE		
+1162	5e9a4d79-324d-11ea-a70d-8a8989bb29aa	1	2021-01-11 16:27:23.040763	MODIFY		0b8edfdc50f556e913713d51c3996aad
+1163	5e9a4d79-324d-11ea-a70d-8a8989bb29aa	1	2021-01-11 16:27:32.32003	PROMOTE		c793b09d6bbaa6cf1f44cb6fc0c068c0
+1164	5e9a4d79-324d-11ea-a70d-8a8989bb29aa	1	2021-11-23 14:39:29.801296	MODIFY		27efb2a0c5e66e15f1e92e625b2ffdfc
+1165	5e9a4d79-324d-11ea-a70d-8a8989bb29aa	1	2021-11-23 14:40:07.858367	PROMOTE		c8290a9911ea9201a77dab0e55d3fbf3
+1166	5f50cdc7-194d-11eb-b57b-b9c0d214283d	1	2020-10-28 18:42:46.723951	CREATE		fe785d8e15598062823faf2e39210c4f
+1167	5f50cdc7-194d-11eb-b57b-b9c0d214283d	1	2020-10-28 18:43:16.059823	PROMOTE		ff4d25a323a952d9f6423b033624bca8
+1168	5f50cdc7-194d-11eb-b57b-b9c0d214283d	1	2021-02-12 16:18:54.758184	MODIFY		5c56e92df405102b342ac09fc3cfb933
+1169	5f50cdc7-194d-11eb-b57b-b9c0d214283d	1	2021-02-12 16:36:36.67221	PROMOTE		bbb74759796ce973ca4796e93d4e46e5
+1170	5f50cdc7-194d-11eb-b57b-b9c0d214283d	1	2021-11-22 17:32:51.101691	MODIFY		37d4bd78d8368ca7f1a5e405464f531d
+1171	5f50cdc7-194d-11eb-b57b-b9c0d214283d	1	2021-11-22 17:34:38.963141	PROMOTE		9273e94345dedf798f422dd0590ea617
+1172	604d1be4-ac79-11ec-9421-5a740a103fd6	1	2022-03-25 20:23:04.833026	CREATE		d967f104b130a8d6ef0e1875249d93ad
+1173	604d1be4-ac79-11ec-9421-5a740a103fd6	1	2022-03-25 20:25:16.765413	PROMOTE		02138c130b2f7783a83583a1ad88f520
+1174	604d1be4-ac79-11ec-9421-5a740a103fd6	2	2022-03-25 22:49:33.465624	MODIFY		1a9d668ee944fe7f1d23abb249e72850
+1175	604d1be4-ac79-11ec-9421-5a740a103fd6	2	2022-03-25 22:49:47.87463	PROMOTE		e927707a4b820ee578e307b1be0d2f92
+1176	60e1d710-1ddf-11eb-b628-125d5786ccee	2	2020-11-03 14:18:00.525811	CREATE		00d8369d666ef8e88ff41cf5d94db0a7
+1177	60e1d710-1ddf-11eb-b628-125d5786ccee	2	2020-11-03 15:53:52.58713	MODIFY		bcabd6da1305a6e30b45b9233b61905e
+1178	60e1d710-1ddf-11eb-b628-125d5786ccee	1	2020-11-10 17:57:25.590494	PROMOTE		a9ff25eebf0c99e1a3597d190cf20905
+1179	60e1d710-1ddf-11eb-b628-125d5786ccee	1	2021-10-04 17:42:51.461643	MODIFY	Premium removed and promo changed from PEN I30 + RDGT Pending Launch	6dd9b79d9940b9d91d1bbcc3a3f03861
+1180	60e1d710-1ddf-11eb-b628-125d5786ccee	1	2021-10-11 16:03:51.696212	PROMOTE		f25b23b9d837bdcf3fd06240f838670d
+1181	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-07-24 12:37:07.34517	CREATE		
+1182	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-07-27 13:13:43.611111	PROMOTE		
+1183	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-07-29 19:50:17.184293	MODIFY		
+1184	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-08-03 18:09:52.445519	MODIFY		
+1185	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-08-05 19:23:09.999815	PROMOTE		
+1186	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-11-09 15:31:00.986897	MODIFY		72c2e957149865cec970f72c843f0ee6
+1187	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-11-09 16:27:24.947288	PROMOTE		4a37fc38c293d00aec0203efa069745d
+1188	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-11-18 19:35:08.170343	MODIFY		5a2b0eadacc8e05c126d679465a49e37
+1189	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2020-11-18 19:38:27.842312	PROMOTE		0298941a171f0121288eea28f63837b8
+1190	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2021-11-22 16:35:06.477489	MODIFY		526d74746f439f9d3b30ba710d9be787
+1191	62c54692-cdaa-11ea-b464-e4d44f10848e	1	2021-11-22 16:38:14.068977	PROMOTE		51083284979c0a49e833879276b620d0
+1192	64962017-e7c0-11ea-be14-d34dfa7bd272	1	2020-08-26 17:20:09.551877	CREATE		
+1193	64962017-e7c0-11ea-be14-d34dfa7bd272	1	2020-08-26 18:00:17.839107	PROMOTE		
+1194	64962017-e7c0-11ea-be14-d34dfa7bd272	1	2020-08-27 18:25:50.997237	MODIFY		
+1195	64962017-e7c0-11ea-be14-d34dfa7bd272	1	2020-08-27 18:26:00.331366	PROMOTE		
+1196	64962017-e7c0-11ea-be14-d34dfa7bd272	1	2020-08-27 18:28:06.946157	MODIFY		
+1197	64962017-e7c0-11ea-be14-d34dfa7bd272	1	2020-08-27 18:28:16.575501	PROMOTE		
+1198	64a6e699-aba6-11ec-bcb5-4233b15e0448	1	2022-03-24 19:12:48.322539	CREATE		7826cfc2085a6c7eb28bdee7276d52b8
+1199	64a6e699-aba6-11ec-bcb5-4233b15e0448	1	2022-03-25 15:11:48.908934	MODIFY		90250757bb88093e277243ae70ab4357
+1200	64a6e699-aba6-11ec-bcb5-4233b15e0448	1	2022-03-25 15:12:00.278384	PROMOTE		94ebe71ce0c0c4475697fa6ce03a1e36
+1201	64bc1a58-d0ed-11ea-ad31-6380fc00472d	1	2020-07-28 16:14:20.409714	CREATE		
+1202	64bc1a58-d0ed-11ea-ad31-6380fc00472d	1	2020-07-28 19:48:09.883345	PROMOTE		
+1203	64bc1a58-d0ed-11ea-ad31-6380fc00472d	1	2020-08-21 17:09:20.71103	MODIFY		
+1204	64bc1a58-d0ed-11ea-ad31-6380fc00472d	1	2020-08-21 18:48:23.496584	PROMOTE		
+1205	64bc1a58-d0ed-11ea-ad31-6380fc00472d	2	2020-08-28 16:46:09.423817	MODIFY		
+1206	64bc1a58-d0ed-11ea-ad31-6380fc00472d	2	2020-08-28 16:46:18.946594	PROMOTE		
+1207	65092d9a-1e1d-11eb-abd4-5b3945c01ebf	5	2020-11-03 21:41:56.291739	CREATE		42a01a70e185a865ee581ab9d54ee682
+1208	65092d9a-1e1d-11eb-abd4-5b3945c01ebf	1	2020-11-05 16:46:47.77882	MODIFY		aa010fd00101a3c9deb6f581e1ee10de
+1209	65092d9a-1e1d-11eb-abd4-5b3945c01ebf	1	2020-11-10 17:57:21.245373	PROMOTE		901210a98ebfad5d20ba2c8705afa15c
+1210	65092d9a-1e1d-11eb-abd4-5b3945c01ebf	1	2021-10-04 17:37:26.11274	MODIFY	Premium removed and promo changed from PEN I25 + RDGT Pending Launch	9d9b2588d89ced7c8e462017c9aeb58e
+1211	65092d9a-1e1d-11eb-abd4-5b3945c01ebf	1	2021-10-11 16:03:48.247617	PROMOTE		aab6241271f59862279a5b745c66c8c4
+1212	6521393d-e0b2-11eb-90b6-d4808be41804	1	2021-07-09 12:37:17.041465	CREATE	created per C Bland, J Kashwick, P Gillies	97994642ef574a2028de8a9860c388db
+1213	6521393d-e0b2-11eb-90b6-d4808be41804	1	2021-07-09 12:59:09.548885	PROMOTE		db3dc98297320184ec1d8dd9251a7735
+1214	6521393d-e0b2-11eb-90b6-d4808be41804	1	2021-07-09 15:08:15.497376	MODIFY		92dc40c97ca70e4904003647eb0a526f
+1215	6521393d-e0b2-11eb-90b6-d4808be41804	1	2021-07-09 15:08:27.540404	PROMOTE		99276b55b0b8ac77011792710209b72f
+1216	6521393d-e0b2-11eb-90b6-d4808be41804	1	2021-10-04 17:51:59.509478	MODIFY	Name Changed from HD Premium 50% off for 12 weeks RC2 2020,Premium removed and promo changed from PEN Q11 + RDGT Pending Launch	696c017cb0269e7e020add41cee97d7c
+1217	6521393d-e0b2-11eb-90b6-d4808be41804	1	2021-10-11 16:03:03.465766	PROMOTE		188f60ba3e09768d349ad566c8cf626c
+1218	65828107-5519-11eb-b599-1505d28e525c	1	2021-01-12 21:01:53.052705	CREATE	1/12/21 Added for Magnolia Integration to Omelette	b2134acef52cb532e1c5d033e16996cf
+1219	65828107-5519-11eb-b599-1505d28e525c	1	2021-01-12 21:06:22.397609	PROMOTE		a391cb90772ad377870ce87d3e718618
+1220	65828107-5519-11eb-b599-1505d28e525c	1	2021-03-04 20:59:16.024899	MODIFY		ec6b106330165581377235775dc88fb0
+1221	65828107-5519-11eb-b599-1505d28e525c	1	2021-03-04 20:59:26.995943	PROMOTE		2a6c362fc930d464cd6912e899db8ddc
+1222	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-07-27 16:51:20.470578	CREATE		
+1223	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-07-27 16:58:27.199085	PROMOTE		
+1224	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-07-29 21:06:04.160333	MODIFY		
+1225	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-08-04 11:40:57.507375	MODIFY		
+1226	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-08-05 20:16:04.275592	PROMOTE		
+1227	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-08-28 13:15:48.426907	MODIFY		
+1228	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-08-28 13:16:00.325665	PROMOTE		
+1229	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-11-09 15:13:32.94506	MODIFY		00035abe8514403a21118609b881c56e
+1230	6594c1de-d029-11ea-a072-340cee6a52b6	1	2020-11-09 16:27:41.520615	PROMOTE		313853611a9e4a8f68f56c966ecfccdb
+1231	6594c1de-d029-11ea-a072-340cee6a52b6	1	2021-04-19 15:59:26.218507	MODIFY		2dcb2db3ff826a35dbf2b75a77557d9d
+1232	6594c1de-d029-11ea-a072-340cee6a52b6	1	2021-04-19 16:11:43.441573	PROMOTE		6c07e2e056da3eab3794a33e60f6372b
+1233	6594c1de-d029-11ea-a072-340cee6a52b6	1	2021-09-20 20:53:25.518719	MODIFY	Offer retired per S Wang as part of Games OC review/retirement	41efed55c813a5af5ed30d57afa17cb1
+1234	6594c1de-d029-11ea-a072-340cee6a52b6	1	2021-09-20 20:55:11.710835	PROMOTE		ce8258888b76e0bdfec6f2f64f1a8a70
+2610	cba20597-afe3-11ea-9f79-0838ef53fe29	2	2020-06-16 16:01:59.404926	MODIFY		
+1235	66651496-bfbc-11eb-b23b-9ac57c61bc8b	1	2021-05-28 13:55:45.758944	CREATE	Created per DGP, New BAU All Access offer internationally - ROW high-conversion markets only	49a2ad679b6d68456e0b6cd61855968f
+1236	66651496-bfbc-11eb-b23b-9ac57c61bc8b	1	2021-05-28 14:04:40.051029	PROMOTE		927bdcf593be0a5f25e2b5e4c7d0a89b
+1237	66651496-bfbc-11eb-b23b-9ac57c61bc8b	1	2021-11-23 17:47:10.142491	MODIFY		db14239c934896c50cc07e1a834ff470
+1238	66651496-bfbc-11eb-b23b-9ac57c61bc8b	1	2021-11-23 17:48:40.695152	PROMOTE		75112fa7ca0f6431af71012e21d0ecb3
+1239	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2020-08-11 18:28:06.586544	CREATE		
+1240	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2020-08-11 20:41:11.388229	PROMOTE		
+1241	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2020-10-15 17:11:29.620537	MODIFY		4156757ce562d74603ce070bff804215
+1242	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2020-10-16 15:02:52.761328	PROMOTE		4b573992970c75890bfdd11b1103ec7e
+1243	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2020-12-18 16:56:42.393141	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia\n12/21/20 added Care Placement	0b9228998fc01789786ec14eb659f714
+1244	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2020-12-22 14:33:49.564508	PROMOTE		a900c6c999ba8afbf27d691dc3d675a8
+1245	667dfeb9-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:32:48.170094	MODIFY	Adding Magnolia placement back 1/12/2021. Was previously marked as not needed but appears to be used on a source doc. https://docs.google.com/spreadsheets/d/1iMt_tncT1tQ0sbxogV1AoO5iC-o30LU7fktFWY7raEs/edit#gid=0	512ded8c09c7aa1705ecae7325025aab
+1246	667dfeb9-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:33:14.122209	PROMOTE		9f607af9ce79c92266604825fbee95dd
+1247	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2021-09-28 16:48:20.534168	MODIFY		56b3a0e3955b5d37673fbb22456dbaae
+1248	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2021-09-28 17:26:43.633908	PROMOTE		b5fa9051adf68842f1246fd3539645e7
+1249	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2022-06-06 14:56:05.651271	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	7af8247fd493731c76652803150d1751
+1250	667dfeb9-dc00-11ea-9596-859e83a0873f	1	2022-06-06 15:14:09.365406	PROMOTE		06455fe15bc1d5846842ff04fa7fafda
+1251	66a28488-80dc-11ea-899a-9e8b392bde36	1	2020-04-17 18:51:09.130871	CREATE		
+1252	66a28488-80dc-11ea-899a-9e8b392bde36	1	2020-04-17 19:22:23.355403	MODIFY		
+1253	66a28488-80dc-11ea-899a-9e8b392bde36	1	2020-04-20 18:29:02.874629	MODIFY		
+1254	66a28488-80dc-11ea-899a-9e8b392bde36	4	2020-06-10 17:59:16.426276	PROMOTE		
+1255	66a28488-80dc-11ea-899a-9e8b392bde36	1	2021-03-05 18:16:48.908897	MODIFY		027bda3035dbe02f6166998cf1586c88
+1256	66a28488-80dc-11ea-899a-9e8b392bde36	1	2021-03-05 18:16:58.998416	PROMOTE		999def8ed7b0e7b7d0c773416428a39b
+1257	66a28488-80dc-11ea-899a-9e8b392bde36	1	2021-11-22 16:37:33.495044	MODIFY		f2f4f799716e8a179475fa1c6056168f
+1258	66a28488-80dc-11ea-899a-9e8b392bde36	1	2021-11-22 16:38:43.846902	PROMOTE		37f13fec15b5dce3aaff3850238dea28
+1259	66a28488-80dc-11ea-899a-9e8b392bde36	1	2022-04-20 21:41:32.410546	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	9120133aae9aefd08780ab0085e94355
+1260	66a28488-80dc-11ea-899a-9e8b392bde36	1	2022-04-20 21:42:11.27454	PROMOTE		3c8efefb78b647697679f4a605329540
+1261	66c962e2-de8a-11eb-b49a-35894272850a	1	2021-07-06 18:45:57.626362	CREATE	Created for N Foden and M Elliott \nhttps://docs.google.com/spreadsheets/d/1O4Ih8PwHiS00xfctrce12BfXuFof8xf-7_x2_W2QgLg/edit#gid=1153944505	14a986e7f477a736cbc65c48d762135e
+1262	66c962e2-de8a-11eb-b49a-35894272850a	1	2021-07-07 18:27:39.236036	PROMOTE		27eb7db712ee35cde1407fa15cbe02c3
+1263	66c962e2-de8a-11eb-b49a-35894272850a	1	2021-07-27 14:20:21.01011	MODIFY	Updated Offer Type to include Product Change per M Elliott https://docs.google.com/spreadsheets/d/15DcHX9az-Im8tb7O9mfZKLZHCrjmu2IfsM4pCxOknwE/edit#gid=1153944505	e7c4ada1b26c2477bceb5043ec1adf03
+1264	66c962e2-de8a-11eb-b49a-35894272850a	1	2021-07-27 14:22:16.994855	PROMOTE		0a26bf05ced3f204c3eb194bdc160309
+1265	66c962e2-de8a-11eb-b49a-35894272850a	1	2021-11-23 19:22:14.154189	MODIFY		90edc57f9562619699c64e27dd4587d7
+1266	66c962e2-de8a-11eb-b49a-35894272850a	1	2021-11-29 16:04:37.350441	PROMOTE		6ddd1d3a0c1e7277e5597dac60b89319
+1267	66c962e2-de8a-11eb-b49a-35894272850a	1	2022-05-19 16:05:44.729378	MODIFY	Added Placement=LP per Anthony Branco	dfa2635b42c112ef5e3391e04a8b2fe8
+1268	66c962e2-de8a-11eb-b49a-35894272850a	1	2022-05-19 16:06:00.950858	PROMOTE		79f1a2fef4c8889140fe9e4f2c5f00a1
+1269	6755354e-dbf0-11ea-899e-ed02528c3365	1	2020-08-11 16:33:36.049296	CREATE		
+1270	6755354e-dbf0-11ea-899e-ed02528c3365	1	2020-08-11 20:38:52.410184	PROMOTE		
+1271	6755354e-dbf0-11ea-899e-ed02528c3365	1	2020-11-09 16:01:00.640234	MODIFY		6496cf6d0003e39f656cb3a0f21f11c5
+1272	6755354e-dbf0-11ea-899e-ed02528c3365	1	2020-11-09 16:21:49.559035	PROMOTE		55802c8c246dd455a2aae2ab4cbdeb87
+1273	69075f1f-619c-11eb-a623-5fbb489147f9	1	2021-01-28 19:09:56.981812	CREATE		b6f9dbdde112c50f47e4420295e298d1
+1274	69075f1f-619c-11eb-a623-5fbb489147f9	1	2021-01-28 19:13:24.02782	PROMOTE		f1bb5ddbafc520c03041c5033be2caec
+1275	69075f1f-619c-11eb-a623-5fbb489147f9	1	2021-10-04 15:52:03.032851	MODIFY	Name Changed from Veterans/Active Military 50% off for 52 weeks HD Premium,Premium removed and promo changed from PEN 405 + RDGT Pending Launch	9823f6c551c0457d59db57328ab98742
+1276	69075f1f-619c-11eb-a623-5fbb489147f9	1	2021-10-11 16:03:23.833354	PROMOTE		b992ad0d05075456489c1baf8c220f4e
+1277	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2020-07-24 12:58:46.545755	CREATE		
+1278	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2020-07-27 13:13:55.471529	PROMOTE		
+1279	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2020-12-18 16:38:44.03162	MODIFY	12/21/20 added Care Placement	83ab07b262e11fc409d3bec0af0a4a97
+1280	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2020-12-22 14:33:51.908439	PROMOTE		770e7e3a99b60f5992ec723776ba750e
+1281	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2021-04-12 21:33:47.016696	MODIFY		4762278e7b15fb84fdb6c1963838f2f5
+1282	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2021-04-12 21:55:20.378548	PROMOTE		9ff8227a06408cee00179eefb8e407c8
+1283	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2021-09-28 16:58:40.21471	MODIFY		c08e4b3d823508d44bffe6808b515540
+1284	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2021-09-28 17:28:08.835306	PROMOTE		8eee8e92816d5d898ff78d9a65fbb6f6
+1285	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2021-11-22 16:35:43.643116	MODIFY		2661528bedec188bd64e7253b5003a79
+1286	69278d6c-cdad-11ea-b464-e4d44f10848e	1	2021-11-22 16:38:17.21486	PROMOTE		e505dd65214396199ee216b21c89c1fd
+1287	6929d115-3962-11eb-8781-6119ce7d1b1e	1	2020-12-08 14:33:59.885856	CREATE		43a1b7cf8959bec28abd98c26712d487
+1288	6929d115-3962-11eb-8781-6119ce7d1b1e	1	2020-12-11 15:56:53.59213	PROMOTE		af70fd9192968e9bce5f23ea07c2e1f8
+1289	6929d115-3962-11eb-8781-6119ce7d1b1e	1	2021-10-18 21:04:26.570557	MODIFY		88effd5027ed2e0d60f09b63e9d366cf
+1290	6929d115-3962-11eb-8781-6119ce7d1b1e	1	2021-10-18 21:06:29.497164	PROMOTE		67b49457f59ce47b95e046d0de789aef
+1291	69b57424-9891-11eb-8a0c-b14e9a417941	1	2021-04-08 17:39:47.611564	CREATE		170d063e41ac8599ec5709930a30de4a
+1292	69b57424-9891-11eb-8a0c-b14e9a417941	1	2021-04-08 17:41:43.886008	PROMOTE		240fe862b8b36d4a49eb652be67e4efe
+1293	69b57424-9891-11eb-8a0c-b14e9a417941	1	2021-08-19 16:08:17.829121	MODIFY	added 'NYT' to name - requested by C Bland 8/19/21	ee55d37aa5eac21762e3ea2af1ca8da2
+1294	69b57424-9891-11eb-8a0c-b14e9a417941	1	2021-08-19 16:08:43.799331	PROMOTE		970957c349184c84f1ce28b5d63c5352
+1295	69b57424-9891-11eb-8a0c-b14e9a417941	1	2021-10-04 16:37:46.748395	MODIFY	Name Changed from NYT Retiree Premium HD 2021,Premium removed and promo changed from PEN 711 + RDGT Pending Launch	eb23f16fd4e2e4a12f3254047762277e
+1296	69b57424-9891-11eb-8a0c-b14e9a417941	1	2021-10-11 16:04:06.612051	PROMOTE		90fcc6544869390d2398c9dabe06f75a
+1297	6b4d3cec-f9e7-11eb-b916-0fe798fea297	1	2021-08-10 14:29:49.792199	CREATE	Set up for SPSO - https://docs.google.com/spreadsheets/d/1c65TIboHyoM3zyqtpPTcHlmsGuAo10aWXZidv226nWk/edit#gid=1153944505	1eee196689a5b83638bd5b6ba806e36e
+1298	6b4d3cec-f9e7-11eb-b916-0fe798fea297	1	2021-08-10 16:24:42.660402	MODIFY	corrected link - https://docs.google.com/spreadsheets/d/1CX_3x_LtCIEvTBn48Gl7KAEQOH7Sytv29RUweU1QoRk/edit#gid=0	dd2442298bec6d8faef3983fac0969ff
+1299	6b4d3cec-f9e7-11eb-b916-0fe798fea297	2	2021-08-10 17:00:41.078	PROMOTE		a56e019394a3b911669b811c198a22e6
+1300	6b4d3cec-f9e7-11eb-b916-0fe798fea297	1	2021-11-23 15:24:35.976646	MODIFY		9ab066ff4f28b7658a82b32fcf9b9210
+1301	6b4d3cec-f9e7-11eb-b916-0fe798fea297	1	2021-11-23 18:04:52.48453	PROMOTE		531edff2dc3855b35b95336418fd6c1d
+1382	6f165148-dc01-11ea-9596-859e83a0873f	1	2020-12-22 14:34:33.105872	PROMOTE		a230f51e2452de01af8e5b3b65e05fee
+1866	91ad7778-dc01-11ea-9596-859e83a0873f	1	2020-10-15 17:10:54.651602	MODIFY		b220763e8689b46b982d73e6f5e1246c
+1302	6b4d3cec-f9e7-11eb-b916-0fe798fea297	1	2022-03-14 19:58:41.325723	MODIFY	3/14/2022 Added Online Cancel Placement per request in Monday - no Audiences associated to this request. https://docs.google.com/spreadsheets/d/1ue00CHdVtKudb5ck2ByceD6n_2KxwRWm0RHg00y3baQ/edit#gid=1510377305	b9dfaf49cb36215d1efee69e122dee93
+1303	6b4d3cec-f9e7-11eb-b916-0fe798fea297	1	2022-03-22 16:08:53.193525	PROMOTE		16a69d74d068d155a6aa6033abce470d
+1304	6b975ebb-d759-11ea-ace6-6d523f5c0b1c	1	2020-08-05 20:22:44.536493	CREATE		
+1305	6b975ebb-d759-11ea-ace6-6d523f5c0b1c	1	2020-08-05 20:23:01.684678	PROMOTE		
+1306	6b975ebb-d759-11ea-ace6-6d523f5c0b1c	1	2020-09-17 13:21:27.418622	MODIFY		
+1307	6b975ebb-d759-11ea-ace6-6d523f5c0b1c	1	2020-09-25 12:49:43.899938	PROMOTE		
+1308	6b975ebb-d759-11ea-ace6-6d523f5c0b1c	1	2020-10-22 13:52:07.850588	MODIFY		1011a9ad3322994187480b589f4ea9ed
+1309	6b975ebb-d759-11ea-ace6-6d523f5c0b1c	1	2020-10-22 13:52:17.635855	PROMOTE		0baa13c3ad9ef324a9533e6025ecb05a
+1310	6b975ebb-d759-11ea-ace6-6d523f5c0b1c	1	2021-10-04 15:45:33.117639	MODIFY	Name Changed from Premium HD 50% off for 52 weeks,Premium removed and promo changed from PEN 405 + RDGT Pending Launch	d22622d17cdd57a902cabc79c96fd0b0
+1311	6b975ebb-d759-11ea-ace6-6d523f5c0b1c	1	2021-10-11 16:03:16.832008	PROMOTE		f3b3c401af6ac19cd48234a148223fdc
+1312	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-07-23 20:23:51.893604	CREATE		
+1313	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-07-23 20:24:23.379152	PROMOTE		
+1314	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-07-29 14:18:34.600178	MODIFY		
+1315	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-08-03 18:04:10.074428	MODIFY		
+1316	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-08-10 12:43:00.928229	MODIFY		
+1317	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-08-10 12:44:18.954085	PROMOTE		
+1318	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-10-15 16:02:07.459707	MODIFY		733be89b6aa3e28ad1ddd789121a9087
+1319	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-10-16 15:03:33.903758	PROMOTE		114d375a3a9080a263f325b53ab5be71
+1320	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-10-20 17:38:31.404826	MODIFY		c5f30920aec407b22c49d79fee3a5daa
+1321	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-10-20 17:38:58.575633	PROMOTE		6fbee4578abe3abb7a6440160d3d9c60
+1322	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-12-11 18:40:33.138389	MODIFY		6c5c199b6e1f5b6d4b593774288986c4
+1323	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2020-12-11 18:40:57.141165	PROMOTE		56cf468b59baed1ca016cfcfa95ae5cf
+1324	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2021-02-18 15:46:29.579724	MODIFY		e6c10a1f929eea2480afb2265dff8d6b
+1325	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2021-02-18 15:46:51.50868	PROMOTE		ef5326976ce5b95639968306eb941a70
+1326	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2021-04-19 15:57:51.532743	MODIFY		dd508bffe354a7ec1569f3386d17049e
+1327	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2021-04-19 16:11:41.577744	PROMOTE		07853dfa74ac8fcb018695944f480fac
+1328	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2021-11-19 18:09:44.392905	MODIFY		a217af898ab257c981d866e4bba11fb7
+1329	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2021-11-19 18:10:45.670339	PROMOTE		d528c7867be4ebfce4087a1f7a1c997a
+1330	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2021-11-30 22:08:29.427731	MODIFY	Name changed from Games Gift $40 USD for 1 year - full rate	49f442a74fcdad36cc03779e008c6977
+1331	6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	1	2021-11-30 22:08:39.633436	PROMOTE		9e915e5e624b2ebcfa7cd1b31657bca0
+1332	6c78f773-1b0f-11ec-8a3b-392104367073	1	2021-09-21 19:09:19.997288	CREATE	Create test offer with PEN 404	5c17d03db1da420546876adcc9053d3c
+1333	6c78f773-1b0f-11ec-8a3b-392104367073	1	2021-09-22 15:59:59.424328	MODIFY	Changed from from PEN 404 to PEN 405, removed CP and changed name to include 'updated'	1b4710d270f370a1d6457eaa3f80d997
+1334	6c78f773-1b0f-11ec-8a3b-392104367073	1	2021-10-01 18:09:07.874686	MODIFY	added 7+	634b087113aca24d5b94fec6ba8ecebe
+1335	6c78f773-1b0f-11ec-8a3b-392104367073	1	2021-10-11 16:04:10.878075	PROMOTE		e676d87234ff6968313b06362a6527cb
+1336	6c78f773-1b0f-11ec-8a3b-392104367073	1	2021-10-11 16:04:39.475342	MODIFY		582248696e6327bfebe24c013dcc9bd0
+1337	6c78f773-1b0f-11ec-8a3b-392104367073	1	2021-10-11 16:04:49.479552	PROMOTE		ac039d65ff40d9bb6147db412fa59c6e
+1338	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2020-07-28 12:46:59.553737	CREATE		
+1339	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2020-07-28 14:01:59.979474	PROMOTE		
+1340	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2020-12-18 16:03:39.029866	MODIFY		d9dc57b0d8e15b9d04856b2744e1e393
+1341	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2020-12-22 14:39:13.411112	PROMOTE		db0f31d7226d2f9af38bea560496e31c
+1342	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2021-04-12 21:53:35.154591	MODIFY		017796011fe259539872f93a2a088092
+1343	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2021-04-12 21:55:49.518769	PROMOTE		c08179aa15b2a735e1bd17c0c1db2377
+1344	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2021-08-25 18:29:04.643527	MODIFY		ddb05bf345aed6a1183ede159f4f9f7c
+1345	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2021-08-25 18:29:16.437716	PROMOTE		4d9a61d9bcdb84383b82ec4db792e9e1
+1346	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2021-10-28 14:31:25.993606	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	b98e0c353060a9ad10331246acc400b0
+1347	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2021-10-28 14:54:30.256472	PROMOTE		006dc33184f729df60a0bb34dbfd2959
+1348	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2021-11-19 15:38:31.529072	MODIFY	11/19/21 - Offer retired - EDU decom. per C Bland	8dbe42a7551f4049ff245a081f80bf12
+1349	6d6821b7-d0d0-11ea-ad31-6380fc00472d	1	2021-11-19 15:38:59.847645	PROMOTE		6441bfd06d8ae42587251baac8a53c54
+1350	6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	1	2021-04-20 14:48:11.585948	CREATE		6087e941bee98802b1073689f6c4cba0
+1351	6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	1	2021-04-20 14:50:41.867256	PROMOTE		90123790123fcf00c8977f26831761a1
+1352	6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	1	2021-04-20 14:55:12.34415	MODIFY		822742d9566331119b8d36252e0da21d
+1353	6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	1	2021-04-20 14:55:51.603354	PROMOTE		0c94788364cace9ebac4ad3ea9d110b9
+1354	6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	1	2021-04-20 19:20:08.013993	MODIFY		ba265d13d4e57039b1377b034e26a341
+1355	6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	1	2021-04-20 19:20:54.142088	PROMOTE		e994460263866bf883d46344c62c4b52
+1356	6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	1	2021-11-23 15:29:43.321305	MODIFY		fad336681100c63d57baef3caca45731
+1357	6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	1	2021-11-23 15:32:21.84911	PROMOTE		161afc2587e3edbd06dbd8055bc488c0
+1358	6ea4c546-e337-11eb-ae55-07d21b98ddbc	2	2021-07-12 17:34:38.393997	CREATE		cfd2d1afc440e18865bcb78ac445dfdd
+1359	6ea4c546-e337-11eb-ae55-07d21b98ddbc	2	2021-07-12 17:34:53.310417	PROMOTE		7fad8c3e7666b06e35c3fcfef50f24ae
+1360	6ea4c546-e337-11eb-ae55-07d21b98ddbc	1	2021-08-27 17:24:21.766687	MODIFY		32ba6bd3a0d2b75944391994a1e57661
+1361	6ea4c546-e337-11eb-ae55-07d21b98ddbc	1	2021-08-27 17:25:16.278082	PROMOTE		d5bf204705900e593d180ea5829e04d3
+1362	6ea4c546-e337-11eb-ae55-07d21b98ddbc	1	2021-11-23 17:49:05.865793	MODIFY		7bbcc5354134c01300bca604d522a01c
+1363	6ea4c546-e337-11eb-ae55-07d21b98ddbc	1	2021-11-23 17:51:01.179114	PROMOTE		4a688c20c337f221889ef10866ace04c
+1364	6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-01-12 17:24:01.340994	CREATE		7bfb5b0cfdbd2817f937dcde34a324d1
+1365	6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-01-12 17:25:03.775951	PROMOTE		dcc8474346791f4592a1f100ce791a20
+1366	6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-01-13 15:38:32.619122	MODIFY		0f4b175b71ab48b835cd0bc1e7e402bc
+1367	6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	1	2022-01-13 15:43:24.083965	PROMOTE		7a2f82bde74ba8645290658be925e2cd
+1368	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	2	2020-09-24 19:09:13.30827	CREATE		
+1369	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	2	2020-09-24 19:14:15.066717	MODIFY		
+1370	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	2	2020-09-25 16:39:08.014964	MODIFY		
+1371	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	2	2020-09-25 16:50:25.202595	MODIFY		
+1372	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	2	2020-09-25 18:15:24.539915	PROMOTE		
+1373	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	1	2020-10-22 14:08:10.986222	MODIFY		3d55f897797c2c4085b7ef22be28feae
+1374	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	1	2020-10-22 14:08:18.492177	PROMOTE		6ffaf2d4c676d08fdb176abb123d7230
+1375	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	1	2020-12-11 15:54:35.500749	MODIFY		11d7de71f54405dff79e3f2922ff808e
+1376	6ef2dc42-fe99-11ea-ab6c-3301e5e23406	1	2020-12-11 15:56:45.32129	PROMOTE		243c2bd1ad6f43f6c33803b253487281
+1377	6f165148-dc01-11ea-9596-859e83a0873f	1	2020-08-11 18:35:30.503306	CREATE		
+1378	6f165148-dc01-11ea-9596-859e83a0873f	1	2020-08-11 20:41:23.152327	PROMOTE		
+1379	6f165148-dc01-11ea-9596-859e83a0873f	1	2020-10-15 17:09:37.817998	MODIFY		ea58a99855d09e1668cf6a1269ab6e19
+1380	6f165148-dc01-11ea-9596-859e83a0873f	1	2020-10-16 15:03:26.575587	PROMOTE		15d784de5b5bbe05bde933fbafaa7f1e
+1381	6f165148-dc01-11ea-9596-859e83a0873f	1	2020-12-18 16:59:19.984975	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia\n12/21/20 added Care Placement	f905b92a0b8161c4ef8d484498806042
+1383	6f165148-dc01-11ea-9596-859e83a0873f	2	2021-01-12 23:22:30.548207	MODIFY	Adding Magnolia placement back 1/12/2021. Was previously marked as not needed but appears to be used on a source doc. https://docs.google.com/spreadsheets/d/1iMt_tncT1tQ0sbxogV1AoO5iC-o30LU7fktFWY7raEs/edit#gid=0	f2ef38df58a2c5d3ffe9bd29a966eb1c
+1384	6f165148-dc01-11ea-9596-859e83a0873f	2	2021-01-12 23:22:40.520284	PROMOTE		bd78df144b43d7ae1d0dfda7b2e031ad
+1385	6f165148-dc01-11ea-9596-859e83a0873f	1	2021-11-22 18:26:06.771808	MODIFY		f1aef9120fc4855e8a7cd806b99e5fd1
+1386	6f165148-dc01-11ea-9596-859e83a0873f	1	2021-11-22 18:26:36.599504	PROMOTE		f61e860fe42b61082bc118b7265071b4
+1387	6f616968-eeb3-11ea-997f-2cc0a4e691d2	1	2020-09-04 13:35:02.343307	CREATE		
+1388	6f616968-eeb3-11ea-997f-2cc0a4e691d2	1	2020-09-17 13:01:14.186923	MODIFY		
+1389	6f616968-eeb3-11ea-997f-2cc0a4e691d2	1	2020-09-17 13:01:23.700861	PROMOTE		
+1390	6f616968-eeb3-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:56:45.616612	MODIFY		2147f45e3d38b7efc0d101189233b2cb
+1391	6f616968-eeb3-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:58:16.35788	PROMOTE		7239ea8729deebd6b22536c68650281d
+1392	6f616968-eeb3-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:13:30.456712	MODIFY		c4a7a149c0daa191fc76a939b34240f8
+1393	6f616968-eeb3-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:13:37.103951	PROMOTE		3515397fa46ce5e1e94e2dd351e14c9f
+1394	7048b896-a94d-11ec-94dd-2e703e69da05	1	2022-03-21 19:31:00.303394	CREATE		4dc7fd8f512835600d6ddb300a691ed6
+1395	7048b896-a94d-11ec-94dd-2e703e69da05	7	2022-03-22 15:56:25.757439	PROMOTE		39c8633bd26276c67df665a9fe33f87f
+1396	7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	1	2021-05-28 13:34:34.031358	CREATE	Created per DGP, Games international annual offer - ROW high-conversion markets only	a19af06392bcea0d1d2e3159b0940949
+1397	7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	1	2021-05-28 14:03:46.413914	PROMOTE		8651131b7ee7fec956ef264373c7b2dc
+1398	7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	1	2021-11-23 15:31:24.019172	MODIFY		eab07626b47f11be80c9512b250b4e75
+1399	7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	1	2021-11-23 15:32:30.766456	PROMOTE		a21c5f79540d5428b2214d6f8b69ccd0
+1400	70ec00db-e629-11ea-b70c-97aab6e4ac95	1	2020-08-24 16:47:05.078401	CREATE		
+1401	70ec00db-e629-11ea-b70c-97aab6e4ac95	1	2020-08-25 16:23:12.354963	PROMOTE		
+1402	70ec00db-e629-11ea-b70c-97aab6e4ac95	1	2020-11-09 16:00:32.945006	MODIFY		903bfc77407e362dc4ed0dcabb2545e5
+1403	70ec00db-e629-11ea-b70c-97aab6e4ac95	1	2020-11-09 16:22:08.451661	PROMOTE		4469a07ed376673ab72cf229cd84ef3e
+1404	71042ec9-1b7d-11ea-8a1a-54900ccd666e	1	2019-12-10 18:46:56.918295	CREATE		
+1405	71042ec9-1b7d-11ea-8a1a-54900ccd666e	4	2020-06-10 17:58:00.741392	PROMOTE		
+1406	71042ec9-1b7d-11ea-8a1a-54900ccd666e	1	2020-11-20 16:11:26.813461	MODIFY		49a4598bcf0fef1559415299179c8141
+1407	71042ec9-1b7d-11ea-8a1a-54900ccd666e	1	2020-11-20 16:11:37.560862	PROMOTE		f839cc428409775e5712e7a5f60570ad
+1408	71042ec9-1b7d-11ea-8a1a-54900ccd666e	1	2020-11-20 16:13:50.446248	MODIFY		a73e283b88f0415ede6183c375a3d886
+1409	71042ec9-1b7d-11ea-8a1a-54900ccd666e	1	2020-11-20 16:14:00.135441	PROMOTE		646f352eb352c2df86e5028f9689c5d2
+1410	71042ec9-1b7d-11ea-8a1a-54900ccd666e	1	2021-11-23 14:54:48.576345	MODIFY		48ea05fc79dab8dd61750651414df9a6
+1411	71042ec9-1b7d-11ea-8a1a-54900ccd666e	1	2021-11-23 14:57:17.417984	PROMOTE		bc27e7cbf962a1707bbdea0f76875561
+1412	71449056-8dc0-11ec-965b-cde51f46b2d6	1	2022-02-14 18:03:41.520289	CREATE		9c053e5a970b359b636f61c96f2ad795
+1413	71449056-8dc0-11ec-965b-cde51f46b2d6	1	2022-02-14 18:35:40.279819	PROMOTE		f75b9585939402e4bc80bdce6d035592
+1414	71596e90-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:30:22.307499	CREATE		
+1415	71596e90-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:53:37.271764	PROMOTE		
+1416	71596e90-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 13:15:46.033068	MODIFY		
+1417	71596e90-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 13:15:59.961688	PROMOTE		
+1418	71596e90-cda9-11ea-b464-e4d44f10848e	1	2020-11-09 15:26:43.523959	MODIFY		68fa8192eb1036778c2bd6947237a7ec
+1419	71596e90-cda9-11ea-b464-e4d44f10848e	1	2020-11-09 16:20:29.275956	PROMOTE		14a263f206357a9c8d0edef70501f0e4
+1420	71e35717-5520-11eb-a9bd-2a1463bca0c4	1	2021-01-12 21:52:20.297091	CREATE		356d856c83136ed5ee3bf310d8201c3e
+1421	71e35717-5520-11eb-a9bd-2a1463bca0c4	1	2021-01-13 15:35:34.542649	PROMOTE		c21c631d5fc3441becc959abfd3df117
+1422	71e35717-5520-11eb-a9bd-2a1463bca0c4	1	2021-01-13 17:52:46.645401	MODIFY		cd22b2d5e6b4b143af5cf8e22b821221
+1423	71e35717-5520-11eb-a9bd-2a1463bca0c4	1	2021-01-13 19:39:36.472863	PROMOTE		d56c4e826bee2535668f595c0ac9e0b1
+1424	71e35717-5520-11eb-a9bd-2a1463bca0c4	1	2021-02-01 22:45:12.786378	MODIFY		2e5f0f07700de95f0f2b6efaa630ae35
+1425	71e35717-5520-11eb-a9bd-2a1463bca0c4	1	2021-02-01 22:46:50.201108	PROMOTE		9d888cd8e88f2c95142d8972bddc85b7
+1426	71e35717-5520-11eb-a9bd-2a1463bca0c4	1	2022-01-05 20:32:19.604146	MODIFY		bd7600d13138ed59db85daf8edb0ae1d
+1427	71e35717-5520-11eb-a9bd-2a1463bca0c4	1	2022-01-05 20:33:15.967983	PROMOTE		1022d231e1077169660e44bd67703b25
+1428	72e0de71-2919-11eb-85d7-4740316b64e2	1	2020-11-17 21:11:24.319303	CREATE		afe8ec36092862e3614f610357e7bab7
+1429	72e0de71-2919-11eb-85d7-4740316b64e2	1	2020-11-17 21:12:50.879764	PROMOTE		fc6d77c14ba73977348c8923b8477cc9
+1430	72e0de71-2919-11eb-85d7-4740316b64e2	1	2020-12-18 17:42:08.600888	MODIFY	12/21/20 added Care Placement	a9afc3cb181b1e20f5300b9151391684
+1431	72e0de71-2919-11eb-85d7-4740316b64e2	1	2020-12-22 14:38:36.476198	PROMOTE		001bbe83bd72cf15ec882db02f2c5811
+1432	72e0de71-2919-11eb-85d7-4740316b64e2	1	2021-02-18 15:43:43.638357	MODIFY		46b22b799aa5ade2d933bcf610ad6867
+1433	72e0de71-2919-11eb-85d7-4740316b64e2	1	2021-02-18 15:47:01.390884	PROMOTE		155df00be1556bb30567667ccad96f47
+1434	72e0de71-2919-11eb-85d7-4740316b64e2	1	2021-04-12 21:45:12.592829	MODIFY		1b01e8d42b17aa7dcc85e2e55ea472ab
+1435	72e0de71-2919-11eb-85d7-4740316b64e2	1	2021-04-12 21:55:36.195087	PROMOTE		f1d14b4533b88b4704857a2d4e7b0220
+1436	72e0de71-2919-11eb-85d7-4740316b64e2	1	2021-04-19 16:03:33.41989	MODIFY		4850637da75938832a7baa2844de18c7
+1437	72e0de71-2919-11eb-85d7-4740316b64e2	1	2021-04-19 16:11:12.692334	PROMOTE		934838260500c0ec2b1e3d11caf89612
+1438	72e0de71-2919-11eb-85d7-4740316b64e2	1	2021-11-23 15:22:34.41366	MODIFY		9ae57b95eb02955bbd8d58736d60a47a
+1439	72e0de71-2919-11eb-85d7-4740316b64e2	1	2021-11-23 15:25:07.783677	PROMOTE		d8af772aaa1765b58e146757ef38eff7
+1440	730b6989-d0c9-11ea-ad31-6380fc00472d	1	2020-07-28 11:57:02.535315	CREATE		
+1441	730b6989-d0c9-11ea-ad31-6380fc00472d	1	2020-07-28 14:00:30.915429	PROMOTE		
+1442	730b6989-d0c9-11ea-ad31-6380fc00472d	1	2020-08-21 17:11:00.910504	MODIFY		
+1443	730b6989-d0c9-11ea-ad31-6380fc00472d	1	2020-08-21 18:48:50.34422	PROMOTE		
+1444	730b6989-d0c9-11ea-ad31-6380fc00472d	2	2020-08-28 17:15:13.394704	MODIFY		
+1445	730b6989-d0c9-11ea-ad31-6380fc00472d	2	2020-08-28 17:15:22.95888	PROMOTE		
+1446	73ebb309-8506-11ec-b4a3-a06520f34676	1	2022-02-03 15:32:10.277267	CREATE		e76ebfd034c51bc385200f6a5b4da448
+1447	73ebb309-8506-11ec-b4a3-a06520f34676	1	2022-02-03 15:56:35.853497	PROMOTE		5c1762131c9db7705d7dcbde21f9cc04
+1448	74378c55-29d7-11eb-ad8b-d81e98ea3135	1	2020-11-18 19:51:30.94372	CREATE		cd007b7a6d939face94c2df861938565
+1449	74378c55-29d7-11eb-ad8b-d81e98ea3135	1	2020-11-18 19:54:47.309387	PROMOTE		496a2e80772f00ae7b30c3ac476b0659
+1450	74378c55-29d7-11eb-ad8b-d81e98ea3135	1	2020-12-18 16:51:40.760259	MODIFY	Wirecutter Deal Day promotion\n12/21/20 added Care Placement	e00dfc150a884f24db0f4265314c6a95
+1451	74378c55-29d7-11eb-ad8b-d81e98ea3135	1	2020-12-22 14:33:34.313328	PROMOTE		26bb681b6c926caf4544685f42a5835f
+1452	74378c55-29d7-11eb-ad8b-d81e98ea3135	1	2021-09-28 16:03:52.977004	MODIFY		8d96c7f92bfdf4bb057c1919197264f7
+1453	74378c55-29d7-11eb-ad8b-d81e98ea3135	1	2021-09-28 17:26:06.083132	PROMOTE		d8612d29a1272291854b2923136b7b6d
+1454	74c1a2da-0775-11ec-b463-73f0d48bb750	2	2021-08-27 20:29:19.307897	CREATE	Intended for use in Europe and the United Kingdom 	d72afb3deac5bc04a16d2263992908fc
+1455	74c1a2da-0775-11ec-b463-73f0d48bb750	2	2021-08-27 20:29:34.908073	PROMOTE		065bf64407553a79a0a6be27c11a65f8
+1456	74c1a2da-0775-11ec-b463-73f0d48bb750	1	2021-11-23 17:51:48.193981	MODIFY		9e8cca5b11796007ef326afffd72031b
+1457	74c1a2da-0775-11ec-b463-73f0d48bb750	1	2021-11-23 17:53:06.504083	PROMOTE		5119c452d1429ef7b8bff63b6c048279
+1458	74cf5b85-b056-11ec-b67a-4e702bf88b98	1	2022-03-30 18:23:11.506526	CREATE	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	055911267b64d8847e9055764f44f670
+1459	74cf5b85-b056-11ec-b67a-4e702bf88b98	1	2022-03-30 18:57:50.354255	MODIFY		07971fa5ecea48d9a54aca7bbed96e50
+1460	74cf5b85-b056-11ec-b67a-4e702bf88b98	1	2022-04-11 20:04:57.239473	MODIFY		5f57bd907a7402e64a6c9de0364e98a6
+1461	74cf5b85-b056-11ec-b67a-4e702bf88b98	1	2022-04-13 16:25:30.535252	MODIFY		e6bbe03533b411c348140c3581cb7f2e
+1462	74cf5b85-b056-11ec-b67a-4e702bf88b98	1	2022-04-13 16:28:22.943901	PROMOTE		3941187d5b5bb49840c97d74ea401f4f
+1863	911ff0b0-1de0-11eb-8333-f1ad7e205cff	1	2021-10-11 16:03:38.075318	PROMOTE		91783499791b785a9fc91060dd01d93b
+1463	74cf5b85-b056-11ec-b67a-4e702bf88b98	1	2022-04-20 21:43:41.461191	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	73fe1186b4d2ae3ee74454bdbc5f4ddc
+1464	74cf5b85-b056-11ec-b67a-4e702bf88b98	1	2022-04-20 21:47:24.136631	PROMOTE		96ee67c57552fdab4d07b29398779b43
+1465	74eb355f-e66c-11ec-9b4c-0e61161d4688	1	2022-06-07 14:16:43.407409	CREATE		91f05f1d6b49a569a7cfb54bfc3da333
+1466	74eb355f-e66c-11ec-9b4c-0e61161d4688	1	2022-06-07 15:43:28.565632	MODIFY	Created in staging pending QA	2dac6fe6478cdc5b745d1b3282493940
+1467	74eb355f-e66c-11ec-9b4c-0e61161d4688	2	2022-06-07 20:12:25.175015	PROMOTE		0e6edb9b746c1e8027c81971e07a10d4
+1468	74eb355f-e66c-11ec-9b4c-0e61161d4688	2	2022-06-07 20:13:09.769875	MODIFY		b4a79cf7273066c18fed0b2013851b3b
+1469	74eb355f-e66c-11ec-9b4c-0e61161d4688	2	2022-06-07 20:14:36.979563	PROMOTE		d28dc368caca42b80f80b2be5b0b5031
+1470	750d6814-1dec-11eb-93fa-e4ace959c4d0	2	2020-11-03 15:51:37.823247	CREATE		30f58da176145e83eeb1062e02d4a22a
+1471	750d6814-1dec-11eb-93fa-e4ace959c4d0	2	2020-11-03 15:55:36.395361	MODIFY		423c06d01c702b6e15d7b2b9454a931d
+1472	750d6814-1dec-11eb-93fa-e4ace959c4d0	1	2020-11-10 17:57:33.070071	PROMOTE		e491ac0a2eb4ec24c05717b508fa6344
+1473	750d6814-1dec-11eb-93fa-e4ace959c4d0	1	2021-10-04 17:48:46.8199	MODIFY	Premium removed and promo changed from PEN I41 + RDGT Pending Launch	8cb8aa6e73d30b6a5d7dc07af37a9b0e
+1474	750d6814-1dec-11eb-93fa-e4ace959c4d0	1	2021-10-11 16:04:00.304123	PROMOTE		f45fe3b7a87836b81f7f2d44e4d21bf0
+1475	754b88f0-d0e0-11ea-ad31-6380fc00472d	1	2020-07-28 14:41:44.735771	CREATE		
+1476	754b88f0-d0e0-11ea-ad31-6380fc00472d	1	2020-07-28 18:31:39.32331	PROMOTE		
+1477	754b88f0-d0e0-11ea-ad31-6380fc00472d	1	2020-12-18 17:42:53.344701	MODIFY	12/21/20 added Care Placement	d239d865d4b3e4bea910e295e1bcfbe9
+1478	754b88f0-d0e0-11ea-ad31-6380fc00472d	1	2020-12-22 14:34:01.926956	PROMOTE		5415494eb3ae290a937db1e2c50cb6c5
+1479	754b88f0-d0e0-11ea-ad31-6380fc00472d	1	2021-02-12 16:31:55.222513	MODIFY		d6fbb3fdbd1ba6fdbf848b308a115fce
+1480	754b88f0-d0e0-11ea-ad31-6380fc00472d	1	2021-02-12 16:39:01.819408	PROMOTE		ffd641b37df02d8a5df6da4460a2585d
+1481	754b88f0-d0e0-11ea-ad31-6380fc00472d	1	2021-11-23 15:22:52.486835	MODIFY		8068012284b40189f8ed922af407e6e8
+1482	754b88f0-d0e0-11ea-ad31-6380fc00472d	1	2021-11-23 15:25:17.906334	PROMOTE		1a225d587684486bc91597d6e2307966
+1483	767f9555-e0a4-11ea-8339-305368a984f6	1	2020-08-17 16:12:35.555269	CREATE		
+1484	767f9555-e0a4-11ea-8339-305368a984f6	1	2020-08-19 13:24:51.040146	PROMOTE		
+1485	767f9555-e0a4-11ea-8339-305368a984f6	1	2020-12-28 16:52:27.150335	MODIFY		aeafc03e7452a71350ee7c58ec7d99e5
+1486	767f9555-e0a4-11ea-8339-305368a984f6	1	2020-12-28 16:53:19.433796	PROMOTE		f153dcebda603911a7423271f993fd40
+1487	76994efc-9d30-11eb-9576-41852d2a4367	1	2021-04-14 14:48:23.868551	CREATE		be195df82fb7eee2d2d74ebb9900a887
+1488	76994efc-9d30-11eb-9576-41852d2a4367	1	2021-04-14 14:50:35.699619	PROMOTE		d15524fd22adee09e1b8653dc0ae8518
+1489	76994efc-9d30-11eb-9576-41852d2a4367	1	2021-10-18 21:00:44.905712	MODIFY		ee9e721610b667f4237068567bfef86e
+1490	76994efc-9d30-11eb-9576-41852d2a4367	1	2021-10-18 21:06:17.724829	PROMOTE		104b29880c66f0a43dd83392a568d32d
+1491	76994efc-9d30-11eb-9576-41852d2a4367	1	2022-01-26 15:27:47.908921	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	ae9337d559015e1b49e21d4f29bc6c25
+1492	76994efc-9d30-11eb-9576-41852d2a4367	1	2022-01-26 15:32:38.729766	PROMOTE		9665dfe0ea5c4b3439315cd1eeeb1b6e
+1493	76bfc608-432e-11ec-bf86-3d750e8c1023	2	2021-11-11 20:32:18.148204	CREATE	Requested by Charlotte Gordon to update our INTL gift pricing ahead of the 2021 holidays 	8ccc948b46464b9923a9d8324d266c1b
+1494	76bfc608-432e-11ec-bf86-3d750e8c1023	2	2021-11-11 20:34:08.143047	PROMOTE		dfb59c65741c92ec134f246490e2d2fa
+1495	76bfc608-432e-11ec-bf86-3d750e8c1023	2	2021-11-11 20:37:34.900942	MODIFY		e29a16c2869d0c06eb79457741d5168b
+1496	76bfc608-432e-11ec-bf86-3d750e8c1023	2	2021-11-11 20:37:56.487627	PROMOTE		ff873f5c0cb012f9b3f414ad1c81e33d
+1497	76dc82d6-324c-11ea-bb74-b9723fd1deda	1	2020-01-08 19:24:18.128774	CREATE		
+1498	76dc82d6-324c-11ea-bb74-b9723fd1deda	4	2020-06-10 17:58:25.291555	PROMOTE		
+1499	76dc82d6-324c-11ea-bb74-b9723fd1deda	1	2021-01-11 16:07:55.757986	MODIFY		a5a36f981bac5fcb553823d8c3593cf5
+1500	76dc82d6-324c-11ea-bb74-b9723fd1deda	1	2021-01-11 16:08:07.500711	PROMOTE		b9f0612b4a1f84174e4ebe82d134b4c6
+1501	76dc82d6-324c-11ea-bb74-b9723fd1deda	1	2021-04-19 15:54:02.84996	MODIFY		69d108596807bd0ca7bb4ff543122151
+1502	76dc82d6-324c-11ea-bb74-b9723fd1deda	1	2021-04-19 16:11:22.338896	PROMOTE		8a64eb81330d9a02ebce8dcd571d33c9
+1503	76dc82d6-324c-11ea-bb74-b9723fd1deda	1	2021-11-22 16:09:13.166047	MODIFY		f25c9232ecf0883029dae67874149345
+1504	76dc82d6-324c-11ea-bb74-b9723fd1deda	1	2021-11-22 16:10:52.931137	PROMOTE		4fa420eb4edc6481f085e81cf65a74e6
+1505	76e85568-d0d4-11ea-ad31-6380fc00472d	1	2020-07-28 13:15:53.480333	CREATE		
+1506	76e85568-d0d4-11ea-ad31-6380fc00472d	1	2020-07-28 13:17:06.820983	MODIFY		
+1507	76e85568-d0d4-11ea-ad31-6380fc00472d	1	2020-07-28 14:03:06.660235	PROMOTE		
+1508	76e85568-d0d4-11ea-ad31-6380fc00472d	1	2020-07-29 21:00:50.794778	MODIFY		
+1509	76e85568-d0d4-11ea-ad31-6380fc00472d	1	2020-08-05 20:12:40.535539	PROMOTE		
+1510	76e85568-d0d4-11ea-ad31-6380fc00472d	1	2021-11-23 15:21:04.325632	MODIFY		25e2af562b0f5a47044f4bdee99cf24d
+1511	76e85568-d0d4-11ea-ad31-6380fc00472d	1	2021-11-23 15:24:46.169423	PROMOTE		2cf524a62bde671467368d3956ebc62a
+1512	78665232-988f-11eb-8ca8-db53b31f008c	1	2021-04-08 17:25:53.265926	CREATE		c043f1b8b0503f3f1123cd8ae8a5ee18
+1513	78665232-988f-11eb-8ca8-db53b31f008c	1	2021-04-08 17:41:41.878053	PROMOTE		3c02d0902060b9a1e13b8c8b976dc606
+1514	78665232-988f-11eb-8ca8-db53b31f008c	1	2021-10-04 17:55:39.685803	MODIFY	Name Changed from Hardship Premium HD 2021,Premium removed and promo changed from PEN Z28 + RDGT Pending Launch	50ba109a49a9964ee1068cefd0336ec7
+1515	78665232-988f-11eb-8ca8-db53b31f008c	1	2021-10-11 16:03:00.279903	PROMOTE		c7de4bffb86bf3b9f857ada382e42c28
+1516	79878181-d908-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:48:21.011086	CREATE		
+1517	79878181-d908-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:32:32.417868	MODIFY		
+1518	79878181-d908-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:32:40.976999	PROMOTE		
+1519	79878181-d908-11ea-94d3-9a1933fc44f2	1	2020-09-16 20:08:14.844676	MODIFY		
+1520	79878181-d908-11ea-94d3-9a1933fc44f2	1	2020-09-16 20:08:24.366658	PROMOTE		
+1521	79878181-d908-11ea-94d3-9a1933fc44f2	1	2020-11-11 19:59:37.049551	MODIFY		5cac18f784f8534b902740344461219b
+1522	79878181-d908-11ea-94d3-9a1933fc44f2	1	2020-11-11 20:20:27.469753	PROMOTE		2411c8ce22c6228a826a8431cff12c42
+1523	79878181-d908-11ea-94d3-9a1933fc44f2	1	2020-11-17 18:14:01.207366	MODIFY		0d36261deff1be1056f77fe2279258ae
+1524	79878181-d908-11ea-94d3-9a1933fc44f2	1	2020-11-17 18:14:17.10157	PROMOTE		7b10cccfe6eb895f6deee88da3f5255a
+1525	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2020-04-14 18:19:26.905933	CREATE		
+1526	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	2	2020-04-16 14:55:13.768916	MODIFY		
+1527	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	4	2020-06-10 18:00:08.239827	PROMOTE		
+1528	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2020-08-10 15:53:02.046654	MODIFY		
+1529	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2020-08-10 15:53:12.297309	PROMOTE		
+1530	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2021-03-01 16:41:44.561441	MODIFY		2cef07481b02a0216affe135dbe6261f
+1531	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2021-03-01 21:16:10.410893	PROMOTE		55f8b925c855977924b41678f29139b7
+1532	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2021-05-18 14:34:11.350663	MODIFY	5/20/21 - added audiences: 129998, 130002, 130003, 130019, 130023, 130027, 129987, 129982 (originally attached to OM-10022), 130008, 130009, 130011, 130010, 130014, 130015, 130029, 130030, 130032, 130033, 130035, 130036, 129989, 129990 (originally attached to OM-10053) per S Wang.  	5f0022c1ae190cff6d4a0b2686125e48
+1533	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2021-05-20 11:57:04.656935	PROMOTE		3adc74c93d32d119ddf4cc7badde04a4
+1534	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2021-11-09 14:37:34.112302	MODIFY	Add 119731, 119735, 119764, 119768, 119773, 119730, 119734, 119763, 119767, 119772, 129984, 129986, 129996, 129997, 130000, 130001, 130006, 130018, 130021, 130022, 130026, 119775, 119729, 119733, 119762, 119766, 119770 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657\t	2ef694de775b83f83c9336579a77ad9b
+1535	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2021-11-15 14:48:12.130844	PROMOTE		7bea6cff1620e063801944c70cce2987
+1536	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	2	2021-12-03 19:55:45.693776	MODIFY	Account tag added per Megan Elliott's request https://nyt-brand.monday.com/boards/375040584/pulses/1978323941	cbad1cbe25e77d9e954a34b65b695c9b
+1537	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	2	2021-12-03 19:55:53.300861	PROMOTE		cf6513d3bdf2858d72b19ba879f4f217
+1538	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2022-04-20 21:41:02.882616	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	dbff1b885c81bb07ee731cf5b0fde267
+1539	7994c6e2-7e7c-11ea-aba8-ebb789216ef1	1	2022-04-20 21:42:07.070663	PROMOTE		bca6fbaf1ae031e633824ec100adde5a
+1540	79f8db95-3964-11eb-bf58-da4ba1647a90	1	2020-12-08 14:48:47.079732	CREATE		6f3ed365e78720c1ad7eb37fd1b97bf7
+1541	79f8db95-3964-11eb-bf58-da4ba1647a90	1	2020-12-08 14:52:30.07448	MODIFY		4d2373317c2aa7999e8fe2a14f2eccad
+1542	79f8db95-3964-11eb-bf58-da4ba1647a90	1	2020-12-11 15:56:55.906054	PROMOTE		1ce16c85d7f114d11fe26c359d63aa2a
+1543	79f8db95-3964-11eb-bf58-da4ba1647a90	1	2021-10-18 21:05:06.046305	MODIFY		46ef00e7f258ea82d24354fdb422e2eb
+1544	79f8db95-3964-11eb-bf58-da4ba1647a90	1	2021-10-18 21:06:31.504291	PROMOTE		97924798740a73a49a5a00a752857f5f
+1545	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2019-12-10 18:40:04.6307	CREATE		
+1546	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-21 16:30:22.131405	MODIFY		
+1547	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-22 20:14:41.768387	MODIFY		
+1548	7b461697-1b7c-11ea-8a1a-54900ccd666e	4	2020-06-10 17:57:47.884435	PROMOTE		
+1549	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2020-08-04 11:33:15.426949	MODIFY		
+1550	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2020-08-05 20:12:30.137292	PROMOTE		
+1551	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2021-09-28 16:06:10.318997	MODIFY		522faf0cfef70b1f67665336a3f17675
+1552	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2021-09-28 17:24:04.646084	PROMOTE		3206698b4c92a42d71ba6b8f81181a36
+1553	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-24 15:35:16.122803	MODIFY		3947242c7139b5c9336a037ad8a5a15f
+1554	7b461697-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-24 15:37:53.012787	PROMOTE		f98b824f03a3bc37a7fd41569cd4a7bd
+1555	7bc27083-c290-11e9-ae0f-61baa9da25b1	3	2019-08-19 14:49:01.893033	CREATE		
+1556	7bc27083-c290-11e9-ae0f-61baa9da25b1	4	2020-06-10 17:58:23.282781	PROMOTE		
+1557	7bc27083-c290-11e9-ae0f-61baa9da25b1	1	2021-01-11 16:37:25.592004	MODIFY		8f48cf6e38e35c00a4efb3a6a19eff1a
+1558	7bc27083-c290-11e9-ae0f-61baa9da25b1	1	2021-01-11 16:37:34.864713	PROMOTE		f3b5045a34c74f007c575898d2fd0c6c
+1559	7bc27083-c290-11e9-ae0f-61baa9da25b1	1	2021-04-19 15:54:33.846428	MODIFY		056a14547ec829f2eab11a52b5531385
+1560	7bc27083-c290-11e9-ae0f-61baa9da25b1	1	2021-04-19 16:11:18.266759	PROMOTE		55537aac6a584c04b3df76344ba20420
+1561	7bc27083-c290-11e9-ae0f-61baa9da25b1	1	2021-11-22 17:33:43.484228	MODIFY		927df1faa81029a8c45c2126f7951d4e
+1562	7bc27083-c290-11e9-ae0f-61baa9da25b1	1	2021-11-22 17:35:31.43422	PROMOTE		71fae4f8f98dd02242eaf56440ec5769
+1563	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-02-06 16:12:33.932858	CREATE		
+1564	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-02-14 17:43:28.439009	MODIFY		
+1565	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-02-14 21:37:44.446158	MODIFY		
+1566	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	4	2020-06-10 17:55:21.316668	PROMOTE		
+1567	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-07-27 16:37:28.687338	MODIFY		
+1568	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-07-30 14:34:34.204915	PROMOTE		
+1569	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-11-09 15:59:22.427961	MODIFY		18a4701f4b205c08aae08ad1a6782f31
+1570	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-11-09 16:26:22.407119	PROMOTE		f669643767901e6e431abb4aaaf0d0ab
+1571	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2021-09-28 16:10:22.892212	MODIFY		51828ddd7b9d464fd7cc2e2089b50c33
+1572	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2021-09-28 17:26:14.691172	PROMOTE		c7014f3aedc586caffa19d8fd24a635c
+1573	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2021-10-05 14:02:43.815835	MODIFY	Renamed offer - adding PLUS per Casey Bland.	6f3ecfa963d64696bcd37813b9b08dbe
+1574	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2021-10-05 14:02:55.608166	PROMOTE		7e74c09a83f6a14c7ab21927e9765ff3
+1575	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2021-11-11 16:06:26.818746	MODIFY		ccea9795c77b36e9af493adeb0e5e3b8
+1576	7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	1	2021-11-11 16:06:37.322363	PROMOTE		adc7c64ace237f422da2d2436b04b048
+1577	7c29a852-d0ce-11ea-ad31-6380fc00472d	1	2020-07-28 12:33:05.31667	CREATE		
+1578	7c29a852-d0ce-11ea-ad31-6380fc00472d	1	2020-07-28 14:01:23.72966	PROMOTE		
+1579	7c29a852-d0ce-11ea-ad31-6380fc00472d	2	2020-08-20 22:30:24.753353	MODIFY		
+1580	7c29a852-d0ce-11ea-ad31-6380fc00472d	2	2020-08-20 22:30:40.754125	PROMOTE		
+1581	7c29a852-d0ce-11ea-ad31-6380fc00472d	2	2020-08-28 17:19:59.068869	MODIFY		
+1582	7c29a852-d0ce-11ea-ad31-6380fc00472d	2	2020-08-28 17:20:08.488029	PROMOTE		
+1583	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	1	2020-07-28 12:54:34.035926	CREATE		
+1584	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	1	2020-07-28 14:02:49.169869	PROMOTE		
+1585	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	1	2020-07-29 20:54:36.46757	MODIFY		
+1586	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	1	2020-08-05 19:54:08.209145	MODIFY		
+1587	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	1	2020-08-05 19:54:17.779311	PROMOTE		
+1588	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	1	2020-08-21 17:08:33.718972	MODIFY		
+1589	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	1	2020-08-21 18:47:43.562455	PROMOTE		
+1590	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	2	2020-08-28 17:22:59.502178	MODIFY		
+1591	7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	2	2020-08-28 17:23:08.080879	PROMOTE		
+1592	7c9f75d3-2a76-11eb-8401-a637f878566f	1	2020-11-19 14:49:55.026488	CREATE		066d5d733e0a49da57809016897093d5
+1593	7c9f75d3-2a76-11eb-8401-a637f878566f	1	2020-11-19 14:51:29.929289	PROMOTE		ade58788091d677d85fd0992a31d87b7
+1594	7c9f75d3-2a76-11eb-8401-a637f878566f	1	2020-11-20 21:56:30.061534	MODIFY		8249f8e988109c84a7b4b1bde03608ae
+1595	7c9f75d3-2a76-11eb-8401-a637f878566f	1	2020-11-20 21:56:43.959311	PROMOTE		c413103cd2a5b5d8d550c1c70cb2b515
+1596	7c9f75d3-2a76-11eb-8401-a637f878566f	1	2020-12-03 22:09:59.468842	MODIFY		4c4980101f8d4cbfa9536b270946ed46
+1597	7c9f75d3-2a76-11eb-8401-a637f878566f	1	2020-12-03 22:10:21.954754	PROMOTE		b4256f6bbd344e9771cead80138bd13d
+1598	7c9f75d3-2a76-11eb-8401-a637f878566f	1	2020-12-07 22:33:15.464333	MODIFY		249beda4b107463b9e85d0152e863b41
+1599	7c9f75d3-2a76-11eb-8401-a637f878566f	2	2020-12-08 14:35:12.307714	PROMOTE		583ff7d96f4541cb2e7899f2b7d7cc3b
+1600	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2020-07-27 16:30:31.214056	CREATE		
+1601	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2020-07-27 16:55:22.670747	PROMOTE		
+1602	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2020-12-18 16:43:17.335169	MODIFY	12/21/20 added Care Placement	8510ff2e8b1d3653c6f7311b5cb5ba1b
+1603	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2020-12-22 14:38:58.195253	PROMOTE		e05799f0d0f246b7fe01200ad31ca6db
+1604	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2021-04-13 12:16:24.482868	MODIFY		eace3f0bf686e35f0a4806cbf665fd92
+1605	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2021-04-13 12:18:21.802199	PROMOTE		ca6dd58e8d70892010dfe46d63d372ad
+1606	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2021-10-28 14:27:47.58278	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	9c5fbe278cc04c9caef6e7dcab2af95a
+1607	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2021-10-28 14:54:05.393332	PROMOTE		fd748c9612c40f58476c43d6c8381f7c
+1608	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2021-11-19 17:55:56.196208	MODIFY	Retired as part of EDU Decom per C Bland	bf48e17042901a237ceaeca99fea423c
+1609	7cf756f0-d026-11ea-aff7-6ff2a1213fc4	1	2021-11-19 17:57:20.378841	PROMOTE		2ec6898519d5ba60e088448d98985007
+1610	7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	1	2020-09-08 18:09:53.557325	CREATE		
+1611	7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	1	2020-09-17 13:11:33.885398	MODIFY		
+1612	7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	1	2020-09-17 13:11:42.213029	PROMOTE		
+1613	7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	1	2020-11-11 20:17:35.60293	MODIFY		a91f79d2f729c949fdf9eed3d63d8c4d
+1614	7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	1	2020-11-11 20:20:53.900722	PROMOTE		3272fdb27b050bef8eb4eca5665b0bd9
+1615	7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	1	2020-11-19 22:05:45.296043	MODIFY		b3292325e57420424b037e7be03c0bde
+1616	7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	1	2020-11-19 22:07:34.265998	PROMOTE		cf4866f67c594136e71fc2157b068e1b
+1617	7f141a97-e93d-11ea-873f-74f46cae88b8	5	2020-08-28 14:48:12.252229	CREATE		
+1618	7f141a97-e93d-11ea-873f-74f46cae88b8	5	2020-09-03 20:47:06.980711	PROMOTE		
+1619	7f141a97-e93d-11ea-873f-74f46cae88b8	1	2020-11-09 15:32:33.260151	MODIFY		9ff77cc05197569985eee9e62be23f9c
+1620	7f141a97-e93d-11ea-873f-74f46cae88b8	1	2020-11-09 16:23:52.147627	PROMOTE		b49de7a84807f9d643205adb1ce1562e
+1621	7f741ea3-dbff-11ea-9596-859e83a0873f	1	2020-08-11 18:21:38.968135	CREATE		
+1622	7f741ea3-dbff-11ea-9596-859e83a0873f	1	2020-08-11 20:40:57.521982	PROMOTE		
+1623	7f741ea3-dbff-11ea-9596-859e83a0873f	1	2020-10-15 16:50:50.640077	MODIFY		bdcb2479a04f004d6b7d82b06788fb12
+1624	7f741ea3-dbff-11ea-9596-859e83a0873f	1	2020-10-16 15:03:29.089813	PROMOTE		20d84e8058e13b86a9b487b9daf64823
+1625	7f741ea3-dbff-11ea-9596-859e83a0873f	2	2020-12-17 02:39:10.339222	MODIFY		ead7d8f7c7b240a8e2d50b2df048de36
+1626	7f741ea3-dbff-11ea-9596-859e83a0873f	2	2020-12-17 02:39:16.661644	PROMOTE		66180ac4f2ad2193e5861a56a16e24c4
+1627	7f741ea3-dbff-11ea-9596-859e83a0873f	1	2021-11-22 18:25:16.242631	MODIFY		8dd0032b65b897755bb0939f7cd1e189
+1628	7f741ea3-dbff-11ea-9596-859e83a0873f	1	2021-11-22 18:26:38.702812	PROMOTE		1336bc892dd3027f91fc1bc032328c6d
+1629	808d9699-bfbb-11eb-b23b-9ac57c61bc8b	1	2021-05-28 13:49:20.148449	CREATE	Created per DGP, Cooking international pricing for ROW low-conversion markets	6d0a3a600de0e5db07cce9fe8879bc40
+1630	808d9699-bfbb-11eb-b23b-9ac57c61bc8b	1	2021-05-28 14:04:11.667863	PROMOTE		9cbd91e9f6914cac8fb9d3ae58bd9dfc
+1631	808d9699-bfbb-11eb-b23b-9ac57c61bc8b	1	2021-11-23 15:40:35.17661	MODIFY		cd951043de34d18e4c97154b0ac39422
+1632	808d9699-bfbb-11eb-b23b-9ac57c61bc8b	1	2021-11-23 15:41:18.726901	PROMOTE		bb559d6a6e239b93bb9b7d3d63e18ee3
+1633	812218b9-fe9a-11ea-ab6c-3301e5e23406	2	2020-09-24 19:16:53.313555	CREATE		
+1634	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2020-09-28 16:55:15.971017	PROMOTE		
+1635	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2020-10-21 14:09:01.889021	MODIFY		a09d4e3b7a63c7fbf09f85bf256464f2
+1636	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2020-10-21 14:09:18.332057	PROMOTE		52a42448d997b70303a7c834eab7536f
+1637	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2020-12-11 15:55:35.323537	MODIFY		25a3989f5bff1e20c3739ab16651c1fa
+1638	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2020-12-11 18:40:50.196386	PROMOTE		b93087a0b7abb68f1584f1bc5087b88b
+1639	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2021-01-05 21:41:55.813068	MODIFY		4531aeb78ad8ac67e3c89e8830b57115
+1640	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2021-01-05 21:44:37.506868	PROMOTE		8529f52d1adc4e61b9afcbfb830ad2b3
+1641	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2021-10-04 15:09:44.118241	MODIFY	Name Changed from 50%off_26wks_HD-premium_2020 WCM,Premium removed and promo changed from PEN 402+RDGT Pending Launch	1a2f2a1d99322c0bd0d9e05ff8c26f5a
+1642	812218b9-fe9a-11ea-ab6c-3301e5e23406	1	2021-10-11 16:02:40.035352	PROMOTE		0f9e59d330eacc5af69d8ce256ddd5c5
+1643	814970c7-8d7d-11eb-9847-7ad3a1d1918b	2	2021-03-25 15:19:34.443684	CREATE	This offer is intended to be used in the payflow, not for magnolia or care purposes 	7d55b5bc4dc858ca525b38811a6df65a
+1644	814970c7-8d7d-11eb-9847-7ad3a1d1918b	2	2021-03-25 15:20:16.439733	PROMOTE		03c771f53d61741880ed38c7aa61f2a6
+1645	814970c7-8d7d-11eb-9847-7ad3a1d1918b	1	2021-07-07 14:39:56.854315	MODIFY	Added Placement for Account to be used for Product Switch.	669feb5f0d1ee2e3d5fa3daa4c006de2
+1646	814970c7-8d7d-11eb-9847-7ad3a1d1918b	1	2021-07-07 18:27:59.523873	PROMOTE		032d1c538f8dc1e45061cc1f28d97d8c
+1647	814970c7-8d7d-11eb-9847-7ad3a1d1918b	1	2021-07-27 14:19:53.621923	MODIFY	Updated Offer Type to include Product Change per M Elliott https://docs.google.com/spreadsheets/d/15DcHX9az-Im8tb7O9mfZKLZHCrjmu2IfsM4pCxOknwE/edit#gid=1153944505	f63903b69f25e536dd59a4bcb1bb15d8
+1648	814970c7-8d7d-11eb-9847-7ad3a1d1918b	1	2021-07-27 14:22:12.870618	PROMOTE		71817ab69961bb695847b8670d8e37b9
+1649	814970c7-8d7d-11eb-9847-7ad3a1d1918b	1	2021-11-23 15:24:12.343856	MODIFY		d4c26bdf41eebbdf0d51037074d3185e
+1650	814970c7-8d7d-11eb-9847-7ad3a1d1918b	1	2021-11-23 15:25:42.865665	PROMOTE		9be029597e9538f7c0c46841385fbc48
+1651	8210708c-b059-11ec-9421-5a740a103fd6	1	2022-03-30 18:45:02.233619	CREATE	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	209ddb71e837150254eced852e6f4b3e
+1652	8210708c-b059-11ec-9421-5a740a103fd6	1	2022-03-30 18:58:51.74745	MODIFY		bc20b5e42e62ad1861345fbe36d1aeb4
+1653	8210708c-b059-11ec-9421-5a740a103fd6	1	2022-04-11 20:08:50.38415	MODIFY		86e00b197d1c6030021d43a0ee728698
+1654	8210708c-b059-11ec-9421-5a740a103fd6	1	2022-04-13 16:28:10.378584	MODIFY		9fbb21d3eaeeadb4d1873a63f8721681
+1655	8210708c-b059-11ec-9421-5a740a103fd6	1	2022-04-13 16:28:41.391869	PROMOTE		bf15746068ae178242ed92cddad3696b
+1656	8210708c-b059-11ec-9421-5a740a103fd6	1	2022-04-20 21:46:56.082149	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	6ce70a2723ae8dfe98ce9a3d926bde25
+1657	8210708c-b059-11ec-9421-5a740a103fd6	1	2022-04-20 21:47:40.678244	PROMOTE		c6f8d8ef11ae9aa33a6378f9c5ca0d61
+1658	83501585-caaf-11ea-885c-7597bf29c330	1	2020-07-20 17:36:15.937282	CREATE		
+1659	83501585-caaf-11ea-885c-7597bf29c330	1	2020-07-20 17:39:28.765157	MODIFY		
+1660	83501585-caaf-11ea-885c-7597bf29c330	1	2020-07-24 12:46:35.143227	PROMOTE		
+1661	83501585-caaf-11ea-885c-7597bf29c330	1	2020-07-24 12:49:02.427438	MODIFY		
+1662	83501585-caaf-11ea-885c-7597bf29c330	1	2020-07-24 12:49:21.149943	PROMOTE		
+1663	83501585-caaf-11ea-885c-7597bf29c330	1	2021-03-08 15:06:01.285423	MODIFY		6ecb7703b5ac73621e00457c9293f3b6
+1664	83501585-caaf-11ea-885c-7597bf29c330	1	2021-03-08 20:07:53.107889	PROMOTE		db5be432b9c3fef06883aaaa02eee76e
+1665	83501585-caaf-11ea-885c-7597bf29c330	1	2021-03-08 20:45:27.4047	MODIFY		728da3f22b636c1f81b9246f6c979a82
+1666	83501585-caaf-11ea-885c-7597bf29c330	1	2021-03-08 20:45:43.576907	PROMOTE		7fa27af8953567361cdb6392d3b200b7
+1667	83501585-caaf-11ea-885c-7597bf29c330	1	2021-04-13 19:16:11.502629	MODIFY		fec25a9a378b5969f526975bc9beb712
+1668	83501585-caaf-11ea-885c-7597bf29c330	1	2021-04-13 19:16:21.27411	PROMOTE		f092524399caf39cc76e44f08e407f0b
+1669	83501585-caaf-11ea-885c-7597bf29c330	1	2021-11-22 16:37:59.540187	MODIFY		7207a6f4177cafcd85fcf0f7efe31cb4
+1670	83501585-caaf-11ea-885c-7597bf29c330	1	2021-11-22 16:38:51.399431	PROMOTE		30ab5f195635dc42d428d3e64be638fc
+1671	83501585-caaf-11ea-885c-7597bf29c330	1	2022-02-09 13:49:04.270267	MODIFY		694a589dbc0e1bf343852cec6400d06b
+1672	83501585-caaf-11ea-885c-7597bf29c330	1	2022-03-01 19:17:59.410066	PROMOTE		2a3c5acb2bc8bf22032b4fdc4ab5084f
+1673	83be17d2-1ddb-11eb-bfed-0e3067a415d6	1	2020-11-03 13:50:21.024875	CREATE		4272a41f1c4dc829e535fa27511156b0
+1674	83be17d2-1ddb-11eb-bfed-0e3067a415d6	1	2020-11-05 16:41:18.31825	MODIFY		a2ffbfe7e83482210add35d91875bd84
+1675	83be17d2-1ddb-11eb-bfed-0e3067a415d6	1	2020-11-10 17:56:39.002698	PROMOTE		05f812880d3128c90bbeb50cd03c955d
+1676	83be17d2-1ddb-11eb-bfed-0e3067a415d6	1	2021-10-04 16:39:42.730749	MODIFY	Premium removed and promo changed from PEN I00 + RDGT Pending Launch	2bfa15c63821517cfb881e919401f922
+1677	83be17d2-1ddb-11eb-bfed-0e3067a415d6	1	2021-10-11 16:03:25.77497	PROMOTE		7852256be0daf71dceef8c722979ef81
+1678	840e8a3a-e943-11ea-873f-74f46cae88b8	5	2020-08-28 15:31:17.584753	CREATE		
+1679	840e8a3a-e943-11ea-873f-74f46cae88b8	5	2020-09-03 21:01:16.152779	PROMOTE		
+1680	840e8a3a-e943-11ea-873f-74f46cae88b8	1	2020-11-09 15:39:18.217661	MODIFY		e4e55c17d4c6e5838ec00524df7c1054
+1681	840e8a3a-e943-11ea-873f-74f46cae88b8	1	2020-11-09 16:24:13.665515	PROMOTE		87a8a14225f0ae95a958d0b8a3f96653
+1682	840e8a3a-e943-11ea-873f-74f46cae88b8	1	2021-01-12 16:28:59.379092	MODIFY	11/8/20 - Not needed for Magnolia - retired \n1/12/21 - reactiaved for use by Magnolia	2fc19192d87fc07be14a21c66af7e5cc
+1683	840e8a3a-e943-11ea-873f-74f46cae88b8	1	2021-01-12 16:29:11.153135	PROMOTE		0107c72a2b5e6af986b2e9c0c53a6fa4
+1684	840e8a3a-e943-11ea-873f-74f46cae88b8	1	2022-03-02 15:21:03.707099	MODIFY		b628331b781c2e7dc7f2b9ccaa092ab4
+1685	840e8a3a-e943-11ea-873f-74f46cae88b8	1	2022-03-02 15:29:26.366633	MODIFY	1/27/22 Retired - https://docs.google.com/spreadsheets/d/16pXI2wv7N6L5M5PigKtabay7mMmiwGWD1HxOBb0k5TI/edit#gid=0\n	47f2e3d2f31d3fe97b57fc2b45c7a77d
+1686	840e8a3a-e943-11ea-873f-74f46cae88b8	1	2022-03-02 15:29:44.510004	PROMOTE		804a584c755bbab4716daaa85d205de5
+1687	855cf0f3-ac03-11ea-91a0-452f2f0c455e	2	2020-06-11 16:49:31.056157	CREATE		
+1688	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-06-11 18:27:14.093949	MODIFY		
+1689	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-06-12 15:19:21.832295	MODIFY		
+1690	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-06-15 14:47:13.845575	MODIFY		
+1691	855cf0f3-ac03-11ea-91a0-452f2f0c455e	2	2020-06-16 16:03:28.106985	PROMOTE		
+1692	855cf0f3-ac03-11ea-91a0-452f2f0c455e	2	2020-06-16 16:04:41.305819	MODIFY		
+1693	855cf0f3-ac03-11ea-91a0-452f2f0c455e	2	2020-06-16 16:05:14.074344	PROMOTE		
+1694	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-06-30 23:10:52.654326	MODIFY		
+1695	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-07-20 18:37:03.473591	MODIFY		
+1696	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-08-05 20:19:31.009654	MODIFY		
+1697	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-08-10 13:49:01.027359	MODIFY		
+1698	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-08-24 18:50:07.768461	MODIFY		
+1699	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-09-11 15:13:28.745022	MODIFY		
+1700	855cf0f3-ac03-11ea-91a0-452f2f0c455e	2	2020-09-11 15:54:09.88327	MODIFY		
+1701	855cf0f3-ac03-11ea-91a0-452f2f0c455e	2	2020-09-11 15:54:37.395499	MODIFY		
+1702	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-09-15 16:52:27.562825	MODIFY		
+1703	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-09-15 19:03:12.938047	PROMOTE		
+1704	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-09-15 19:05:28.37685	MODIFY		
+1705	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-09-15 19:05:39.012096	PROMOTE		
+1706	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-09-16 16:14:46.204297	MODIFY		
+1707	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-09-16 16:15:00.982365	PROMOTE		
+1708	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-10-22 13:50:59.462441	MODIFY		6df5fff3442138ee9f5147674842e08e
+1709	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2020-10-22 13:51:08.971565	PROMOTE		6dcf0e7265e58f964560c6abef393632
+1710	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2021-10-04 15:44:20.287405	MODIFY	Name Changed from Premium HD 50% off for 52 weeks WCM,Premium removed and promo changed from PEN 405 + RDGT Pending Launch	4c8b4ea385411233a70c8694be48cc0d
+1711	855cf0f3-ac03-11ea-91a0-452f2f0c455e	1	2021-10-11 16:03:18.501913	PROMOTE		baadbd3ac69ad2e6aefe3716170fca2a
+1712	862eac9b-512d-11ec-a1a4-d2106f159c00	1	2021-11-29 16:00:50.823179	CREATE		5bd2631e3bb182de04d847a6e4760052
+1713	862eac9b-512d-11ec-a1a4-d2106f159c00	1	2021-11-29 16:03:41.503843	PROMOTE		7968810f0ed36d17a51b185c2e9eff68
+1714	862eac9b-512d-11ec-a1a4-d2106f159c00	1	2021-11-29 16:32:26.025426	MODIFY		2eafa48051988e9e1cddd36917945158
+1715	862eac9b-512d-11ec-a1a4-d2106f159c00	2	2021-11-29 19:31:42.447135	PROMOTE		ef3a2abb7e7e03c00bc0b13230db2d1a
+1716	862eac9b-512d-11ec-a1a4-d2106f159c00	2	2021-12-01 17:34:15.270069	MODIFY		271655c2b8690c3a033ae8f2d9f2f9e3
+1717	862eac9b-512d-11ec-a1a4-d2106f159c00	2	2021-12-01 17:34:21.782858	PROMOTE		8aceb07c82bd95743d5736e3c281dc9d
+1718	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-08-07 15:34:47.303059	CREATE		
+1719	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-08-07 15:35:07.717246	PROMOTE		
+1720	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-09-16 17:08:17.600887	MODIFY		
+1721	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-09-16 17:08:28.076765	PROMOTE		
+1722	866243b1-d8c3-11ea-96df-09ccd10d7717	8	2020-09-25 10:40:29.323517	MODIFY		
+1723	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-09-30 16:02:05.441658	MODIFY		
+1724	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-09-30 16:02:19.473052	PROMOTE		
+1725	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-10-22 14:09:27.119716	MODIFY		42352f308465303540f71e429fa49579
+1726	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-10-22 14:09:47.412068	PROMOTE		bf24b3b4480f27bea3fd00a512734d52
+1727	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-12-11 15:53:58.342338	MODIFY		8dadff2f956e443ac602d5ccc4a71321
+1728	866243b1-d8c3-11ea-96df-09ccd10d7717	1	2020-12-11 16:18:39.087615	PROMOTE		97a0ece943c701d69a20a103902ef9e6
+1729	8680619d-ac4d-11ec-a49b-769203a1d08a	1	2022-03-25 15:09:11.066259	CREATE		266754cfad5ad20e0ca3cb30c29d99c0
+1730	8680619d-ac4d-11ec-a49b-769203a1d08a	1	2022-03-25 15:10:50.550602	PROMOTE		ceb8d68050bd4be4aa60c0a876aa45a1
+1731	869e33f2-dc00-11ea-9596-859e83a0873f	1	2020-08-11 18:29:00.484712	CREATE		
+1732	869e33f2-dc00-11ea-9596-859e83a0873f	1	2020-08-11 20:41:14.895447	PROMOTE		
+1733	869e33f2-dc00-11ea-9596-859e83a0873f	1	2020-10-15 16:57:09.790753	MODIFY		ffe93963de730b2c4318b2798d238f4e
+1734	869e33f2-dc00-11ea-9596-859e83a0873f	1	2020-10-16 15:02:47.845702	PROMOTE		d4fce3e77be784ab01ea6a09cc7b4b14
+1735	869e33f2-dc00-11ea-9596-859e83a0873f	1	2020-12-18 16:57:12.011214	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia\n12/21/20 added Care Placement	825baea4bafafb896c3d17ab0943c4a8
+1736	869e33f2-dc00-11ea-9596-859e83a0873f	1	2020-12-22 14:33:44.957908	PROMOTE		38fdda60fde92a31e1c75a4ab729fb6f
+1737	869e33f2-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:33:48.505959	MODIFY	Adding Magnolia placement back 1/12/2021. Was previously marked as not needed but appears to be used on a source doc. https://docs.google.com/spreadsheets/d/1iMt_tncT1tQ0sbxogV1AoO5iC-o30LU7fktFWY7raEs/edit#gid=0	0cc7cb6a974637c7ec8b155a79882c58
+1738	869e33f2-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:34:11.266408	PROMOTE		14c5099d6cbc2e6ee32c16b3965ac7ad
+1739	869e33f2-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:34:32.266381	MODIFY		2296f5b0b9714b87b24e574434153171
+1740	869e33f2-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:34:43.72273	PROMOTE		a1c3360999abed0f0e50bd33f5346451
+1741	869e33f2-dc00-11ea-9596-859e83a0873f	1	2021-09-28 16:48:45.064546	MODIFY		615650d257af64bc9c21a446c1dfc9ed
+1742	869e33f2-dc00-11ea-9596-859e83a0873f	1	2021-09-28 17:26:28.82246	PROMOTE		00437aa152febd4572f86c8e0bcca55b
+1743	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2020-07-24 12:59:37.404333	CREATE		
+1744	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2020-07-27 13:14:01.993358	PROMOTE		
+1745	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2020-07-29 20:24:54.536268	MODIFY		
+1746	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2020-08-03 13:36:45.821558	MODIFY		
+1747	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2020-08-03 18:12:37.126242	MODIFY		
+1748	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2020-08-05 19:24:20.263141	PROMOTE		
+1749	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2021-09-28 16:50:45.518738	MODIFY		87fdc9217e776e4dd023b82b17edc800
+1750	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2021-09-28 17:28:11.453456	PROMOTE		8000ba47cbef13b0bd4d7d21efc52ce4
+1751	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2021-11-22 16:36:14.1376	MODIFY		97744b2d273c172db95c5cf78006306d
+1752	8777f4a9-cdad-11ea-b464-e4d44f10848e	1	2021-11-22 16:38:21.420419	PROMOTE		cd1d078688d0560d7fc224ec7259e655
+1753	877a6042-2b72-11eb-9088-e65d3b6c1fba	2	2020-11-20 20:54:06.414244	CREATE		3fbfde27168a6fb2051365367f87a244
+1754	877a6042-2b72-11eb-9088-e65d3b6c1fba	2	2020-11-20 20:54:28.540771	PROMOTE		98098078dcfc6ade061e0c8d2bed02c9
+1755	877a6042-2b72-11eb-9088-e65d3b6c1fba	1	2021-11-22 16:09:39.215735	MODIFY		eab58c0ee06ce068e735b2f1a0fa5bd7
+1756	877a6042-2b72-11eb-9088-e65d3b6c1fba	1	2022-04-15 15:45:50.134619	PROMOTE		8cb4739a8f4dc8ac2fd0a6dbe59c10c6
+1757	877a6042-2b72-11eb-9088-e65d3b6c1fba	1	2022-04-15 15:46:18.137272	PROMOTE		e99751032f7ebcdea7c9c1aa7cdefbd2
+1758	87916632-d831-11eb-a5e5-2e4b1ed90277	1	2021-06-28 16:54:40.440268	CREATE	Created for Online Product Switch use per S Wang.	3c2ac1640ddb14c66df92972e9fccd35
+1759	87916632-d831-11eb-a5e5-2e4b1ed90277	1	2021-07-07 18:28:09.671285	PROMOTE		f96b226a5613b892ce5447c4b82d1f11
+1760	87916632-d831-11eb-a5e5-2e4b1ed90277	1	2021-11-22 17:33:16.129028	MODIFY		5c6fac13e951792703330e635e6c20e9
+1761	87916632-d831-11eb-a5e5-2e4b1ed90277	1	2021-11-22 17:34:50.150797	PROMOTE		0fedd129f67226ba099d80bc22fa317e
+1762	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	2	2020-08-08 00:10:13.144889	CREATE		
+1763	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:20:06.877353	MODIFY		
+1764	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:21:38.047797	PROMOTE		
+1765	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	1	2021-01-06 18:16:01.840156	MODIFY		0c92cfe5471fc6048589a5b9810d86dc
+1766	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	1	2021-01-06 18:16:13.416667	PROMOTE		b801e70f58d92028cc8c7dc57ad2b471
+1767	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	1	2021-01-06 18:16:45.159529	MODIFY		33484efdf9e87c8854311c889da329a3
+1768	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	1	2021-01-06 18:16:55.261901	PROMOTE		546d3a98085a2513b497ff61cdba7a34
+1769	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	1	2021-01-13 16:11:06.44737	MODIFY	1/13/21 - Retired per C Bland.	e9258b241577474844d4519233a3dcd0
+1770	879f3c2f-d90b-11ea-94d3-9a1933fc44f2	1	2021-01-13 16:11:17.408905	PROMOTE		e014d51a9b97bc6dff00dc3ac79e01d3
+1771	890c814c-e940-11ea-873f-74f46cae88b8	5	2020-08-28 15:09:57.469835	CREATE		
+1772	890c814c-e940-11ea-873f-74f46cae88b8	5	2020-09-03 20:49:52.146959	PROMOTE		
+1773	890c814c-e940-11ea-873f-74f46cae88b8	1	2020-11-09 15:37:04.045199	MODIFY		6ef8f3efd6f31b07bc36384a2904e42d
+1774	890c814c-e940-11ea-873f-74f46cae88b8	1	2020-11-09 16:23:56.759004	PROMOTE		7b661c772ae55aa732701a4952dc5b93
+1775	89b0b3e7-b055-11ec-960d-f6a5017568cc	1	2022-03-30 18:16:37.041263	CREATE	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	01fd4c60092fca26bc958768437dcc52
+1776	89b0b3e7-b055-11ec-960d-f6a5017568cc	1	2022-03-30 18:56:48.611851	MODIFY		0b6b8ae3bc8f054e1a12d488c23d24c6
+1777	89b0b3e7-b055-11ec-960d-f6a5017568cc	1	2022-04-11 20:07:47.329727	MODIFY		fbe73e1e673d945927b94283441a5311
+1778	89b0b3e7-b055-11ec-960d-f6a5017568cc	1	2022-04-13 16:27:19.939648	MODIFY		9e497f56590cb2d187e37cdac2b9fe5d
+1779	89b0b3e7-b055-11ec-960d-f6a5017568cc	1	2022-04-13 16:28:36.457737	PROMOTE		ab122a01d46a3e87bbb067583e8429c3
+1780	89b0b3e7-b055-11ec-960d-f6a5017568cc	1	2022-04-20 21:45:58.141454	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	483be3fe8c158f86be68665e4fafbaa6
+1781	89b0b3e7-b055-11ec-960d-f6a5017568cc	1	2022-04-20 21:47:35.807989	PROMOTE		a18d6bd97f5c40a26e7e8860a3bea8e4
+1782	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2020-08-03 13:52:16.39044	CREATE		
+1783	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2020-08-05 20:26:11.846767	MODIFY		
+1784	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2020-08-05 20:26:20.17363	PROMOTE		
+1785	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2020-09-17 13:14:09.727937	MODIFY		
+1786	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2020-09-17 13:14:19.6825	PROMOTE		
+1787	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2020-10-22 13:56:45.35326	MODIFY		c7556ad0df4948ffea4fb7ac3790ac79
+1788	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2020-10-22 13:57:05.857671	PROMOTE		3ec08446ce960d6eda50cb9449ee9b7c
+1789	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2021-01-12 22:15:06.056155	MODIFY		68f204ed0b865830c223289fc927a408
+1790	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2021-01-12 22:16:38.581683	PROMOTE		c54880af746d955592fbdf01c80bb21e
+1864	91ad7778-dc01-11ea-9596-859e83a0873f	1	2020-08-11 18:36:28.536412	CREATE		
+1865	91ad7778-dc01-11ea-9596-859e83a0873f	1	2020-08-11 20:41:26.49145	PROMOTE		
+1791	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2021-10-04 16:13:18.019184	MODIFY	Name Changed from Acquisition ONLY HD Prem SO $2/wk or DS $4/wk 8/wks, reg rate after,Premium removed and promo changed from PEN 408 + RDGT Pending Launch	c57333188c716111a10bed73db0194c3
+1792	8a807b8a-d590-11ea-9001-bc80ca56468d	1	2021-10-11 16:02:51.91609	PROMOTE		38b7fa83d81c988fd3607c9c3f6e7a36
+1793	8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	5	2020-11-03 21:35:51.174241	CREATE		9e65b6edd382e445e59ec3b948cfab81
+1794	8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	1	2020-11-05 16:46:04.10922	MODIFY		153ae33ba1dab0a75c55e211378d0f81
+1795	8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	1	2020-11-10 17:57:17.588958	PROMOTE		abe43a610063a659e1f7d68b1a23ffd4
+1796	8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	1	2021-10-04 17:34:48.314765	MODIFY	Premium removed and promo changed from PEN I21 + RDGT Pending Launch	632a5349894e45ad9eac8bfa76ac0a29
+1797	8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	1	2021-10-11 16:03:45.024335	PROMOTE		6b019573cf5e565dc97ac6993badf2f6
+1798	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2020-09-28 16:49:16.649139	CREATE		
+1799	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2020-09-28 16:51:46.750183	MODIFY		
+1800	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2020-09-28 16:51:58.236364	PROMOTE		
+1801	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2020-10-21 14:07:00.709842	MODIFY		d4a05af08a62fcca34fc8d8218a4dc1a
+1802	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2020-10-21 14:07:11.658809	PROMOTE		e2b69da816fbfa7e6a23f207341a59d7
+1803	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2020-11-05 17:26:12.093082	MODIFY		d3ed275525b4bf4d541a649d6d238c5e
+1804	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2020-11-20 21:27:34.465223	PROMOTE		d751a225c385a8cce0d560229958dd93
+1805	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2021-10-04 16:14:20.017978	MODIFY	Name Changed from SO $2/wk or DS $4/wk 8/wks_HD-premium_2020 WCM,Premium removed and promo changed from PEN 408 + RDGT Pending Launch	a051dce157b4f77e83484c5344857aa3
+1806	8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	1	2021-10-11 16:04:08.007247	PROMOTE		2e177c7d5a677146794e2d8746e33b85
+1807	8c1e5a63-f9e8-11eb-b916-0fe798fea297	1	2021-08-10 14:37:54.346049	CREATE		38ae0f8d6349187998ff7ac5f104f8a6
+1808	8c1e5a63-f9e8-11eb-b916-0fe798fea297	1	2021-08-10 16:25:18.089243	MODIFY	Set up for SPSO -  https://docs.google.com/spreadsheets/d/1CX_3x_LtCIEvTBn48Gl7KAEQOH7Sytv29RUweU1QoRk/edit#gid=0	debb1b37283741ff32a413022579f465
+1809	8c1e5a63-f9e8-11eb-b916-0fe798fea297	2	2021-08-10 17:01:43.319606	PROMOTE		a9c0fd709ec9813c8e0c0f15ea35cc2f
+1810	8c1e5a63-f9e8-11eb-b916-0fe798fea297	1	2021-10-29 17:19:45.90126	MODIFY	Updated to include Placement=Account and Type=Cancel the Cancel per M Elliott https://docs.google.com/spreadsheets/d/1cr5qW4rDx7LjQ8Bc7lntBHTk9OKMyRx7ux9DXviOzmA/edit#gid=0	0e678269e3b72c28a4db6ee8b090fcf2
+1811	8c1e5a63-f9e8-11eb-b916-0fe798fea297	1	2021-10-29 17:20:42.512415	PROMOTE		bd8b752f9139b7e240a3a92f0da84a04
+1812	8c1e5a63-f9e8-11eb-b916-0fe798fea297	1	2021-11-23 18:06:41.105563	MODIFY		8462553001c8d0098386783fa8573608
+1813	8c1e5a63-f9e8-11eb-b916-0fe798fea297	1	2021-11-23 18:40:12.896044	PROMOTE		bb8d3d39a97a4db0b35f7ab607bc937a
+1814	8c1e5a63-f9e8-11eb-b916-0fe798fea297	1	2022-03-04 15:36:55.303612	MODIFY	3/4/2022 Added OnLine Cancel Placement per request in Monday	b86eece9235addc7c9eefc28dc14ac60
+1815	8c1e5a63-f9e8-11eb-b916-0fe798fea297	1	2022-03-04 15:38:32.564726	PROMOTE		04a821f7bdd91f8c74e6cad0b4bc6ef3
+1816	8c8a8e99-0a34-11ea-906e-925cd985ab3d	2	2019-11-18 18:52:20.068934	CREATE		
+1817	8c8a8e99-0a34-11ea-906e-925cd985ab3d	2	2020-04-14 17:02:41.636364	MODIFY		
+1818	8c8a8e99-0a34-11ea-906e-925cd985ab3d	2	2020-04-16 15:15:54.564771	MODIFY		
+1819	8c8a8e99-0a34-11ea-906e-925cd985ab3d	2	2020-04-16 16:22:17.405116	MODIFY		
+1820	8c8a8e99-0a34-11ea-906e-925cd985ab3d	1	2020-04-17 18:22:45.755455	MODIFY		
+1821	8c8a8e99-0a34-11ea-906e-925cd985ab3d	1	2020-04-17 18:29:01.173944	MODIFY		
+1822	8c8a8e99-0a34-11ea-906e-925cd985ab3d	4	2020-06-10 18:00:14.231587	PROMOTE		
+1823	8c8a8e99-0a34-11ea-906e-925cd985ab3d	1	2020-08-03 13:41:32.773715	MODIFY		
+1824	8c8a8e99-0a34-11ea-906e-925cd985ab3d	1	2020-08-03 13:41:45.202254	PROMOTE		
+1825	8c8a8e99-0a34-11ea-906e-925cd985ab3d	1	2021-05-18 14:20:34.14937	MODIFY	5/21/21 - removed audiences: 130008, 130009, 130011, 130010, 130014, 130015, 130029, 130030, 130032, 130033, 130035, 130036, 129989, 129990 moved to OM-10048 per S Wang.  Retired offer.	3eca65e96d70d5b84448c0427ad3d2bd
+1826	8c8a8e99-0a34-11ea-906e-925cd985ab3d	1	2021-05-20 11:56:55.138729	PROMOTE		18c0259d6c8f516b1891910ae6baaa76
+1827	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2021-08-10 14:16:28.841268	CREATE	Set up for SPSO - https://docs.google.com/spreadsheets/d/1c65TIboHyoM3zyqtpPTcHlmsGuAo10aWXZidv226nWk/edit#gid=1153944505	4c6d21d21c44e90aa0327d54b0c48ed9
+1828	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2021-08-10 14:17:43.87467	MODIFY		dff93b23ec109de465f8dde457562e47
+1829	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2021-08-10 16:24:01.087509	MODIFY	corrected link - https://docs.google.com/spreadsheets/d/1CX_3x_LtCIEvTBn48Gl7KAEQOH7Sytv29RUweU1QoRk/edit#gid=0	9f56cf5f64c333d0789bb0c14d68da9e
+1830	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	2	2021-08-10 16:59:02.496202	PROMOTE		a8df2462b40310b0b92e2bcfe9b69651
+1831	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2021-11-22 17:01:42.753794	MODIFY		4578b6d36b7f0690bc06fa0a5c56bb05
+1832	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2021-11-22 17:06:32.485111	PROMOTE		aa7bc4b09059f7d5e35e05f444551a37
+1833	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2021-12-09 14:31:32.746282	MODIFY	Added OLC per M Elliott -https://docs.google.com/spreadsheets/d/1UUEfG3nEWSoXHSTLTItqZiBW536_wL_i9O_Gx9EcacM/edit#gid=1153944505	f5d39be7a4428f97a5fc12710f4828e2
+1834	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2021-12-09 15:47:13.353242	PROMOTE		b4cc53d7e022e6a8561239a4f9a86f23
+1835	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2022-04-20 21:39:47.959861	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	53db4691d27c309f7f7a8d36498146f1
+1836	8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	1	2022-04-20 21:42:13.619934	PROMOTE		776be47a90fbc42add801a04df4b0183
+1837	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-08-07 15:56:30.436449	CREATE		
+1838	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-08-07 15:56:46.212383	PROMOTE		
+1839	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-09-16 17:25:26.773253	MODIFY		
+1840	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-09-16 17:25:40.606329	PROMOTE		
+1841	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-10-22 15:46:58.209381	MODIFY		9b384733810ea3a482e5b2a1bebdcd2a
+1842	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-10-22 15:47:07.89948	PROMOTE		bdc4f586a8827c56685cd1e5211072e3
+1843	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-12-11 16:09:16.250944	MODIFY		ea8be2a350e7a698d078aa25f5995963
+1844	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-12-11 18:40:45.437488	PROMOTE		b9a6894e9129ce63b6432d248979df51
+1845	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-12-23 18:20:36.930073	MODIFY		a885ec5d34e7543128bd6ce0a22acc01
+1846	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2020-12-23 18:20:47.885572	PROMOTE		f245f8bd093ab49fd7ead7b124590b1b
+1847	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2021-01-11 16:01:54.630097	MODIFY		ea80aac686ef83f6ab73a679e5f89c8f
+1848	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2021-01-11 16:02:05.756931	PROMOTE		fa5d667514e17347872b296ca63ec566
+1849	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2021-10-04 14:56:42.476905	MODIFY	Name Changed from Premium HD 50% off for 26 weeks,Premium removed and promo changed from PEN 402 + RDGT Pending Launch	9def091dac372c192d70db6a98cf5a83
+1850	8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	1	2021-10-11 16:03:15.29179	PROMOTE		76beb9e487698c3b49be2085b9da7298
+1851	8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:07:44.141054	CREATE		
+1852	8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:59:24.524955	PROMOTE		
+1853	8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	1	2020-08-03 18:15:11.567719	MODIFY		
+1854	8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:24:57.275246	PROMOTE		
+1855	8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	1	2021-09-28 16:51:15.479258	MODIFY		064e73f55502524d4099e5a22b132886
+1856	8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	1	2021-09-28 17:28:20.523999	PROMOTE		98e3c0029b1f0d62d16c743ccfdf6a98
+1857	8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	1	2021-10-28 16:19:51.294342	MODIFY		c8286dda5bac2c453106a7c223373021
+1858	8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	1	2021-10-28 16:20:00.348217	PROMOTE		6c245bf65429650f9568bd84ec05f28a
+1859	911ff0b0-1de0-11eb-8333-f1ad7e205cff	1	2020-11-03 14:26:30.960147	CREATE		b7c16c3bbbe4262662361cddb1825e46
+1860	911ff0b0-1de0-11eb-8333-f1ad7e205cff	1	2020-11-05 16:44:40.65526	MODIFY		160152b6a068ca79d9121282601a4ff3
+1861	911ff0b0-1de0-11eb-8333-f1ad7e205cff	1	2020-11-10 17:56:54.661621	PROMOTE		b235611cb1b8f44e51df4ea6ab142486
+1862	911ff0b0-1de0-11eb-8333-f1ad7e205cff	1	2021-10-04 17:06:10.706226	MODIFY	Premium removed and promo changed from PEN I13 + RDGT Pending Launch	b61538b5e2ab639c61a46dccf762b6b2
+2023	9d9c6742-e93c-11ea-873f-74f46cae88b8	5	2020-08-28 14:41:53.9804	CREATE		
+1867	91ad7778-dc01-11ea-9596-859e83a0873f	1	2020-10-16 15:02:39.892529	PROMOTE		456ede60e0a04df2bf8149e55cdedded
+1868	91ad7778-dc01-11ea-9596-859e83a0873f	1	2020-12-18 17:07:54.470811	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia\n12/21/20 added Care Placement	41baae5c2b512bc28935289c0b99701a
+1869	91ad7778-dc01-11ea-9596-859e83a0873f	1	2020-12-22 14:33:36.884304	PROMOTE		afd7a7f54c2ce375c0676ab4dd6c6e2b
+1870	91ad7778-dc01-11ea-9596-859e83a0873f	2	2021-01-12 23:27:14.994361	MODIFY	Adding Magnolia placement back 1/12/2021. Was previously marked as not needed but appears to be used on a source doc. https://docs.google.com/spreadsheets/d/1iMt_tncT1tQ0sbxogV1AoO5iC-o30LU7fktFWY7raEs/edit#gid=0	d2c12ee22d25ff1444cbfae96458c8d7
+1871	91ad7778-dc01-11ea-9596-859e83a0873f	2	2021-01-12 23:27:42.977357	MODIFY		e9218452de72b6eebf1c55f87cd8b692
+1872	91ad7778-dc01-11ea-9596-859e83a0873f	2	2021-01-12 23:29:48.556703	PROMOTE		a15d42a9cf760cfddd40a89b53c5f22f
+1873	91ad7778-dc01-11ea-9596-859e83a0873f	1	2021-04-12 21:33:02.58549	MODIFY		78559123274495f71308b78255550489
+1874	91ad7778-dc01-11ea-9596-859e83a0873f	1	2021-04-12 21:55:07.464427	PROMOTE		a6771b00439964b6b28332ec6f1a72ab
+1875	91ad7778-dc01-11ea-9596-859e83a0873f	1	2021-09-28 16:46:34.981729	MODIFY		b29438c0851b1fd42e68d8f0f2d7370d
+1876	91ad7778-dc01-11ea-9596-859e83a0873f	1	2021-09-28 17:26:33.278002	PROMOTE		bf73d4a2e6a92fb9855f80b0cbb54cfb
+1877	91ad7778-dc01-11ea-9596-859e83a0873f	1	2022-06-06 14:52:54.281123	MODIFY		6f2388d96a049f7a37466c03ce6f0a32
+1878	91ad7778-dc01-11ea-9596-859e83a0873f	1	2022-06-06 14:53:56.162244	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	c513011219d8765e3445c20a7c7b64e3
+1879	91ad7778-dc01-11ea-9596-859e83a0873f	1	2022-06-06 15:14:02.53355	PROMOTE		89de7613524b4ee7f02c760360841f3c
+1880	9267744b-dc02-11ea-9596-859e83a0873f	1	2020-08-11 18:43:39.25203	CREATE		
+1881	9267744b-dc02-11ea-9596-859e83a0873f	1	2020-08-11 20:42:07.803596	PROMOTE		
+1882	9267744b-dc02-11ea-9596-859e83a0873f	1	2020-10-15 17:13:50.439059	MODIFY		faf1cb3c3492d93c07b47ae77ffd3d57
+1883	9267744b-dc02-11ea-9596-859e83a0873f	1	2020-10-16 15:02:37.400659	PROMOTE		8c94b2527a9821d5762bad73140e38f7
+1884	9267744b-dc02-11ea-9596-859e83a0873f	2	2020-12-17 02:48:20.886443	MODIFY		261f0c2bdd0d16452d4fe6bc7a986dc3
+1885	9267744b-dc02-11ea-9596-859e83a0873f	2	2020-12-17 02:48:28.571059	PROMOTE		04ff70307b2c984d30667c3a8d6ca747
+1886	9267744b-dc02-11ea-9596-859e83a0873f	1	2021-09-28 16:01:19.474516	MODIFY		dce097141886e09e63c6b5f7eb1fbc59
+1887	9267744b-dc02-11ea-9596-859e83a0873f	1	2021-09-28 17:26:30.871411	PROMOTE		69b725bf1f497d274d4471f9a5302c8e
+1888	92b79d34-a1e7-11eb-9219-4b84622d27a3	1	2021-04-20 14:49:13.595913	CREATE		f4c4afbe0c2cf9687baa9929a9caa4d6
+1889	92b79d34-a1e7-11eb-9219-4b84622d27a3	1	2021-04-20 14:50:44.319755	PROMOTE		dd80f733f2ec480adcf1ead8e0c633d7
+1890	92b79d34-a1e7-11eb-9219-4b84622d27a3	1	2021-04-20 14:55:42.010493	MODIFY		dc0556f411e77d992ba57d40ac439500
+1891	92b79d34-a1e7-11eb-9219-4b84622d27a3	1	2021-04-20 14:55:53.984155	PROMOTE		f0e8e1474bea491f6aac8139c3b23519
+1892	92b79d34-a1e7-11eb-9219-4b84622d27a3	1	2021-04-20 19:20:43.445549	MODIFY		16814aa032acccc002c55d0a3d6d7a57
+1893	92b79d34-a1e7-11eb-9219-4b84622d27a3	1	2021-04-20 19:20:56.855578	PROMOTE		bc46f57b5759be48ff599f90e8849446
+1894	92b79d34-a1e7-11eb-9219-4b84622d27a3	1	2021-11-23 15:30:07.96081	MODIFY		e004995a2d87da843b90eaa3659bb602
+1895	92b79d34-a1e7-11eb-9219-4b84622d27a3	1	2021-11-23 15:32:24.076743	PROMOTE		3952c758a80815c2e30e00c8db2b5cd3
+1896	92e4cd4e-5519-11eb-92da-76a777a98c72	1	2021-01-12 21:03:09.194386	CREATE	1/14/21 Added for Magnolia Integration to Omelette	37a8c9fc8b923c2610928397841fe419
+1897	92e4cd4e-5519-11eb-92da-76a777a98c72	1	2021-01-12 21:06:26.557668	PROMOTE		50d13bdf840fb54c2bbf299a16ded07e
+1898	92e4cd4e-5519-11eb-92da-76a777a98c72	1	2021-03-04 21:00:47.511115	MODIFY		91518ebd6f4aa140f9f7fa12ca29f58d
+1899	92e4cd4e-5519-11eb-92da-76a777a98c72	1	2021-04-12 21:56:41.595575	PROMOTE		8b2c6b848fd9e4ebc1a11bfd1382d30b
+1900	939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	1	2020-09-04 13:43:12.639903	CREATE		
+1901	939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	1	2020-09-17 13:01:57.934741	MODIFY		
+1902	939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	1	2020-09-17 13:02:12.22178	PROMOTE		
+1903	939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:57:34.730275	MODIFY		5ab8d4e66bed2723006d04a651b1ccc7
+1904	939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:58:18.76523	PROMOTE		de84e9a686104e89d432db349e34b992
+1905	939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:14:09.272714	MODIFY		a26299fdbc1bebaac28e7dd6d7909c3e
+1906	939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:14:20.148419	PROMOTE		48fe1c6d27019c7753bbeb505a66c69d
+1907	93b6b147-bcc9-11ec-a0df-26852448f13d	1	2022-04-15 14:37:29.431486	CREATE		98c9a77d96b90bb976749e51577052cd
+1908	93b6b147-bcc9-11ec-a0df-26852448f13d	1	2022-04-19 18:26:50.502576	MODIFY		c1a02b40da808d381556c954c07c7b16
+1909	93b6b147-bcc9-11ec-a0df-26852448f13d	1	2022-04-19 18:44:32.082916	PROMOTE		127df832ee9cdf8769fc360cbc0d0607
+1910	9469d2b4-ee0d-11ea-98b8-353dca3d5c52	1	2020-09-03 17:47:48.017022	CREATE		
+1911	9469d2b4-ee0d-11ea-98b8-353dca3d5c52	1	2020-09-16 20:06:56.917915	MODIFY		
+1912	9469d2b4-ee0d-11ea-98b8-353dca3d5c52	1	2020-09-16 20:07:06.767304	PROMOTE		
+1913	9469d2b4-ee0d-11ea-98b8-353dca3d5c52	1	2020-11-11 19:54:58.868218	MODIFY		783c5d0d1ca234c46b4194459ab3f04e
+1914	9469d2b4-ee0d-11ea-98b8-353dca3d5c52	1	2020-11-11 19:58:07.702827	PROMOTE		4f65813764c3c26b46edee4677d2134a
+1915	9469d2b4-ee0d-11ea-98b8-353dca3d5c52	2	2020-11-19 22:03:05.720904	MODIFY		c262e10b6e625fac3709d6a479ec3df4
+1916	9469d2b4-ee0d-11ea-98b8-353dca3d5c52	2	2020-11-19 22:03:18.297872	PROMOTE		d73e3c35634cb5b22647e1c0f3cf5c1c
+1917	94780c98-cda8-11ea-b464-e4d44f10848e	1	2020-07-24 12:24:11.731679	CREATE		
+1918	94780c98-cda8-11ea-b464-e4d44f10848e	1	2020-07-24 12:53:15.196842	PROMOTE		
+1919	94780c98-cda8-11ea-b464-e4d44f10848e	1	2020-12-18 16:23:11.516262	MODIFY	12/21/20 added Care Placement	dee02af672dba8cda73464b8be2553d3
+1920	94780c98-cda8-11ea-b464-e4d44f10848e	1	2020-12-22 14:38:46.163617	PROMOTE		54277622fbc1a4c5da604f2e743c9af5
+1921	94780c98-cda8-11ea-b464-e4d44f10848e	1	2021-04-12 21:51:34.299948	MODIFY		f821bbb99a7192634daf72a141ac28d8
+1922	94780c98-cda8-11ea-b464-e4d44f10848e	1	2021-04-12 21:56:00.900873	PROMOTE		28804c18df10f290594d7c0ec2aa4ea5
+1923	94780c98-cda8-11ea-b464-e4d44f10848e	1	2021-09-28 16:35:16.05724	MODIFY		e043e3682b064570c2f40d97b8e9514b
+1924	94780c98-cda8-11ea-b464-e4d44f10848e	1	2021-09-28 17:27:19.141863	PROMOTE		2a3392a23d548939f5a16affc83ac315
+1925	94780c98-cda8-11ea-b464-e4d44f10848e	1	2021-10-28 14:21:50.367011	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	2a82b23c99b4853ffd5ec6b601ced8c8
+1926	94780c98-cda8-11ea-b464-e4d44f10848e	1	2021-10-28 14:53:49.677044	PROMOTE		924d1be5713bd5ddd50baabfd18f7ec5
+1927	94780c98-cda8-11ea-b464-e4d44f10848e	1	2022-01-26 15:11:46.168431	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	3cfd55285769902104e20a91355a52ac
+1928	94780c98-cda8-11ea-b464-e4d44f10848e	1	2022-01-26 15:31:24.295294	PROMOTE		744443ad2b8cc006416d2e97f9c8fc2d
+1929	948e7ade-de4d-11ea-a319-6320d3f2fb09	2	2020-08-14 16:45:37.443507	CREATE		
+1930	948e7ade-de4d-11ea-a319-6320d3f2fb09	1	2020-08-14 17:28:00.803221	PROMOTE		
+1931	948e7ade-de4d-11ea-a319-6320d3f2fb09	1	2020-11-09 15:56:30.124365	MODIFY		5fa5ee23cc99cafd84374e541245d248
+1932	948e7ade-de4d-11ea-a319-6320d3f2fb09	1	2020-11-09 16:22:01.603446	PROMOTE		fed7321e1fd42f9b69e22546ceeb3193
+1933	95544d50-bfbc-11eb-93f5-024cda8b295f	1	2021-05-28 13:57:04.5019	CREATE	Created per DGP, All Access international sale offer - ROW low-conversion markets only	c0a8d6e157facfd5857682b65f736de5
+1934	95544d50-bfbc-11eb-93f5-024cda8b295f	1	2021-05-28 14:04:45.348501	PROMOTE		2ff246162972eb8a019c31fb5b8cb347
+1935	95544d50-bfbc-11eb-93f5-024cda8b295f	1	2021-11-23 17:48:22.771512	MODIFY		f4c18784cc998f886e6be5d18377b013
+1936	95544d50-bfbc-11eb-93f5-024cda8b295f	1	2021-11-23 17:48:35.149392	PROMOTE		5a0d364840d34ef855b642f57ec19289
+1937	97499a49-b057-11ec-960d-f6a5017568cc	1	2022-03-30 18:31:18.846938	CREATE	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	e8f5da763e158c4850dcde30a06194fd
+1938	97499a49-b057-11ec-960d-f6a5017568cc	1	2022-03-30 18:58:13.740532	MODIFY		c98482cde8c7654f9b2055e1bd60c03a
+1939	97499a49-b057-11ec-960d-f6a5017568cc	1	2022-04-11 20:06:05.623692	MODIFY		f8dc452b9b25c1e394f5f334108d250b
+1940	97499a49-b057-11ec-960d-f6a5017568cc	1	2022-04-13 16:26:41.342355	MODIFY		559e1e56bd0484cdfa1e6625365c82a1
+1941	97499a49-b057-11ec-960d-f6a5017568cc	1	2022-04-13 16:28:31.112234	PROMOTE		ab9ddb6a8ad68e44bf52fc3e0335193b
+2024	9d9c6742-e93c-11ea-873f-74f46cae88b8	5	2020-09-03 20:45:05.618936	PROMOTE		
+1942	97499a49-b057-11ec-960d-f6a5017568cc	1	2022-04-20 21:44:10.08882	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	5bfb4a7a9a87984a24ab17fa5c21c936
+1943	97499a49-b057-11ec-960d-f6a5017568cc	1	2022-04-20 21:47:31.044581	PROMOTE		67f1f469706a5abab10323ac11a01a0f
+1944	9787a5e8-0a37-11ea-906e-925cd985ab3d	2	2019-11-18 19:14:06.994996	CREATE		
+1945	9787a5e8-0a37-11ea-906e-925cd985ab3d	1	2020-04-21 17:45:30.961041	MODIFY		
+1946	9787a5e8-0a37-11ea-906e-925cd985ab3d	1	2020-04-21 18:39:56.49404	MODIFY		
+1947	9787a5e8-0a37-11ea-906e-925cd985ab3d	4	2020-06-10 17:57:39.477681	PROMOTE		
+1948	97cc2802-dbf1-11ea-899e-ed02528c3365	1	2020-08-11 16:42:06.856195	CREATE		
+1949	97cc2802-dbf1-11ea-899e-ed02528c3365	1	2020-08-11 20:39:05.302105	PROMOTE		
+1950	97cc2802-dbf1-11ea-899e-ed02528c3365	1	2020-11-09 16:02:04.772539	MODIFY		4f33162a77fdc2ce8f06b04cff99ef34
+1951	97cc2802-dbf1-11ea-899e-ed02528c3365	1	2020-11-09 16:21:52.303326	PROMOTE		de9f1c44ab09be4405352619b6ab6bc0
+1952	985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	5	2020-10-02 14:57:30.639079	CREATE		
+1953	985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	5	2020-10-02 16:05:01.715097	PROMOTE		
+1954	985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	1	2020-11-11 20:09:22.377048	MODIFY		96d54c0e6dedbb41c5c2dbd3b6dc4115
+1955	985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	1	2020-11-11 20:20:39.002484	PROMOTE		677c257fbc2401650e115e6c81e745b8
+1956	985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	1	2020-11-19 21:56:12.939614	MODIFY		a98cbc700e128d9a08e683724f899373
+1957	985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	1	2020-11-19 22:07:46.841049	PROMOTE		d952a2dfb251a53896816b20038277a3
+1958	98cf7b4f-324d-11ea-a70d-8a8989bb29aa	1	2020-01-08 19:32:24.582642	CREATE		
+1959	98cf7b4f-324d-11ea-a70d-8a8989bb29aa	4	2020-06-10 17:58:10.449837	PROMOTE		
+1960	98cf7b4f-324d-11ea-a70d-8a8989bb29aa	1	2020-08-03 20:04:42.721912	MODIFY		
+1961	98cf7b4f-324d-11ea-a70d-8a8989bb29aa	1	2020-08-05 19:49:45.600183	PROMOTE		
+1962	98cf7b4f-324d-11ea-a70d-8a8989bb29aa	1	2021-01-11 16:31:07.279418	MODIFY		a1b7b416242eb444b8ca78395dcf0a8c
+1963	98cf7b4f-324d-11ea-a70d-8a8989bb29aa	1	2021-01-11 16:31:18.532432	PROMOTE		48d6932efdf5e74b1b0a4376cfd83c54
+1964	98cf7b4f-324d-11ea-a70d-8a8989bb29aa	1	2021-07-28 20:49:53.876577	MODIFY	Offer retired per Cooking OC Review - https://docs.google.com/spreadsheets/d/1lPQW44r1XMR6oRurZgEE4EX5oGbXLNhj-vpkNdiGbOg/edit#gid=0	b6ee34072d69b1b5b58ef092b98989cd
+1965	98cf7b4f-324d-11ea-a70d-8a8989bb29aa	1	2021-08-26 16:24:40.681445	PROMOTE		3f8754497e88573b09494cea57808a63
+1966	99e3a764-ebd6-11ea-ba6a-bd981f8d0c12	2	2020-08-31 22:09:12.558375	CREATE		
+1967	99e3a764-ebd6-11ea-ba6a-bd981f8d0c12	2	2020-08-31 22:09:34.222654	PROMOTE		
+1968	99e3a764-ebd6-11ea-ba6a-bd981f8d0c12	1	2020-11-06 18:21:19.064205	MODIFY		19991587e05b57876ceeb9a1208a8053
+1969	99e3a764-ebd6-11ea-ba6a-bd981f8d0c12	1	2020-12-01 15:28:02.548539	PROMOTE		58a651270e5ac9ae72f56db1f1f056dd
+1970	9a208028-0a2a-11ea-906e-925cd985ab3d	1	2019-11-18 17:41:07.894692	CREATE		
+1971	9a208028-0a2a-11ea-906e-925cd985ab3d	4	2020-06-10 17:58:45.669522	PROMOTE		
+1972	9a208028-0a2a-11ea-906e-925cd985ab3d	1	2021-02-12 16:24:52.806595	MODIFY		827a7b8a153c9896b92217ec657b914a
+1973	9a208028-0a2a-11ea-906e-925cd985ab3d	1	2021-02-12 16:37:11.294924	PROMOTE		2cf120c045706dbdf9e89b64278d7455
+1974	9a208028-0a2a-11ea-906e-925cd985ab3d	1	2021-11-09 14:25:12.67005	MODIFY	Retired and Remove audience 119723 and added to OM-10020 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	71cac2b6d96e2702f85ae153fa9dec22
+1975	9a208028-0a2a-11ea-906e-925cd985ab3d	1	2021-11-15 14:44:08.547575	MODIFY		e53c6d18f2a825f2f3d3ed5c2d361016
+1976	9a208028-0a2a-11ea-906e-925cd985ab3d	1	2021-11-15 14:47:46.511744	PROMOTE		6220edca5f882c5c5719ac586363fd1a
+1977	9a842058-0285-11eb-b789-fd537ec536af	5	2020-09-29 18:57:21.11884	CREATE		
+1978	9a842058-0285-11eb-b789-fd537ec536af	1	2020-09-30 13:54:07.74605	PROMOTE		
+1979	9a842058-0285-11eb-b789-fd537ec536af	1	2020-10-22 15:41:57.661061	MODIFY		5bdb751231592035576252c5169ee2bc
+1980	9a842058-0285-11eb-b789-fd537ec536af	1	2020-10-22 15:42:12.176708	PROMOTE		0a92d15b9f78a11084d296aefb566698
+1981	9a842058-0285-11eb-b789-fd537ec536af	1	2021-10-04 14:36:59.279525	MODIFY	Name Changed from $25 4wks for 8wks SO-$22 4wks for 12wks FS_+HD Prem WCM,Premium removed and promo changed from PEN 217 + RDGT Pending Launch	7eafc03b2f7ace1c99766c3a24adedf8
+1982	9a842058-0285-11eb-b789-fd537ec536af	1	2021-10-04 14:53:00.109975	MODIFY		046622f1af38b0f5635f0a1ee4763fca
+1983	9a842058-0285-11eb-b789-fd537ec536af	1	2021-10-11 16:02:36.167313	PROMOTE		de887900249cb73edf26df7dcb122120
+1984	9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:10:56.483782	CREATE		
+1985	9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	1	2020-09-17 20:27:18.525248	PROMOTE		
+1986	9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:17:59.378892	MODIFY		b695743774a2e338d4e3e8f268e8bc8f
+1987	9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:20:56.077656	PROMOTE		3e162b5969d58642db17e72ce6ef0587
+1988	9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:06:04.81782	MODIFY		2dd21c5696c237402a13ee03fe415557
+1989	9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:07:32.42054	PROMOTE		4d99dc6b6c72d1d3f935eaf0b061d7c6
+1990	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	5	2021-03-25 15:27:27.508866	CREATE	This offer is intended to be used in the payflow, not for magnolia or care purposes.	03cf8c4884460fcdc7772cefb7c23376
+1991	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	5	2021-03-25 15:32:10.082835	PROMOTE		4c20b763c1f6afc7713b5af00e7db950
+1992	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2021-07-07 14:32:45.488816	MODIFY	Added Placement for Account to be used for Product Switch.	afbcfe0a124c8410d1ffe3a5f614a7e7
+1993	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2021-07-07 14:32:59.812155	PROMOTE		bfce3eaa64ee247f64e93e923cf57186
+1994	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2021-07-27 14:18:45.776951	MODIFY	Updated Offer Type to include Product Change per M Elliott \nhttps://docs.google.com/spreadsheets/d/15DcHX9az-Im8tb7O9mfZKLZHCrjmu2IfsM4pCxOknwE/edit#gid=1153944505\n	53700bd066d1f8592c9ceb672cf31e4c
+1995	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2021-07-27 14:22:14.988413	PROMOTE		5c8a0b5caa2b1fdc04db1f3cd1791854
+1996	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2021-11-23 15:29:24.524153	MODIFY		0d3146e28ceed15dd97a03bbc38320ba
+1997	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2021-11-23 15:32:51.808081	PROMOTE		4635e39810e5e77f970a2c0d874611ba
+1998	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2022-03-29 02:04:34.804563	MODIFY	Added Placement=Care for use in DM program for March 2022 per E Berelson.	dbf02b9dcea4a5e587466153b1083419
+1999	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2022-03-29 02:05:05.192909	MODIFY		1621b6bbf96f20496f4ee483cf8a94c7
+2000	9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	1	2022-03-29 02:05:26.886922	PROMOTE		d4bf61136a83ffd3fbd8dadbbf2d79bd
+2001	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2020-08-17 17:03:44.855948	CREATE		
+2002	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2020-08-17 17:06:47.196468	MODIFY		
+2003	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2020-08-17 17:07:02.798484	PROMOTE		
+2004	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2020-08-25 20:55:50.726501	MODIFY		
+2005	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2020-08-25 20:56:04.750415	PROMOTE		
+2006	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2021-04-12 21:27:27.590893	MODIFY		3a89fb20b302a772996e4bb67ba81b03
+2007	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2021-04-12 21:27:37.639988	PROMOTE		b18d080bee0c093e8769d5f18e64b7e1
+2008	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2021-05-06 16:01:29.755912	MODIFY	DPI = 124418, 124421 \n8/25/20 audiences review	a07329c830040e3c71b93e432357bb79
+2009	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2021-05-06 16:01:39.808805	PROMOTE		42b06db0adc1d9ae80fc971e96871d13
+2010	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2021-11-23 14:56:36.216704	MODIFY		79b39c5ac86b382ddc56400003506aac
+2011	9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	1	2021-11-23 14:57:57.500858	PROMOTE		3c7001a98c275a95832dbc4d5254dd62
+2012	9c03eeab-de4a-11ea-a319-6320d3f2fb09	2	2020-08-14 16:24:21.467105	CREATE		
+2013	9c03eeab-de4a-11ea-a319-6320d3f2fb09	1	2020-08-14 17:17:23.865698	PROMOTE		
+2014	9c03eeab-de4a-11ea-a319-6320d3f2fb09	1	2021-04-12 21:41:44.665729	MODIFY	Offer retired as OC was retired in August of 2020	cca4f675c111ca3116d598579f4896f3
+2015	9c03eeab-de4a-11ea-a319-6320d3f2fb09	1	2021-04-12 21:55:39.117365	PROMOTE		c4bf76167cad20e0fd7a0c5f811ba4f3
+2016	9ccd528d-e87e-11ea-a5df-5346faa6bcb7	5	2020-08-27 16:01:48.24465	CREATE		
+2017	9ccd528d-e87e-11ea-a5df-5346faa6bcb7	1	2020-08-27 17:24:08.38655	PROMOTE		
+2018	9ccd528d-e87e-11ea-a5df-5346faa6bcb7	1	2020-10-28 14:32:27.435522	MODIFY		7a51f5cfd04f93e33aab25d99057ccfc
+2019	9ccd528d-e87e-11ea-a5df-5346faa6bcb7	1	2020-11-20 21:27:18.440276	PROMOTE		11f5dab7fe8df1fc3b1bf72de2d05a4e
+2020	9d33088f-b852-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:00:57.570738	CREATE		
+2021	9d33088f-b852-11e9-b8ef-27f7ec03ccac	1	2020-02-14 21:27:24.26261	MODIFY		
+2022	9d33088f-b852-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:55:18.342144	PROMOTE		
+2025	9d9c6742-e93c-11ea-873f-74f46cae88b8	1	2020-11-09 15:28:18.648646	MODIFY		391ee4926e3eed7fd0adf1d3b645748b
+2026	9d9c6742-e93c-11ea-873f-74f46cae88b8	1	2020-11-09 16:23:35.63682	PROMOTE		9a25e9ca81c668260a49c7d915ef18c8
+2027	9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	1	2022-03-21 19:46:36.674621	CREATE		795c536aba30d5dc00f4674bab1a0e73
+2028	9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	2	2022-03-22 15:59:44.648168	PROMOTE		238e297eaf4c64906a911a75fb998760
+2029	9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	5	2020-11-03 21:29:14.834446	CREATE		6bb05e517f65e785e5c677e679e0ab7f
+2030	9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	1	2020-11-05 16:45:23.556933	MODIFY		8d9e08260a4da0b33111e6a470c5bb50
+2031	9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	1	2020-11-10 17:57:01.554153	PROMOTE		17ac4c39f1192fd0a22bcdfc28205511
+2032	9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	1	2021-10-04 17:11:07.676553	MODIFY	Premium removed and promo changed from PEN I17 + RDGT Pending Launch	f34dad903176c3942b1e46b60c596880
+2033	9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	1	2021-10-11 16:03:41.27798	PROMOTE		7fe3f9442d087d6899015c0ba8e1212d
+2034	9f5ddd13-d906-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:35:05.498145	CREATE		
+2035	9f5ddd13-d906-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:37:27.537599	PROMOTE		
+2036	9f5ddd13-d906-11ea-94d3-9a1933fc44f2	1	2020-09-17 13:16:04.251998	MODIFY		
+2037	9f5ddd13-d906-11ea-94d3-9a1933fc44f2	1	2020-09-17 13:16:12.523981	PROMOTE		
+2038	9f5ddd13-d906-11ea-94d3-9a1933fc44f2	1	2020-10-22 14:00:59.93647	MODIFY		d986e6ccec7c6cb81588bf734e76f894
+2039	9f5ddd13-d906-11ea-94d3-9a1933fc44f2	1	2020-10-22 14:01:11.539883	PROMOTE		70f237b2d9f4496f822bfccfe876e032
+2040	9f5ddd13-d906-11ea-94d3-9a1933fc44f2	1	2021-04-08 17:42:19.827025	MODIFY		030371c50c66418ae1e4045fc69ab743
+2041	9f5ddd13-d906-11ea-94d3-9a1933fc44f2	1	2021-04-08 17:42:29.002605	PROMOTE		e45d2acd68efe971da0df1d6ced70a6f
+2042	9ffb29d7-f1dc-11ea-942b-2b10751285b6	1	2020-09-08 14:07:26.735818	CREATE		
+2043	9ffb29d7-f1dc-11ea-942b-2b10751285b6	1	2020-09-17 13:10:18.165329	MODIFY		
+2044	9ffb29d7-f1dc-11ea-942b-2b10751285b6	1	2020-09-17 13:10:26.359795	PROMOTE		
+2045	9ffb29d7-f1dc-11ea-942b-2b10751285b6	1	2020-11-11 20:17:12.229532	MODIFY		9e4d1e4177b579ba9b2470fba6056e8f
+2046	9ffb29d7-f1dc-11ea-942b-2b10751285b6	1	2020-11-11 20:20:51.772258	PROMOTE		9caf3d793c981ffa8b18d39917e2f6bc
+2047	9ffb29d7-f1dc-11ea-942b-2b10751285b6	1	2020-11-19 22:05:26.912091	MODIFY		9adb7e05dc971ef037d72503a2494b8a
+2048	9ffb29d7-f1dc-11ea-942b-2b10751285b6	1	2020-11-19 22:07:36.274725	PROMOTE		c2a52241eb7a60f427cdfcce6cd1db01
+2049	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2020-08-07 16:04:09.018543	CREATE		
+2050	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2020-08-07 16:04:30.444833	PROMOTE		
+2051	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2020-08-07 16:09:00.668928	PROMOTE		
+2052	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2021-01-06 18:20:08.482234	MODIFY		94e077b51bf73d4fd476410eb0fa16af
+2053	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2021-01-06 18:20:22.876252	PROMOTE		5b5e1d6b1983d202033c757fae884368
+2054	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2021-01-06 18:21:13.530419	MODIFY		a8d91f4f1a22cb16df9f2730053f1b09
+2055	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2021-01-06 18:21:23.862243	PROMOTE		4b7afade675c371c9afa2944558da3c1
+2056	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2021-01-13 17:49:44.070569	MODIFY		10dda6c1c79118a83d217e8a85101e39
+2057	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2021-01-13 17:49:55.535329	PROMOTE		b4410fa75e982c94281ed489f3361e10
+2058	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2021-02-11 20:38:33.336366	MODIFY	Retired per C Bland - Bulk offer should not be available to Care agents.	180d213ad3b075497087afd308ed95fa
+2059	a072b6cb-d8c7-11ea-96df-09ccd10d7717	1	2021-02-11 20:38:42.301129	PROMOTE		d80b8910a8ea5024969fd97f2e0cdd57
+2060	a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	1	2020-08-17 16:13:46.54514	CREATE		
+2061	a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	1	2020-08-19 13:25:02.572037	PROMOTE		
+2062	a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	1	2020-12-28 16:52:47.965174	MODIFY		e123feaf50f2ab21f08c7d6d93c1effa
+2063	a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	1	2020-12-28 16:53:21.400767	PROMOTE		2876b0b14a5f8a8a007d43ead5071382
+2064	a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	1	2021-04-12 21:47:28.602775	MODIFY		3404a6facc33f37f8768bb98aa325a6e
+2065	a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	1	2021-04-12 21:56:35.890306	PROMOTE		29d18be46496daf6290ca3361a4e3e30
+2066	a0f08632-88b7-11eb-9411-340419648ff7	1	2021-03-19 13:33:02.545102	CREATE		f8fd04af544800d04601ba7e098e525b
+2067	a0f08632-88b7-11eb-9411-340419648ff7	1	2021-03-19 13:36:21.869223	PROMOTE		79afb3e114569e9a6aaa8a54a383682b
+2068	a0f08632-88b7-11eb-9411-340419648ff7	1	2021-04-28 16:30:40.791088	MODIFY	Added audience 119639 per S Wang	c16661d7b3c5116842e482d81ae1263d
+2069	a0f08632-88b7-11eb-9411-340419648ff7	1	2021-04-28 18:48:29.91623	PROMOTE		2586f87ff6a8760e0dd07856b23eb70f
+2070	a0f08632-88b7-11eb-9411-340419648ff7	1	2021-11-09 14:22:32.592021	MODIFY	Retired and Remove audience 119638, 119639 and added to OM-10020 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	e224a4d41fd7c60bc023e8ec67eed8ba
+2071	a0f08632-88b7-11eb-9411-340419648ff7	1	2021-11-15 14:43:39.044656	MODIFY		c3b2451c00075334d52209ca7dea24a6
+2072	a0f08632-88b7-11eb-9411-340419648ff7	1	2021-11-15 14:46:59.733373	PROMOTE		63e5113e01906718b859648cbba0a816
+2073	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	3	2019-08-19 14:50:05.619704	CREATE		
+2074	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	4	2020-06-10 17:58:30.546251	PROMOTE		
+2075	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-01-11 16:39:31.314124	MODIFY		aef6659851f34abe838856d454a17c8a
+2076	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-01-11 16:39:40.534633	PROMOTE		aac188d671bf985dcc001c39381146b6
+2077	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-02-12 16:26:23.201943	MODIFY		10b593ae5a24181e2d47adef24885991
+2078	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-02-12 16:36:12.52872	PROMOTE		4b87cd67c606894d974a89c4262121f2
+2079	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-04-19 15:54:59.291664	MODIFY		267fd4e63e445f86097e3f65705cdbc2
+2080	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-04-19 16:11:30.813668	PROMOTE		9fcae2a9a48e23de4ab698623b044a94
+2081	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-09-20 20:51:48.861503	MODIFY	\n	9903765009348f801f499eb5312be562
+2082	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-09-20 20:53:01.513869	MODIFY	Offer retired per S Wang as part of Games OC review/retirement	3e35dcfc12559e893e1898be7fd7cc8c
+2083	a1be5b8f-c290-11e9-ae0f-61baa9da25b1	1	2021-09-20 20:55:03.640543	PROMOTE		cee49098609468052453e5cb88851ff4
+2084	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	2	2020-08-08 00:03:48.501857	CREATE		
+2085	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:24:19.203698	PROMOTE		
+2086	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2020-12-28 16:51:35.338974	MODIFY		41375cf52a39dd00fc8692906180c924
+2087	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2020-12-28 16:53:46.829954	PROMOTE		908abffe485fed3b1225d57d8d185f9b
+2088	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2021-02-16 14:17:19.72773	MODIFY		fa3298e04e3c8d2b2a1f951dd013e916
+2089	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2021-02-16 14:24:45.78468	PROMOTE		5fd3ef658fb12791b91b538f9754930a
+2090	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2021-02-16 22:42:48.285077	MODIFY		4acd1f16de2794842942551619f3c788
+2091	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2021-02-16 22:44:21.274889	PROMOTE		70a08e5c250414d3204530f551efb79a
+2092	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2021-12-01 16:19:08.564428	MODIFY		1f00f70ee279089490fac8ac1397686d
+2093	a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	1	2021-12-01 16:20:26.592901	PROMOTE		fd794caefbcfca25f98c3acd10f9e767
+2094	a26fe6e3-e881-11ea-bee3-410e24c0cdb9	5	2020-08-27 16:23:26.188928	CREATE		
+2095	a26fe6e3-e881-11ea-bee3-410e24c0cdb9	1	2020-08-27 17:25:41.320245	PROMOTE		
+2096	a26fe6e3-e881-11ea-bee3-410e24c0cdb9	1	2020-11-09 15:18:18.845115	MODIFY		15bb66acc349d0996aae2ddced683577
+2097	a26fe6e3-e881-11ea-bee3-410e24c0cdb9	1	2020-11-09 16:23:23.327259	PROMOTE		9377b2a3c6c12bb5b685aff72510ba3f
+2098	a4312602-d035-11ea-a072-340cee6a52b6	1	2020-07-27 18:18:59.474998	CREATE		
+2099	a4312602-d035-11ea-a072-340cee6a52b6	1	2020-07-27 19:12:07.236249	PROMOTE		
+2100	a4312602-d035-11ea-a072-340cee6a52b6	1	2020-07-29 20:29:27.270055	MODIFY		
+2101	a4312602-d035-11ea-a072-340cee6a52b6	1	2020-08-03 18:16:01.944544	MODIFY		
+2102	a4312602-d035-11ea-a072-340cee6a52b6	1	2020-08-19 13:27:01.042869	PROMOTE		
+2103	a4312602-d035-11ea-a072-340cee6a52b6	1	2020-08-21 12:18:20.801305	MODIFY		
+2104	a4312602-d035-11ea-a072-340cee6a52b6	1	2020-08-21 12:27:24.613586	PROMOTE		
+2105	a4312602-d035-11ea-a072-340cee6a52b6	2	2020-08-26 22:49:21.350068	MODIFY		
+2106	a4312602-d035-11ea-a072-340cee6a52b6	2	2020-08-26 22:54:07.487982	PROMOTE		
+2107	a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:04:03.906097	CREATE		
+2108	a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	1	2020-09-17 17:24:19.630974	PROMOTE		
+2109	a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	1	2020-10-22 14:06:38.363062	MODIFY		1efaaf59648e589ad62c222f0e25d5c8
+2110	a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	1	2020-10-22 14:06:46.427233	PROMOTE		ed109f91750a9bd525a574c21c921b53
+2436	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2020-07-29 20:58:41.017873	MODIFY		
+2111	a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	1	2021-10-04 14:35:00.440428	MODIFY	Name Changed from $16 4wks for 12wks SO-$27 4wks for 8wks FS_+HD Prem WCM,Premium removed and promo changed from PEN 215 + RDGT Pending Launch	2c03dbbc9786eeaafdaf2657bf03815f
+2112	a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	1	2021-10-04 14:52:10.772518	MODIFY		1a6e4bba76cfcbeb7f703171fd743217
+2113	a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	1	2021-10-11 16:02:05.924765	PROMOTE		c03e429d289881acc352840103324fac
+2114	a597e111-cdad-11ea-b464-e4d44f10848e	1	2020-07-24 13:00:27.945195	CREATE		
+2115	a597e111-cdad-11ea-b464-e4d44f10848e	1	2020-07-27 13:14:05.755018	PROMOTE		
+2116	a597e111-cdad-11ea-b464-e4d44f10848e	1	2020-07-29 20:25:47.637358	MODIFY		
+2117	a597e111-cdad-11ea-b464-e4d44f10848e	1	2020-07-29 20:26:12.210324	MODIFY		
+2118	a597e111-cdad-11ea-b464-e4d44f10848e	1	2020-08-03 13:36:16.766365	MODIFY		
+2119	a597e111-cdad-11ea-b464-e4d44f10848e	1	2020-08-03 18:13:32.821408	MODIFY		
+2120	a597e111-cdad-11ea-b464-e4d44f10848e	1	2020-08-05 19:24:37.85812	PROMOTE		
+2121	a597e111-cdad-11ea-b464-e4d44f10848e	1	2021-09-28 16:59:18.222235	MODIFY		683482b2e38ff3194b72801b6d257d90
+2122	a597e111-cdad-11ea-b464-e4d44f10848e	1	2021-09-28 17:28:17.838431	PROMOTE		3db94aa349ea2ba2eb097721527ff734
+2123	a597e111-cdad-11ea-b464-e4d44f10848e	1	2021-11-22 16:36:37.227702	MODIFY		802ca837805fa8602dfb76f817beac34
+2124	a597e111-cdad-11ea-b464-e4d44f10848e	1	2021-11-22 16:38:23.940432	PROMOTE		ee1054dc4d7cbe1d4c37f03e56a194bb
+2125	a5a8674b-e880-11ea-a5df-5346faa6bcb7	5	2020-08-27 16:16:22.095652	CREATE		
+2126	a5a8674b-e880-11ea-a5df-5346faa6bcb7	1	2020-08-27 17:25:30.043839	PROMOTE		
+2127	a5a8674b-e880-11ea-a5df-5346faa6bcb7	1	2020-11-09 15:16:36.54723	MODIFY		7435e5310c105b2401bd0ecee26a20cc
+2128	a5a8674b-e880-11ea-a5df-5346faa6bcb7	1	2020-11-09 16:23:10.183554	PROMOTE		a6a8e2a9793f6657952f489da185f9cc
+2129	a9d0599a-e0b2-11eb-9a88-ffe993e184b9	1	2021-07-09 12:39:12.282475	CREATE	created per C Bland, J Kashwick, P Gillies	4e0e35b49b45eb97a899a29a89b3681f
+2130	a9d0599a-e0b2-11eb-9a88-ffe993e184b9	1	2021-07-09 12:59:07.061741	PROMOTE		27d9ea4f57250a1025549610af60d867
+2131	a9d0599a-e0b2-11eb-9a88-ffe993e184b9	1	2021-07-09 15:07:46.67553	MODIFY		ac442f39c2d2d9433cf486c40f565e7b
+2132	a9d0599a-e0b2-11eb-9a88-ffe993e184b9	1	2021-07-09 15:08:30.123657	PROMOTE		f43a0b35a95c7680343dc09387de37c4
+2133	a9d0599a-e0b2-11eb-9a88-ffe993e184b9	1	2021-10-04 17:54:53.117737	MODIFY	Name Changed from HD Premium 50% off for 16 weeks RC2 2020,Premium removed and promo changed from PEN T11 + RDGT Pending Launch	1ebe9683c3d4df74ad7b41f611facdf7
+2134	a9d0599a-e0b2-11eb-9a88-ffe993e184b9	1	2021-10-11 16:03:07.032227	PROMOTE		1eb9350ca776d229f5502c31790c9559
+2135	aa05adbb-ebd2-11ea-933b-690094bd8ad3	2	2020-08-31 21:41:01.637989	CREATE		
+2136	aa05adbb-ebd2-11ea-933b-690094bd8ad3	2	2020-08-31 21:41:19.787227	PROMOTE		
+2137	aa05adbb-ebd2-11ea-933b-690094bd8ad3	1	2020-12-18 16:42:06.147103	MODIFY	12/21/20 added Care Placement	3b603c3a43eb7bbd352623c6504cdd7b
+2138	aa05adbb-ebd2-11ea-933b-690094bd8ad3	1	2020-12-22 14:34:11.092738	PROMOTE		f80327455036890197e3372550b75f8d
+2139	aa05adbb-ebd2-11ea-933b-690094bd8ad3	1	2021-11-22 17:00:45.590498	MODIFY		a6fe0c31840ca9630692e44b3dccccf4
+2140	aa05adbb-ebd2-11ea-933b-690094bd8ad3	1	2021-11-22 17:06:15.56105	PROMOTE		3e68af57408e155e748fa90f6d886475
+2141	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:29:57.625834	CREATE		
+2142	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:58:41.835652	PROMOTE		
+2143	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-03 18:20:50.86838	MODIFY		
+2144	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:34:06.122799	PROMOTE		
+2145	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2020-11-17 19:00:18.646592	MODIFY		b046b3341bc0124d05221e0d20e95f1b
+2146	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2020-11-17 19:00:29.70287	PROMOTE		fdbe20f1eb4b43c1a8f5669882efeafd
+2147	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	2	2020-11-20 21:04:42.837843	MODIFY		80bf5c0d6f03c5af29c8f432ffbb5eb9
+2148	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	2	2020-11-20 21:04:55.518958	PROMOTE		f45c4392644119fff0501d857c453908
+2149	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-09 14:27:36.740331	MODIFY	Remove audience 119731, 119735, 119764, 119768, 119773 and added to OM-10048 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	d70ca1ef1fc93357df56648cc1e92fec
+2150	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-15 14:48:19.586137	PROMOTE		e64514d68fe191bc60fc4bd33067322f
+2151	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-19 14:58:30.840036	MODIFY	11/19/21 Remove Acq and Prodchange - add USD to name per C Bland	0fad155a6a4c674f77b3b6c0d4cd9fad
+2152	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-19 15:02:41.612534	MODIFY	11/19/21 previous comment invalid - Offer retired - no longer needed for OLC\n	5551a0fd4a7436fdd6a65ad45775265c
+2153	aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	1	2021-11-19 15:12:25.809361	PROMOTE		3192aa49b0389eb6aab9f180c909d6c6
+2154	aae877fb-d0d0-11ea-ad31-6380fc00472d	1	2020-07-28 12:48:42.735823	CREATE		
+2155	aae877fb-d0d0-11ea-ad31-6380fc00472d	1	2020-07-28 14:02:25.27271	PROMOTE		
+2156	aae877fb-d0d0-11ea-ad31-6380fc00472d	1	2020-08-21 17:06:45.149539	MODIFY		
+2157	aae877fb-d0d0-11ea-ad31-6380fc00472d	1	2020-08-21 18:47:30.181665	PROMOTE		
+2158	aae877fb-d0d0-11ea-ad31-6380fc00472d	2	2020-08-28 17:20:34.441417	MODIFY		
+2159	aae877fb-d0d0-11ea-ad31-6380fc00472d	2	2020-08-28 17:20:43.076116	PROMOTE		
+2160	ac194786-1dec-11eb-a5b3-de0ce1b769d4	2	2020-11-03 15:53:10.175764	CREATE		9022af6c81e5208ec25ba7ea4a823a55
+2161	ac194786-1dec-11eb-a5b3-de0ce1b769d4	1	2020-11-05 16:47:52.668483	MODIFY		8d2e8060fe9770827150883af49ee9a4
+2162	ac194786-1dec-11eb-a5b3-de0ce1b769d4	1	2020-11-10 17:57:31.369021	PROMOTE		82c83125446f5109416b766983ac6350
+2163	ac194786-1dec-11eb-a5b3-de0ce1b769d4	1	2021-01-14 17:43:42.23597	MODIFY		ce9e883cf5d9070ede2333f5640ac3b0
+2164	ac194786-1dec-11eb-a5b3-de0ce1b769d4	1	2021-02-05 14:19:56.103115	PROMOTE		1c02dd03374e4aa8a62f006e02e01310
+2165	ac194786-1dec-11eb-a5b3-de0ce1b769d4	1	2021-10-04 17:49:43.687969	MODIFY	Premium removed and promo changed from PEN I46 + RDGT Pending Launch	7c9fcb506abb39c4cfea88f57e12b59d
+2166	ac194786-1dec-11eb-a5b3-de0ce1b769d4	1	2021-10-11 16:04:02.072678	PROMOTE		43b2421aa2859e854c441a0eed10e517
+2167	ac495996-9d30-11eb-889c-da2dfe0352a8	1	2021-04-14 14:49:53.941525	CREATE		9a7a8e198691864c0edc0b58f9ce9f03
+2168	ac495996-9d30-11eb-889c-da2dfe0352a8	1	2021-04-14 14:50:37.951371	PROMOTE		10ace2f118305a110aeaaca5085504e0
+2169	ac495996-9d30-11eb-889c-da2dfe0352a8	1	2021-10-04 14:55:39.144154	MODIFY	Name Changed from EDU Premium HD RC2 $X per week 2020 - PC,Premium removed and promo changed from PEN 353 +RDGT Pending Launch	8cb8827b2e9624f2d72ce8a0ff882709
+2170	ac495996-9d30-11eb-889c-da2dfe0352a8	1	2021-10-11 16:02:58.428554	PROMOTE		3c6e8c71471aff164f18d0a02c0f4032
+2171	ac495996-9d30-11eb-889c-da2dfe0352a8	1	2022-01-26 15:29:51.779934	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	643d98bff5ebc8787e7b8b586ad4610b
+2172	ac495996-9d30-11eb-889c-da2dfe0352a8	1	2022-01-26 15:32:35.757143	PROMOTE		d0f983cc3600dbb983aba015c7c72b79
+2173	ac708b5b-ee26-11ea-8a86-0bd413f6e205	2	2020-09-03 20:47:25.744624	CREATE		
+2174	ac708b5b-ee26-11ea-8a86-0bd413f6e205	2	2020-09-04 13:49:09.535992	PROMOTE		
+2175	ac708b5b-ee26-11ea-8a86-0bd413f6e205	1	2020-09-16 18:13:38.257975	MODIFY		
+2176	ac708b5b-ee26-11ea-8a86-0bd413f6e205	1	2020-09-16 18:13:46.60861	PROMOTE		
+2177	ac708b5b-ee26-11ea-8a86-0bd413f6e205	1	2020-11-11 19:50:33.484101	MODIFY		17bb3f5195037ffd505b34977651121b
+2178	ac708b5b-ee26-11ea-8a86-0bd413f6e205	1	2020-11-11 19:57:56.065869	PROMOTE		598012daaa23638cc938eaa16061bb9e
+2179	ac708b5b-ee26-11ea-8a86-0bd413f6e205	2	2020-11-19 22:04:33.268092	MODIFY		bc394f093c44274f40db5871bde5cbec
+2180	ac708b5b-ee26-11ea-8a86-0bd413f6e205	2	2020-11-19 22:04:52.748852	PROMOTE		9c6513db233d9383dd386a3f24222b79
+2181	acb2fa48-ebd3-11ea-933b-690094bd8ad3	2	2020-08-31 21:48:15.625891	CREATE		
+2182	acb2fa48-ebd3-11ea-933b-690094bd8ad3	2	2020-08-31 21:48:37.867671	PROMOTE		
+2183	acb2fa48-ebd3-11ea-933b-690094bd8ad3	1	2020-11-09 15:49:37.957589	MODIFY		c9740c188ec724b2bfb88db57e22fda2
+2184	acb2fa48-ebd3-11ea-933b-690094bd8ad3	1	2020-11-09 16:25:01.358812	PROMOTE		b960eb880d57eafe8552a964f02c38dc
+2185	acb88d80-e949-11ea-8832-81de4b8e7104	5	2020-08-28 16:15:22.788189	CREATE		
+2186	acb88d80-e949-11ea-8832-81de4b8e7104	1	2020-09-17 20:50:37.089497	PROMOTE		
+2187	acb88d80-e949-11ea-8832-81de4b8e7104	1	2020-11-09 15:42:40.156206	MODIFY		b2f543ca6913d717be1bb66fb65c20a9
+2188	acb88d80-e949-11ea-8832-81de4b8e7104	1	2020-11-09 16:24:28.866523	PROMOTE		a6c986e8707729c76ee6a70b7ea57aee
+2189	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:32:01.960074	CREATE		
+2190	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 13:04:45.009532	PROMOTE		
+2191	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2020-12-18 16:33:29.411291	MODIFY	12/21/20 added Care Placement	a661d9a0b81faf024fe23c5c025a16dd
+2192	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2020-12-22 14:39:02.327432	PROMOTE		f227b15da55b1071537d8d1ceebafaf7
+2193	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2021-04-13 12:15:30.042689	MODIFY		dd44f1da645b7e21e1b4350b8a87a29e
+2194	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2021-04-13 12:18:27.200831	PROMOTE		1f6d6d3d86d53f94eabad30b4b6eabd8
+2195	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:26:26.378252	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	92c617382883ed06814e0c6215a1a39d
+2196	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:54:09.386626	PROMOTE		3b6d2a66dba96a2e95c0cbce882de554
+2197	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2021-11-19 16:39:32.027725	MODIFY	Retired as part of EDU Decom per C Bland	a33c23f7f9a9bdd02b3b6cc9c8b430ff
+2198	acbf354c-cda9-11ea-b464-e4d44f10848e	1	2021-11-19 16:39:41.406167	PROMOTE		0874745c5745576bca2e2627f3446bf0
+2199	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-08-07 15:43:02.470536	CREATE		
+2200	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-08-07 15:43:22.960823	PROMOTE		
+2201	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-09-16 17:33:42.801586	MODIFY		
+2202	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-09-16 17:33:53.673515	PROMOTE		
+2203	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-10-22 15:38:43.701547	MODIFY		da3539242a182de1582f20b70780bc2d
+2204	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-10-22 15:39:33.127039	PROMOTE		d8e262b16df9de9c6b67696efa6c0a67
+2205	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-11-17 18:16:28.673669	MODIFY		cdc49895c81c157b27c1a7519964c79c
+2206	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-11-19 14:15:56.259554	MODIFY		f3ee7001934221b29f9ddf5945ba6294
+2207	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-11-19 22:09:51.898007	MODIFY		57998f1837dbfb40e683a5a61ac613e7
+2208	ad86d341-d8c4-11ea-96df-09ccd10d7717	1	2020-11-19 22:10:24.555388	PROMOTE		8255cbb033f84887f9dbdba0fc6dd762
+2209	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-03-30 18:46:15.257152	CREATE	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	f635a2cd63b645efcc301dab8a28b925
+2210	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-03-30 18:59:18.573447	MODIFY		143eb5f66cec2c2945a0f5060d914427
+2211	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-04-11 20:05:43.767629	MODIFY		41716e92ee767a1684fdf28cd3a83f39
+2212	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-04-13 16:26:21.816667	MODIFY		02e3388b3d7fd17ad832a43095765747
+2213	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-04-13 16:28:28.517419	PROMOTE		450bd6212f39811253a74205d45e7a59
+2214	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-04-20 21:45:12.418556	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	a00ca5069f4bc8855e1377283dcff021
+2215	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-04-20 21:47:28.724032	PROMOTE		5b5992598011934151f90ca3dd3cf9f1
+2216	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-05-03 17:54:06.915965	MODIFY		db39b6f312dec3a37ac12758e5256fae
+2217	ad96f259-b059-11ec-b67a-4e702bf88b98	1	2022-05-03 17:54:20.591848	PROMOTE		856289bc8178a54d1c10504f76ab368e
+2218	ae4a399a-0a35-11ea-906e-925cd985ab3d	1	2019-11-18 19:00:26.186592	CREATE		
+2219	ae4a399a-0a35-11ea-906e-925cd985ab3d	4	2020-06-10 17:58:47.32644	PROMOTE		
+2220	ae4a399a-0a35-11ea-906e-925cd985ab3d	1	2021-03-08 20:49:17.629406	MODIFY		1f67af846a903b5ce3dae24f3cfd165e
+2221	ae4a399a-0a35-11ea-906e-925cd985ab3d	1	2021-03-08 20:49:27.738306	PROMOTE		f2ec6dd45cea13926e58eb104e373fbc
+2222	ae4a399a-0a35-11ea-906e-925cd985ab3d	1	2021-11-09 14:30:04.716173	MODIFY	Retired and Remove audience 119775, 119729, 119733, 119762, 119766, 119770 and added to OM-10048 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	df6fc892c90abf3c6f0decc040f5ca7b
+2223	ae4a399a-0a35-11ea-906e-925cd985ab3d	1	2021-11-15 14:46:19.073718	MODIFY		368ad49b809ff1747e395570598229b7
+2224	ae4a399a-0a35-11ea-906e-925cd985ab3d	1	2021-11-15 14:48:42.693935	PROMOTE		660c6020546dfc6a27bf4b6c97347b62
+2225	ae666bd5-aa06-11ec-84c9-227543ace765	1	2022-03-22 17:37:01.411636	CREATE		4abeac631cca7d481a65d27d533ae2a3
+2226	ae666bd5-aa06-11ec-84c9-227543ace765	1	2022-03-22 17:37:28.253314	PROMOTE		a18fcac335fd1cbc85cd3da76953f502
+2227	af11d210-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-04 13:51:08.18934	CREATE		
+2228	af11d210-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-16 18:10:53.42132	MODIFY		
+2229	af11d210-eeb5-11ea-997f-2cc0a4e691d2	1	2020-09-16 18:11:04.594911	PROMOTE		
+2230	af11d210-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:45:39.336787	MODIFY		a87c6a529411c765562b9b234b3d23c3
+2231	af11d210-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:47:37.964764	MODIFY		7650b675a0a77f556e3646c678abb721
+2232	af11d210-eeb5-11ea-997f-2cc0a4e691d2	1	2020-10-22 13:48:39.079777	PROMOTE		b9bfd0bc12f1106a255ac8fa65f13151
+2233	af11d210-eeb5-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:41:46.030252	MODIFY		c7134c235f4930b5e8f9fb6a64b66ed4
+2234	af11d210-eeb5-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:57:51.193232	PROMOTE		f9cb9f24bd403f18d99589f7b6648cd9
+2235	af11d210-eeb5-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:15:44.146074	MODIFY		5e793db31b7d2c950920d8d119c171f7
+2236	af11d210-eeb5-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:15:51.310947	PROMOTE		222ad7e99685d91d455ab6a5f849aa49
+2237	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:28:22.536483	CREATE		
+2238	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:36:19.419771	MODIFY		
+2239	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:39:04.004228	PROMOTE		
+2240	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2020-09-17 13:23:21.740168	MODIFY		
+2241	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2020-10-20 17:09:47.833499	PROMOTE		a448f69b1cf057db31ec87d42fa99fe5
+2242	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2020-10-22 13:53:19.356374	MODIFY		8a7afe739312c59c4fa1305d11e962c5
+2243	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2020-10-22 13:54:14.849451	PROMOTE		c00abf9d985e007d9f2d48fc7ce95010
+2244	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2021-01-12 22:16:20.880994	MODIFY		16849805a1a5f6b60d28cb68731ffd97
+2245	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2021-01-12 22:16:40.582827	PROMOTE		87a8b7e0641d1468d1fcd182a3b7d2e9
+2246	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2021-10-04 15:48:19.677732	MODIFY	Name Changed from Acquisition ONLY HD Premium 50% off for 52wks, regular rate after,Premium removed and promo changed from PEN 405 + RDGT Pending Launch	e5301961162c1d47d487da08be4f0367
+2247	af2ecb4a-d905-11ea-94d3-9a1933fc44f2	1	2021-10-11 16:02:47.586464	PROMOTE		c7e1488860ad28a581a542c5772c87f9
+2248	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2020-07-27 16:31:59.033424	CREATE		
+2249	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2020-07-27 16:55:26.939161	PROMOTE		
+2250	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2020-12-18 16:43:47.162149	MODIFY	12/21/20 added Care Placement	67d627bb0cbbb3e748446726d0652ddd
+2251	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2020-12-22 14:38:59.949762	PROMOTE		3ef2ff95eedab7f22c499f6a7e219aad
+2252	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2021-04-13 12:16:55.280511	MODIFY		93c6e3b936fc51b07944e4fcebc720cf
+2253	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2021-04-13 12:18:24.946192	PROMOTE		2999e44ceaf98ace3784305f66ef3e7d
+2254	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2021-10-28 14:28:15.595011	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	8ff367205cbbe3a7b9f0520b587da700
+2255	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2021-10-28 14:54:07.140161	PROMOTE		3941f48d94e97378999547dce9a677ee
+2256	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2021-11-19 17:59:25.672254	MODIFY	Retired as part of EDU Decom per C Bland	1ed1cfb3a79ead5c8a34f08b49752d15
+2257	b14f8307-d026-11ea-aff7-6ff2a1213fc4	1	2021-11-19 17:59:40.301533	PROMOTE		6a270b0198af94ff8892c43ea345b481
+2258	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	2	2020-08-14 17:36:32.53707	CREATE		
+2259	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	2	2020-08-14 18:19:36.243918	PROMOTE		
+2260	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	1	2020-10-15 16:38:42.797095	MODIFY		e42f81a42c71de45075de6760aadbb80
+2261	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	1	2020-10-16 15:02:55.335943	PROMOTE		82c0ea746d367cbb07c78c825235da60
+2262	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	2	2020-12-17 02:43:56.718064	MODIFY		a8e951eb08b3f4fda1cec6ce5a3873c6
+2263	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	2	2020-12-17 02:44:04.351872	PROMOTE		187ad2effda6b68587123934f15cf433
+2264	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	1	2021-09-28 16:00:43.540349	MODIFY		232c42019ab8f5abda3a4cb93a1c8311
+2265	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	1	2021-09-28 17:26:50.93996	PROMOTE		f668758f25a0f41642a91773522fe303
+2266	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	1	2021-11-22 17:29:31.467153	MODIFY		adfe3d71a1dd097a081cab834f1615a1
+2267	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	1	2021-11-22 17:29:49.103802	PROMOTE		d3204db098f9043452a4bbccd4888ae4
+2268	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	1	2022-06-06 14:55:12.177188	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	1e7196d9acc008b5cb7a33cc0aaeb0ea
+2269	b188c2a2-de54-11ea-b5d0-ab6d8c68419e	1	2022-06-06 15:14:11.888955	PROMOTE		fc1819aa9ac2a821172e944e70b5995e
+2270	b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-02-06 16:14:04.614102	CREATE		
+2271	b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-02-14 18:01:50.821042	MODIFY		
+2272	b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	1	2020-02-14 21:39:20.593735	MODIFY		
+2273	b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	4	2020-06-10 17:59:37.417303	PROMOTE		
+2274	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2020-08-07 14:31:35.374546	CREATE		
+2275	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2020-08-07 14:32:00.847317	PROMOTE		
+2276	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2020-09-17 13:20:38.992205	MODIFY		
+2277	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2020-09-17 13:20:47.625129	PROMOTE		
+2278	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2020-10-22 14:01:42.27972	MODIFY		d21a72160f40c7cda2408eea7777aaaa
+2279	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2020-10-22 14:01:50.10768	PROMOTE		aa2ba66cc2aef85810fca407ba5f5cb7
+2280	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2021-04-08 17:22:13.119659	MODIFY		a52844b03132dd0bad9f4481ec6a0cf2
+2281	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2021-04-08 17:22:13.201128	MODIFY		091221b2cb6cad1803903022bff3484b
+2282	b237e3ac-d8ba-11ea-96df-09ccd10d7717	1	2021-04-08 17:41:58.27781	PROMOTE		a3ed1fc786228f2c472baf8e780ca8c7
+2283	b2640f83-e337-11eb-ae55-07d21b98ddbc	2	2021-07-12 17:36:32.05406	CREATE		a56cc91e9c59943e4bd85fea89e72b29
+2284	b2640f83-e337-11eb-ae55-07d21b98ddbc	2	2021-07-12 17:36:46.747682	PROMOTE		3c81342f8432921cd3d6d08b464e913e
+2285	b2640f83-e337-11eb-ae55-07d21b98ddbc	1	2021-08-27 17:24:53.541024	MODIFY		1fc7865fd27532eaf5cc060f4ff2f375
+2286	b2640f83-e337-11eb-ae55-07d21b98ddbc	1	2021-08-27 17:25:14.033438	PROMOTE		d06187eac6a36bc3c3a090fc7936e985
+2287	b2640f83-e337-11eb-ae55-07d21b98ddbc	1	2021-11-23 17:49:26.533827	MODIFY		e23bb7d98db143a87e11b8a2b6186cb7
+2288	b2640f83-e337-11eb-ae55-07d21b98ddbc	1	2021-11-23 17:51:03.568166	PROMOTE		eae3ee83aa8994506a98758f409c618d
+2289	b2dc229a-73cb-11ec-8218-3e2991ada43e	1	2022-01-12 17:18:45.797941	CREATE		f50d75fbee7d621c8e72fce096324018
+2290	b2dc229a-73cb-11ec-8218-3e2991ada43e	1	2022-01-12 17:25:07.26515	PROMOTE		014e7aa52ec9799ad9b2f5e0a2b386f4
+2291	b2dc229a-73cb-11ec-8218-3e2991ada43e	1	2022-01-13 15:37:29.256548	MODIFY		9eddc32263fffcf54772c7a65d40d11d
+2292	b2dc229a-73cb-11ec-8218-3e2991ada43e	1	2022-01-13 15:43:27.518352	PROMOTE		440937afaa0e4a15d37708dc39ea59d8
+2293	b41c09a1-f789-11ea-86c3-636811e7072d	1	2020-09-15 19:28:59.253808	CREATE		
+2294	b41c09a1-f789-11ea-86c3-636811e7072d	1	2020-09-17 13:59:36.334235	PROMOTE		
+2295	b41c09a1-f789-11ea-86c3-636811e7072d	1	2020-10-21 14:01:47.248577	MODIFY		05d73762547404da460f04dc3351766c
+2296	b41c09a1-f789-11ea-86c3-636811e7072d	1	2020-10-21 14:01:58.076176	PROMOTE		a854f54a5893ab409b77fae67596b43d
+2297	b41c09a1-f789-11ea-86c3-636811e7072d	1	2021-10-04 14:32:39.47655	MODIFY	Name Changed from edu_50%_tillforbid_HD-Premium_2020 WCM, Premium removed and promo changed from PEN 141 + RDGT Pending Launch	023ed1dd0e136503fb32a715a5af40dc
+2298	b41c09a1-f789-11ea-86c3-636811e7072d	1	2021-10-04 14:51:48.699355	MODIFY		48d10294b2086673cad8bfb0b7c89bf5
+2299	b41c09a1-f789-11ea-86c3-636811e7072d	1	2021-10-11 16:02:57.022215	PROMOTE		36e739d8635b9dcd79cc568aa68967e8
+2300	b41c09a1-f789-11ea-86c3-636811e7072d	1	2021-10-28 14:49:58.768633	MODIFY	Retired per T Searcy - EDU Retirement project (LP phase)	b93d9d171638a34f5696cc636b8aef12
+2301	b41c09a1-f789-11ea-86c3-636811e7072d	1	2021-10-28 14:54:32.103493	PROMOTE		2dee663bfc40d5e02a33c0d1d93889dc
+2302	b498ce2c-e7c1-11ea-bd65-b233ccf61790	1	2020-08-26 17:29:33.283904	CREATE		
+2303	b498ce2c-e7c1-11ea-bd65-b233ccf61790	1	2020-08-26 18:05:03.774614	PROMOTE		
+2304	b498ce2c-e7c1-11ea-bd65-b233ccf61790	1	2020-11-09 16:13:11.65783	MODIFY		964520cccab0130f762f5dbde8b43364
+2305	b498ce2c-e7c1-11ea-bd65-b233ccf61790	1	2020-11-09 16:22:34.350856	PROMOTE		e444cac2044af89800a581259e7fc164
+2306	b4ab70bb-b055-11ec-9421-5a740a103fd6	1	2022-03-30 18:17:49.148616	CREATE	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	6df1869de2ef16bfb9aa2239aea95b49
+2307	b4ab70bb-b055-11ec-9421-5a740a103fd6	1	2022-03-30 18:57:23.679789	MODIFY		d9cd872120eeb363b3ce1922c2aa39b6
+2308	b4ab70bb-b055-11ec-9421-5a740a103fd6	1	2022-04-11 20:08:22.163758	MODIFY		20965c4c327fd283cc6a6b95b5bdb023
+2309	b4ab70bb-b055-11ec-9421-5a740a103fd6	1	2022-04-13 16:27:45.654499	MODIFY		8af26d1010b3635c1fbe4acb039f38e0
+2310	b4ab70bb-b055-11ec-9421-5a740a103fd6	1	2022-04-13 16:28:38.947815	PROMOTE		ecbd81ded26239aee3068e429b1c1113
+2311	b4ab70bb-b055-11ec-9421-5a740a103fd6	1	2022-04-20 21:46:34.612618	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	7b483084bdfaa5b995fa2cfefca9afd7
+2312	b4ab70bb-b055-11ec-9421-5a740a103fd6	1	2022-04-20 21:47:38.182635	PROMOTE		756d9899d5bacd3fa17add2c8f22ce01
+2313	b4e376f5-d027-11ea-a072-340cee6a52b6	1	2020-07-27 16:39:14.532944	CREATE		
+2314	b4e376f5-d027-11ea-a072-340cee6a52b6	1	2020-07-27 16:55:37.229346	PROMOTE		
+2315	b4e376f5-d027-11ea-a072-340cee6a52b6	1	2020-07-29 20:42:00.172091	MODIFY		
+2316	b4e376f5-d027-11ea-a072-340cee6a52b6	1	2020-08-03 13:38:24.230112	MODIFY		
+2317	b4e376f5-d027-11ea-a072-340cee6a52b6	1	2020-08-03 20:07:47.250761	MODIFY		
+2318	b4e376f5-d027-11ea-a072-340cee6a52b6	1	2020-08-05 19:52:02.365553	PROMOTE		
+2319	b4e376f5-d027-11ea-a072-340cee6a52b6	1	2021-09-28 16:58:15.3147	MODIFY		173ad03af7ec3311d37716dd8859102b
+2320	b4e376f5-d027-11ea-a072-340cee6a52b6	1	2021-09-28 17:28:14.364027	PROMOTE		7ea2b2b0b84eb596458b6fe986600bd6
+2321	b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	5	2020-11-03 21:44:11.181403	CREATE		992ddc29c7cfba1d164a52bf469ad443
+2322	b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	1	2020-11-05 16:47:07.850433	MODIFY		805f76e127c098e5d774c6623c062855
+2323	b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	1	2020-11-10 17:57:23.769311	PROMOTE		0ece795731ea876a06f96d7e8e6e75ea
+2324	b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	1	2021-10-04 17:42:02.283875	MODIFY	Premium removed and promo changed from PEN I27 + RDGT Pending Launch	cf2f1fe4cb6f3a4ab5f44cbcdec3b0c6
+2325	b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	1	2021-10-11 16:03:49.941017	PROMOTE		69748164ff018158c2e82bc5dea63774
+2326	b7370271-dbff-11ea-9596-859e83a0873f	1	2020-08-11 18:23:12.520053	CREATE		
+2327	b7370271-dbff-11ea-9596-859e83a0873f	1	2020-08-11 20:41:02.335156	PROMOTE		
+2328	b7370271-dbff-11ea-9596-859e83a0873f	1	2020-10-15 16:51:58.870743	MODIFY		229c1a28043d98c4e0bc2c3416e423dd
+2329	b7370271-dbff-11ea-9596-859e83a0873f	1	2020-10-16 15:02:44.967923	PROMOTE		12ea526db9505dd75a7488d1d1655263
+2330	b7370271-dbff-11ea-9596-859e83a0873f	1	2020-12-18 16:55:34.960517	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia\n12/21/20 added Care Placement	4642c47d1e3f9f9577a0c78e4001143f
+2331	b7370271-dbff-11ea-9596-859e83a0873f	1	2020-12-22 14:33:42.663202	PROMOTE		303f145b465a9c0a2c256288b1b67023
+2332	b7370271-dbff-11ea-9596-859e83a0873f	2	2021-01-12 23:31:10.8231	MODIFY	Adding Magnolia placement back 1/12/2021. Was previously marked as not needed but appears to be used on a source doc. https://docs.google.com/spreadsheets/d/1iMt_tncT1tQ0sbxogV1AoO5iC-o30LU7fktFWY7raEs/edit#gid=0	30992847dc8ea7837922ed2473289c3e
+2333	b7370271-dbff-11ea-9596-859e83a0873f	2	2021-01-12 23:31:20.64096	PROMOTE		c591362630a2b68e19dad4f2810fa3d5
+2334	b7370271-dbff-11ea-9596-859e83a0873f	1	2021-09-28 16:46:07.537779	MODIFY		77ce90f7c1457f810fac294aa06fcbaf
+2335	b7370271-dbff-11ea-9596-859e83a0873f	1	2021-09-28 17:26:46.243353	PROMOTE		0ffbe21dc2a6746edff0b20024c7c3ad
+2336	b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	1	2020-11-03 14:20:26.082201	CREATE		f94aaffb9b2eae66c67d0974416c399c
+2337	b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	1	2020-11-05 16:42:38.569788	MODIFY		6dda3f2baabe24aade5f7b5b9fcee801
+2338	b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	1	2020-11-10 17:56:47.471893	PROMOTE		2756280c427a4052fa1dc5a460374b2f
+2339	b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	1	2021-10-04 16:44:00.172424	MODIFY	Premium removed and promo changed from PEN I07 + RDGT Pending Launch	9fbdd4586715d708790491896159585e
+2340	b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	1	2021-10-11 16:03:32.659601	PROMOTE		68937ab4495d8b1a254468a8e8c376c6
+2341	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2020-07-28 12:06:07.930574	CREATE		
+2342	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2020-07-28 14:00:40.024346	PROMOTE		
+2343	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2020-12-18 16:44:14.185101	MODIFY	12/21/20 added Care Placement	139675fa5a35748252aea9417b9a3ad0
+2344	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2020-12-22 14:38:50.415436	PROMOTE		db4dd33cfc9489d0aa9e1a222b09eba3
+2345	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2021-04-13 12:14:38.735001	MODIFY		690fc5a2d795d4bce3cfbda81b57bfe3
+2346	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2021-04-13 12:18:19.15717	PROMOTE		f01322c19d7571840dd15ab38faa2719
+2347	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2021-09-28 16:37:06.590297	MODIFY		42f3be93b16503fb197c26fec63418e3
+2437	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2020-08-03 20:11:32.177961	MODIFY		
+2348	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2021-09-28 17:27:25.952974	PROMOTE		9c53348e7532403ab0d4a49cbfa324c4
+2349	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2021-10-28 14:29:40.740974	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	f6d4ab682a777ff8635fb231850678a0
+2350	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2021-10-28 14:53:53.647784	PROMOTE		3227ccb9be2569001864dca1a2fdb07c
+2351	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2021-11-19 18:00:13.217288	MODIFY	Retired as part of EDU Decom per C Bland	28f210b60623db72064bb37a8c40af9c
+2352	b8201ff3-d0ca-11ea-ad31-6380fc00472d	1	2021-11-19 18:00:23.066723	PROMOTE		fb0649fe15ad1a37a4c02a64f2babeed
+2353	b873b3f3-0291-11eb-b789-fd537ec536af	5	2020-09-29 20:24:05.303602	CREATE		
+2354	b873b3f3-0291-11eb-b789-fd537ec536af	1	2020-09-30 13:59:57.34238	PROMOTE		
+2355	b873b3f3-0291-11eb-b789-fd537ec536af	1	2020-10-21 13:58:17.631423	MODIFY		f713b5aa0a5e7df95bfd11e1b996f2fd
+2356	b873b3f3-0291-11eb-b789-fd537ec536af	1	2020-10-21 13:58:50.816156	MODIFY		4e318503a25dc02e5444a7f10689b7a9
+2357	b873b3f3-0291-11eb-b789-fd537ec536af	1	2020-10-21 13:59:01.433512	PROMOTE		37af4c845282967ec072c5951b966953
+2358	b873b3f3-0291-11eb-b789-fd537ec536af	1	2021-09-20 20:13:39.663261	MODIFY		363ace2c1a54fbd7ddf6a6f098739b3f
+2359	b873b3f3-0291-11eb-b789-fd537ec536af	1	2021-09-20 20:13:51.349485	PROMOTE		93d15f77e5b4044f443e87d9a692833f
+2360	b873b3f3-0291-11eb-b789-fd537ec536af	1	2021-10-04 15:28:49.315579	MODIFY	Name Changed from 50%off_12wk_HD-premium_2020 WCM,Premium removed and promo changed from PEN 404+RDGT Pending Launch	dbaf104d9e4d7882953e0ff9ef865564
+2361	b873b3f3-0291-11eb-b789-fd537ec536af	1	2021-10-11 16:02:37.62716	PROMOTE		23244d30379510be4be00bc7fa9e59f7
+2362	b873b3f3-0291-11eb-b789-fd537ec536af	1	2022-01-04 20:21:17.286415	MODIFY		a6a818e9bf6342aec241deefd2e44661
+2363	b873b3f3-0291-11eb-b789-fd537ec536af	1	2022-01-05 20:33:44.156065	PROMOTE		4c4fa230d13b8dac3d4d0607536f7f03
+2364	b8870d52-3efc-11eb-919b-4b09b3d24981	1	2020-12-15 17:41:11.347141	CREATE		4380ba47e96bc082ea8adf80ab2896fa
+2365	b8870d52-3efc-11eb-919b-4b09b3d24981	1	2020-12-22 14:39:31.959326	PROMOTE		bf4780a91979f5c08cfbcb0912754feb
+2366	b8870d52-3efc-11eb-919b-4b09b3d24981	1	2021-10-04 16:52:37.506024	MODIFY	Name Changed from  HD Premium 50% off for 24 weeks RC2 2020 - PC - Premium removed and promo changed from PEN I11 + RDGT Pending Launch	b03722aa0c1ff19c7f1524e89c47250f
+2367	b8870d52-3efc-11eb-919b-4b09b3d24981	1	2021-10-11 16:03:13.607741	PROMOTE		c4b7db5d7185c6407c15edc7dbecac38
+2368	b9075636-ee25-11ea-8a86-0bd413f6e205	2	2020-09-03 20:40:37.368797	CREATE		
+2369	b9075636-ee25-11ea-8a86-0bd413f6e205	2	2020-09-04 13:48:52.886092	PROMOTE		
+2370	b9075636-ee25-11ea-8a86-0bd413f6e205	1	2020-09-16 18:12:07.035939	MODIFY		
+2371	b9075636-ee25-11ea-8a86-0bd413f6e205	1	2020-09-16 18:12:26.281567	PROMOTE		
+2372	b9075636-ee25-11ea-8a86-0bd413f6e205	1	2020-11-11 19:48:47.60526	MODIFY		4231aa734f3e76824304345410732a95
+2373	b9075636-ee25-11ea-8a86-0bd413f6e205	1	2020-11-11 19:57:53.546851	PROMOTE		e9abd8916b824c0f5e838d09f5072dab
+2374	b9075636-ee25-11ea-8a86-0bd413f6e205	2	2020-11-19 22:03:48.199273	MODIFY		8f873838cd3a6b394fde954d4e806a07
+2375	b9075636-ee25-11ea-8a86-0bd413f6e205	2	2020-11-19 22:04:11.599627	PROMOTE		09f1adafa95da2c9b10079c72e3123ef
+2376	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2020-07-27 16:46:31.326853	CREATE		
+2377	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2020-07-27 16:58:17.618656	PROMOTE		
+2378	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2020-07-29 20:56:00.635468	MODIFY		
+2379	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2020-08-03 20:09:24.619173	MODIFY		
+2380	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2020-08-05 19:54:37.70953	PROMOTE		
+2381	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2020-11-20 20:10:08.112466	MODIFY		ebb1c8edefab5f215e25cb8bc3c81ceb
+2382	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2020-11-20 20:10:18.591999	PROMOTE		97ccf08d4ce8389b621236bd6d62afa5
+2383	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2021-09-28 16:02:06.891856	MODIFY		8dec3d7ec3409bef3700a5235e915e3f
+2384	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2021-09-28 17:24:16.029324	PROMOTE		664f73983723cd9747d2b66299b4bee0
+2385	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2022-03-04 15:36:04.864971	MODIFY	3/4/2022 Added OnLine Cancel Placement per request in Monday	3bc1f70bcf7692a3acaf07d14a85bb98
+2386	b93ced0f-d028-11ea-a072-340cee6a52b6	1	2022-03-04 15:38:21.930249	PROMOTE		00e6f835c063a4e305fb56ad90397539
+2387	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2019-12-10 18:27:30.211027	CREATE		
+2388	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2020-01-21 16:32:18.805381	MODIFY		
+2389	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2020-01-22 20:15:51.049055	MODIFY		
+2390	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	4	2020-06-10 17:57:45.916976	PROMOTE		
+2391	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2020-08-04 11:30:44.568337	MODIFY		
+2392	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2020-08-05 20:11:34.319544	PROMOTE		
+2393	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2021-09-28 16:05:38.283528	MODIFY		a25f72cc907924780ccae828ec391cd8
+2394	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2021-09-28 17:24:00.930971	PROMOTE		5329532dcad25c17081f5060cda656e4
+2395	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2021-11-24 15:35:54.631225	MODIFY		a3aa74fe04030d8799e171516344be14
+2396	b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	1	2021-11-24 15:38:11.578271	PROMOTE		6cdc56abf3f9ed9e123e808db7b6ffcb
+2397	b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	2	2020-11-03 14:20:29.968134	CREATE		b0f257badeb5bc5ee1b547fbd14df5e3
+2398	b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	2	2020-11-03 15:54:13.552394	MODIFY		c40854f6d1bd39a5c638771a8f42e3db
+2399	b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	1	2020-11-10 17:57:38.20508	PROMOTE		f52a7f636f2560ad81d237fbb26a0b68
+2400	b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	1	2021-10-04 17:44:57.302202	MODIFY	Premium removed and promo changed from PEN I32 + RDGT Pending Launch	4b95e03b99c78b29d7a348c384dba880
+2401	b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	1	2021-10-11 16:03:53.258115	PROMOTE		f37414de65d6d1dc3740e7455504bc2d
+2402	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2019-12-10 18:41:50.464319	CREATE		
+2403	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-21 16:34:49.118749	MODIFY		
+2404	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-22 20:17:29.833791	MODIFY		
+2405	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2020-02-14 17:22:13.872935	MODIFY		
+2406	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2020-02-26 20:27:01.270263	MODIFY		
+2407	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	4	2020-06-10 17:57:41.669474	PROMOTE		
+2408	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2020-09-04 15:32:06.806504	MODIFY		
+2409	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	2	2020-09-08 21:23:10.839869	PROMOTE		
+2410	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	2	2020-11-20 21:12:37.40956	MODIFY		27aa1d4db94d0f3c0f47439f97852fce
+2411	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	2	2020-11-20 21:12:44.102974	PROMOTE		a4d531e3de02ca98965bc6b7f1f832e9
+2412	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2021-02-26 15:48:31.695584	MODIFY		6a11d3d5ea4c8003e8ff30bcf6e10eb2
+2413	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2021-02-26 15:49:33.984264	PROMOTE		8e2558129717acffc1a47f26801b0048
+2414	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2021-03-08 14:28:17.845614	MODIFY		7e1f9b740ddbe4d16ba439ab9b8ab466
+2415	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2021-03-08 20:08:09.833538	PROMOTE		a39c181f1b8b41bdd6a0c073ee759758
+2416	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-23 14:47:11.24321	MODIFY		6c5c527cb1123036951569c89ad29915
+2417	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-23 14:49:13.878395	PROMOTE		f2c2ccb055b2214713938d4204703023
+2418	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-24 15:36:28.940229	MODIFY		94ecb60a0d36eca28a29e064257025b2
+2419	ba5b0454-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-24 15:38:13.688569	PROMOTE		400620aabb983a42c90ed349a32f51d4
+2420	bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	1	2020-02-06 17:11:37.493382	CREATE		
+2421	bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	1	2020-02-14 21:50:19.500371	MODIFY		
+2422	bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	1	2020-03-02 15:21:05.304647	MODIFY		
+2423	bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	1	2020-08-17 16:48:33.454844	MODIFY		
+2424	bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	1	2020-08-17 16:50:18.396685	MODIFY		
+2425	bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	1	2020-08-17 16:55:00.828324	MODIFY		
+2426	bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	1	2020-08-17 16:55:12.663823	PROMOTE		
+2427	bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	1	2020-09-04 13:30:01.331337	CREATE		
+2428	bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	1	2020-09-17 12:48:52.273495	MODIFY		
+2429	bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	1	2020-09-17 12:49:01.450783	PROMOTE		
+2430	bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:55:24.245438	MODIFY		549be1fffaedc450df68e58cbb4b43ac
+2431	bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:58:10.399676	PROMOTE		248c9f90ee508e290d0171fd445ac8c2
+2432	bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:06:29.434519	MODIFY		4ecbaffb4fe23fdad5790daae7882960
+2433	bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:06:41.053575	PROMOTE		e98cad1b15c4a11572e5ff18d0d4692f
+2434	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2020-07-28 13:10:40.236509	CREATE		
+2435	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2020-07-28 14:03:03.672279	PROMOTE		
+2439	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2020-11-09 16:03:50.872683	MODIFY		16326208285907a77598d449329ffcc4
+2440	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2020-11-09 16:03:51.057127	MODIFY		bbdbfcf5a74aa03a85ff88fc342cce92
+2441	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2020-11-20 21:25:49.328368	PROMOTE		f7a14a08b8bf76fdfa4d55e7c64f6520
+2442	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2021-09-28 16:02:39.996632	MODIFY		d4cb976fcedff58c79eb7a42adb2763c
+2443	bc331e82-d0d3-11ea-ad31-6380fc00472d	1	2021-09-28 17:26:02.771003	PROMOTE		7fb598e73ff771c66dcf5b1d20c677e4
+2444	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2019-12-10 18:34:44.496882	CREATE		
+2445	bc758b50-1b7b-11ea-8a1a-54900ccd666e	4	2020-06-10 17:57:56.942675	PROMOTE		
+2446	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2020-08-04 11:29:59.976583	MODIFY		
+2447	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2020-08-05 20:11:22.325396	PROMOTE		
+2448	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2020-09-04 15:54:08.576976	MODIFY		
+2449	bc758b50-1b7b-11ea-8a1a-54900ccd666e	2	2020-09-08 21:37:24.468228	PROMOTE		
+2450	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2021-03-05 14:15:45.002702	MODIFY		7338415547e1c151886e2466b4df89cf
+2451	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2021-03-05 14:15:56.396944	PROMOTE		0da3762e7a27b3ce18e7dc045bdc132c
+2452	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2021-11-23 14:55:57.102691	MODIFY		d10ac78c5db0cb0f3ce42e9bb0aac570
+2453	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2021-11-23 14:57:42.200227	PROMOTE		b289f4324691d641d057fa1d1b350651
+2454	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2021-11-24 15:36:50.894774	MODIFY		48ad22df9fddb875a329ded0bd6d14ff
+2455	bc758b50-1b7b-11ea-8a1a-54900ccd666e	1	2021-11-24 15:38:15.583798	PROMOTE		4a9f8aaaebd22895dac16b53d1112e2e
+2456	bc758b50-1b7b-11ea-8a1a-54900ccd666e	2	2021-12-10 21:39:16.212853	MODIFY	Online cancel tag added per Peter Gillies and Megan Elliotts request 12/10/21	8225f440984f840284047c8024a7932e
+2457	bc758b50-1b7b-11ea-8a1a-54900ccd666e	2	2021-12-10 21:43:01.258103	PROMOTE		0f846cf719128c17930186fc883d1d84
+2458	bc81c3f5-bfbc-11eb-93f5-024cda8b295f	1	2021-05-28 13:58:10.230994	CREATE	Created per DGP, New All Access sale offer for international - ROW high-conversion markets only	cf8c9003742c261292dbc795fb8ee0e2
+2459	bc81c3f5-bfbc-11eb-93f5-024cda8b295f	1	2021-05-28 14:04:48.076119	PROMOTE		e64e72a67acddc23bdbf76a66968bc55
+2460	bc81c3f5-bfbc-11eb-93f5-024cda8b295f	1	2021-11-23 17:47:29.19575	MODIFY		6b912d5eb58cc9a59e241667d4115ebf
+2461	bc81c3f5-bfbc-11eb-93f5-024cda8b295f	1	2021-11-23 17:48:36.965644	PROMOTE		1375cbe560e87d7ec383e14b4d15c652
+2462	bc81c3f5-bfbc-11eb-93f5-024cda8b295f	1	2021-11-24 14:29:20.220786	MODIFY		2e30b42773d6abddcb3a3c87e128c722
+2463	bc81c3f5-bfbc-11eb-93f5-024cda8b295f	1	2021-11-24 14:29:32.809759	PROMOTE		00d6ab8db5a648f44c888bf8f97ae77f
+2464	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2020-04-16 13:18:20.765939	CREATE		
+2465	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2020-04-17 19:15:24.52253	MODIFY		
+2466	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2020-04-20 18:14:23.212537	MODIFY		
+2467	be261562-7fe4-11ea-b471-6dc5734f4dbe	4	2020-06-10 17:59:18.456848	PROMOTE		
+2468	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2021-03-08 15:25:42.218327	MODIFY		e667c34f3ff394513c2c4ff86015f6e6
+2469	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2021-03-08 16:22:01.759604	PROMOTE		9d6312e85682307b731db51e5c7c6777
+2470	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2021-03-08 22:14:34.189306	MODIFY		de521bd40425e3d0ab2a45e7d0d4116f
+2471	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2021-03-08 22:15:06.853783	PROMOTE		9923eaf07eac89b0cc3106ba29112bcb
+2472	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2021-11-22 19:21:56.503142	MODIFY		180bc419d24779b28b89422419e4a6a5
+2473	be261562-7fe4-11ea-b471-6dc5734f4dbe	1	2021-11-22 19:23:46.259964	PROMOTE		04470633ca40e7a0a3764c6980f680ed
+2474	be9adb2f-027f-11eb-9124-925109a1a627	5	2020-09-29 18:15:24.685418	CREATE		
+2475	be9adb2f-027f-11eb-9124-925109a1a627	1	2020-09-30 13:50:35.586366	PROMOTE		
+2476	be9adb2f-027f-11eb-9124-925109a1a627	1	2020-10-22 14:54:43.206836	MODIFY		96bda3a732accdcfaf951b448ec0695d
+2477	be9adb2f-027f-11eb-9124-925109a1a627	1	2020-12-01 15:29:13.522649	PROMOTE		54f45eb19e31d7b9b821686faeba88bb
+2478	be9adb2f-027f-11eb-9124-925109a1a627	1	2020-12-11 15:56:12.257715	MODIFY		3855401faee172cc22a7abac01b14e65
+2479	be9adb2f-027f-11eb-9124-925109a1a627	1	2020-12-11 15:56:31.091677	PROMOTE		ad41ebb940d29147d25e6bf79cc0fd2a
+2480	c1004dd7-ac7f-11ec-b67a-4e702bf88b98	1	2022-03-25 21:08:44.049102	CREATE		337f6cdf437c5de29f7f1a42d50aca32
+2481	c1004dd7-ac7f-11ec-b67a-4e702bf88b98	1	2022-03-25 21:08:58.169314	PROMOTE		500b5a5080cf555745ce77bec650eb8b
+2482	c1004dd7-ac7f-11ec-b67a-4e702bf88b98	1	2022-05-31 16:13:44.44554	MODIFY		d40b4e473083ea69389c500c7cbace75
+2483	c1004dd7-ac7f-11ec-b67a-4e702bf88b98	1	2022-05-31 16:21:57.655242	PROMOTE		1f35c7d48d398636f0d5ba3ff187e996
+2484	c1c8d412-cdaa-11ea-b464-e4d44f10848e	1	2020-07-24 12:39:46.752007	CREATE		
+2485	c1c8d412-cdaa-11ea-b464-e4d44f10848e	1	2020-07-27 13:13:50.432822	PROMOTE		
+2486	c1c8d412-cdaa-11ea-b464-e4d44f10848e	1	2020-11-09 15:32:04.178367	MODIFY		350e6d918f65e9e67824eba82d09fe29
+2487	c1c8d412-cdaa-11ea-b464-e4d44f10848e	1	2020-11-09 16:20:50.390815	PROMOTE		20d6833596e6c2705cce962dea9be18e
+2488	c23f4ec4-988e-11eb-8c98-100c795c8520	1	2021-04-08 17:20:47.664731	CREATE		664680c157e56ce4e93e601810e9fdec
+2489	c23f4ec4-988e-11eb-8c98-100c795c8520	1	2021-04-08 17:41:37.461044	PROMOTE		e2e014fd9d62dbb04b00a7c5c76b63b1
+2490	c23f4ec4-988e-11eb-8c98-100c795c8520	1	2021-08-19 16:33:43.522805	MODIFY	added 'NYT' to name - requested by C Bland 8/19/21	e6a8ce6a422bc810e8ab6bf50ff354e2
+2491	c23f4ec4-988e-11eb-8c98-100c795c8520	1	2021-08-19 16:34:04.05741	PROMOTE		b6e952cef51c64790bcf3195e8364815
+2492	c23f4ec4-988e-11eb-8c98-100c795c8520	1	2021-10-05 17:59:26.0499	MODIFY	Offer retired - no active accounts - will not be converted to Standard.	536aec4559eb29532fe892c22a5f8146
+2493	c23f4ec4-988e-11eb-8c98-100c795c8520	1	2021-11-23 15:27:09.274413	PROMOTE		0ac95d222863ffcf6686f6ed43c8d349
+2494	c26531b8-5519-11eb-a9bd-2a1463bca0c4	1	2021-01-12 21:04:28.88873	CREATE	1/12/21 - Added for Magnolia Integration to Omelette	64a425fa791fc4042b6e20b659102d32
+2495	c26531b8-5519-11eb-a9bd-2a1463bca0c4	1	2021-01-12 21:06:20.121034	PROMOTE		223d02061ff77076bcad9952a496b801
+2496	c2782227-29d7-11eb-bf59-f6803518039b	1	2020-11-18 19:53:42.229264	CREATE		51c0820e113abdb568b3164780068ee2
+2497	c2782227-29d7-11eb-bf59-f6803518039b	1	2020-11-18 19:54:49.536027	PROMOTE		a23676c9a31e74fc517fff3107235621
+2498	c2843aa0-7e75-11ea-aba8-ebb789216ef1	1	2020-04-14 17:31:22.79406	CREATE		
+2499	c2843aa0-7e75-11ea-aba8-ebb789216ef1	2	2020-04-16 14:29:09.761819	MODIFY		
+2500	c2843aa0-7e75-11ea-aba8-ebb789216ef1	2	2020-04-16 14:50:54.958543	MODIFY		
+2501	c2843aa0-7e75-11ea-aba8-ebb789216ef1	4	2020-06-10 18:00:01.361977	PROMOTE		
+2502	c2843aa0-7e75-11ea-aba8-ebb789216ef1	1	2020-08-10 15:55:28.935032	MODIFY		
+2503	c2843aa0-7e75-11ea-aba8-ebb789216ef1	1	2020-08-10 15:55:37.018943	PROMOTE		
+2504	c2843aa0-7e75-11ea-aba8-ebb789216ef1	2	2021-12-03 19:59:05.107386	MODIFY	Account tag added per Megan Elliott's request https://nyt-brand.monday.com/boards/375040584/pulses/1978323941	4388c5751fd5c41591d5aea156154904
+2505	c2843aa0-7e75-11ea-aba8-ebb789216ef1	2	2021-12-03 19:59:18.150217	PROMOTE		56dd2cf5463f2eaa2ab5ba65dc9575e6
+2506	c2843aa0-7e75-11ea-aba8-ebb789216ef1	1	2022-04-20 21:40:26.468578	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	91f49f7342e78c8ddd4f164ca2974132
+2507	c2843aa0-7e75-11ea-aba8-ebb789216ef1	1	2022-04-20 21:42:09.15674	PROMOTE		29a46eb284bbe316977ab5a88a1c1872
+2508	c2960d43-fdad-11ea-8b15-1f99be60a2b7	2	2020-09-23 15:02:12.400476	CREATE		
+2509	c2960d43-fdad-11ea-8b15-1f99be60a2b7	2	2020-09-23 15:54:06.490905	PROMOTE		
+2510	c2960d43-fdad-11ea-8b15-1f99be60a2b7	2	2020-10-15 21:46:32.472516	MODIFY		7b46e0fb72c22092c1abf2440bc047d7
+2511	c2960d43-fdad-11ea-8b15-1f99be60a2b7	2	2020-10-15 21:46:44.443206	PROMOTE		bad32325efc8ec7c70b1f06579afdc9e
+2512	c2960d43-fdad-11ea-8b15-1f99be60a2b7	2	2020-10-15 22:35:36.379224	MODIFY		5051c7070135d70e8261022c5074f224
+2513	c2960d43-fdad-11ea-8b15-1f99be60a2b7	2	2020-10-15 22:35:43.991694	PROMOTE		fe22c22c3b2fd78b5fe1140e9dd22b1a
+2514	c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	1	2020-11-20 20:48:36.291738	CREATE		568d087e5339069a33eb826d9bb0bfab
+2515	c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	1	2020-11-20 20:50:48.679448	PROMOTE		0314392f1812c2945abe4004d23e5fc4
+2516	c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	1	2021-11-19 17:41:09.700474	MODIFY	Added USD to name	cfbd4079c40394d0d0630bf5a076f3f4
+2517	c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	1	2021-11-19 17:41:24.351457	PROMOTE		53237e2591b8e49a400c2507299944a0
+2518	c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	1	2022-01-26 15:25:46.936314	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	52fc80647368e2b64d87a043946d3be9
+2519	c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	1	2022-01-26 15:32:23.538007	PROMOTE		f425404a1afccbb2ed6bf1bbd78e869c
+2520	c3e7bccf-de4a-11ea-a319-6320d3f2fb09	2	2020-08-14 16:25:28.391192	CREATE		
+2522	c3e7bccf-de4a-11ea-a319-6320d3f2fb09	1	2021-01-21 16:07:06.247548	MODIFY	\n	6ec32fce95af89e3647cbefa2ec08088
+2523	c3e7bccf-de4a-11ea-a319-6320d3f2fb09	1	2021-01-21 20:08:50.935041	MODIFY	8/14/20 Retire per DGP ASAP 8/21/2020\n8/14/20 Update - OC extended to 8/20/21 - offer reactivated\n1/21/21 - Offer end date changed to 12/31/2021 per DGP and team	171b9383cabb6c9d8ae1d323bacf19fc
+2524	c3e7bccf-de4a-11ea-a319-6320d3f2fb09	1	2021-01-21 20:09:04.753953	PROMOTE		0dd7f0e6b4a9437edd3c1ed7cecc1cc5
+2525	c3e7bccf-de4a-11ea-a319-6320d3f2fb09	1	2021-04-12 21:30:13.29074	MODIFY		f09a071bca6fd8a1cc1ceb87692e4c26
+2526	c3e7bccf-de4a-11ea-a319-6320d3f2fb09	1	2021-04-12 21:30:22.358824	PROMOTE		1cbb1e794b6696b4f0652c42afb0bcc1
+2527	c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	1	2021-05-28 13:36:54.245577	CREATE	Created per DGP, Games international pricing - ROW low conversion markets	d344fd9b688ec3f52b22d734425e12ca
+2528	c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	1	2021-05-28 14:03:48.865817	PROMOTE		c58291cc8966a7ea31972ed91db4b5b6
+2529	c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	1	2021-11-23 15:31:49.974596	MODIFY		23a146e9298d2b339d5fe06f82556599
+2530	c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	1	2021-11-23 15:32:33.395242	PROMOTE		b407b142ca79ebe8d7b17944b715908b
+2531	c5b5a709-bcd1-11ec-a0df-26852448f13d	1	2022-04-15 15:36:09.284589	CREATE		888b2fdb45b9bcf5ae47d50dfa9a0aa2
+2532	c5b5a709-bcd1-11ec-a0df-26852448f13d	1	2022-04-19 18:28:18.883411	MODIFY		2a7b8797bf122a81b6ebb323b7868feb
+2533	c5b5a709-bcd1-11ec-a0df-26852448f13d	2	2022-04-19 20:30:28.74556	PROMOTE		f9bc9f234833e0528b0d511fb76f61d0
+2534	c5b5a709-bcd1-11ec-a0df-26852448f13d	1	2022-05-31 17:24:45.10621	MODIFY		122af27c4ffc3b282cf0d895ac17bd62
+2535	c5b5a709-bcd1-11ec-a0df-26852448f13d	1	2022-05-31 17:29:31.517346	PROMOTE		4b9837df91a4a7b1eb36944c7fb27299
+2536	c650dbeb-d1de-11ea-8e1a-26ceed7cecea	1	2020-07-29 21:02:12.835431	CREATE		
+2537	c650dbeb-d1de-11ea-8e1a-26ceed7cecea	1	2020-08-04 11:33:57.660511	MODIFY		
+2538	c650dbeb-d1de-11ea-8e1a-26ceed7cecea	1	2020-08-05 20:12:59.812929	PROMOTE		
+2539	c67e3b35-bccd-11ec-abcb-b2200e125161	1	2022-04-15 15:07:32.612284	CREATE		a58849bb9ad14da7e0d9065445382c0b
+2540	c67e3b35-bccd-11ec-abcb-b2200e125161	1	2022-04-19 18:27:09.00514	MODIFY		23af3e998645fdb1fdc6a19aed4d0a23
+2541	c67e3b35-bccd-11ec-abcb-b2200e125161	1	2022-04-19 18:44:34.502125	PROMOTE		022576e4e0c42ba00688a0ec7e138904
+2542	c8452658-e62a-11ea-bbd2-cd4f6999a1a1	1	2020-08-24 16:56:41.12114	CREATE		
+2543	c8452658-e62a-11ea-bbd2-cd4f6999a1a1	1	2020-08-25 16:24:31.715344	PROMOTE		
+2544	c8452658-e62a-11ea-bbd2-cd4f6999a1a1	1	2021-10-28 14:49:19.538506	MODIFY	Retired per T Searcy - EDU Retirement project (LP phase)	81977af118179effd09cbcb707783d61
+2545	c8452658-e62a-11ea-bbd2-cd4f6999a1a1	1	2021-10-28 14:54:03.294213	PROMOTE		8cf0d642b3686f98d8b1d73d31d644d4
+2546	c88a9327-e943-11ea-873f-74f46cae88b8	5	2020-08-28 15:33:12.482695	CREATE		
+2547	c88a9327-e943-11ea-873f-74f46cae88b8	5	2020-09-03 21:02:01.236025	PROMOTE		
+2548	c88a9327-e943-11ea-873f-74f46cae88b8	1	2020-11-09 15:39:44.356851	MODIFY		05659fc70601c829b52ccd02ccd6812e
+2549	c88a9327-e943-11ea-873f-74f46cae88b8	1	2020-11-09 16:24:17.386648	PROMOTE		adace53675200fd44a9970bc20219622
+2550	c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:09:19.798344	CREATE		
+2551	c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:59:26.640013	PROMOTE		
+2552	c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	1	2020-07-20 17:50:23.669086	MODIFY		
+2553	c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	1	2020-08-21 12:30:43.927677	PROMOTE		
+2554	c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	1	2021-09-28 17:19:14.752728	MODIFY		9a4abc44dc8cc3b756f88fe8594cba29
+2555	c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	1	2021-09-28 17:28:06.144251	PROMOTE		7da35e17f5e175a91080b872d0a8a9f3
+2556	c896742d-b852-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:02:10.364321	CREATE		
+2557	c896742d-b852-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:59:29.249309	PROMOTE		
+2558	c896742d-b852-11e9-b8ef-27f7ec03ccac	2	2020-06-11 15:46:44.640084	MODIFY		
+2559	c896742d-b852-11e9-b8ef-27f7ec03ccac	1	2020-07-01 16:36:53.018048	MODIFY		
+2560	c896742d-b852-11e9-b8ef-27f7ec03ccac	1	2020-07-01 16:37:20.159091	PROMOTE		
+2561	c896742d-b852-11e9-b8ef-27f7ec03ccac	1	2020-08-03 19:58:24.401269	MODIFY		
+2562	c896742d-b852-11e9-b8ef-27f7ec03ccac	1	2020-08-05 19:47:31.767168	PROMOTE		
+2563	c896742d-b852-11e9-b8ef-27f7ec03ccac	1	2021-10-28 16:20:44.068626	MODIFY		a6fdd7ade45f71b5db68be903c46050c
+2564	c896742d-b852-11e9-b8ef-27f7ec03ccac	1	2021-10-28 16:20:53.406081	PROMOTE		e82de5824c33cfc71167e1bd4b4b992a
+2565	c896742d-b852-11e9-b8ef-27f7ec03ccac	1	2021-11-22 16:59:49.481491	MODIFY		db57eb3e2868ac32878dd51793cb9805
+2566	c896742d-b852-11e9-b8ef-27f7ec03ccac	1	2021-11-22 17:06:01.588734	PROMOTE		3d4d9c9f6ad1feead9c7cecc813e1b97
+2567	c8dcd817-eec4-11ea-997f-2cc0a4e691d2	1	2020-09-04 15:39:13.913861	CREATE		
+2568	c8dcd817-eec4-11ea-997f-2cc0a4e691d2	1	2020-09-04 18:37:47.112543	MODIFY		
+2569	c8dcd817-eec4-11ea-997f-2cc0a4e691d2	1	2020-09-04 18:57:15.664766	MODIFY		
+2570	c8dcd817-eec4-11ea-997f-2cc0a4e691d2	2	2020-09-08 21:29:11.473553	PROMOTE		
+2571	c8dcd817-eec4-11ea-997f-2cc0a4e691d2	1	2021-11-23 14:48:36.499755	MODIFY		24260784b5e3e4d1e506f1a8c8afcd5a
+2572	c8dcd817-eec4-11ea-997f-2cc0a4e691d2	1	2021-11-23 14:49:29.844098	PROMOTE		fce949f4465cb96d84c10fccd8208833
+2573	c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:19:24.353068	CREATE		
+2574	c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	1	2020-09-17 20:27:37.308073	PROMOTE		
+2575	c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:00:39.719043	MODIFY		53fd92fb8828c605c14a7de6420fbcaf
+2576	c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:20:32.305363	PROMOTE		e8985835e10f7cfb4c16f8a8fce64a5f
+2577	c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	1	2020-11-19 21:54:56.707327	MODIFY		9acd58d4db9cbef94a001e8de33de9d3
+2578	c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:07:52.249172	PROMOTE		c940d25faaa61e149e56c4a708ee6745
+2579	c9c5e161-c290-11e9-ae0f-61baa9da25b1	3	2019-08-19 14:51:12.77787	CREATE		
+2580	c9c5e161-c290-11e9-ae0f-61baa9da25b1	4	2020-06-10 17:58:20.752255	PROMOTE		
+2581	c9c5e161-c290-11e9-ae0f-61baa9da25b1	1	2021-01-11 16:38:29.987254	MODIFY		6f93d23da35f65ff0c89d84849219dd8
+2582	c9c5e161-c290-11e9-ae0f-61baa9da25b1	1	2021-01-11 16:38:39.34723	PROMOTE		ab29e0938cbeb3d9e020f0b213752823
+2583	c9c5e161-c290-11e9-ae0f-61baa9da25b1	1	2021-02-12 16:28:06.337439	MODIFY		b1d14db7e72d63d7e39589e51f192e2c
+2584	c9c5e161-c290-11e9-ae0f-61baa9da25b1	1	2021-02-12 16:36:03.979616	PROMOTE		5f257e6cb8c1a3ba29e07ce91e5582d4
+2585	c9c5e161-c290-11e9-ae0f-61baa9da25b1	1	2021-04-19 15:55:50.773399	MODIFY		d2744601648f186df3672399d7846d9a
+2586	c9c5e161-c290-11e9-ae0f-61baa9da25b1	1	2021-04-19 16:11:15.147186	PROMOTE		a5e7d0391ca7765cadfa216437201c79
+2587	c9c5e161-c290-11e9-ae0f-61baa9da25b1	1	2021-11-22 17:34:29.292002	MODIFY		6c4796054f1a1bab804e131d255f8696
+2588	c9c5e161-c290-11e9-ae0f-61baa9da25b1	1	2021-11-22 17:35:38.332075	PROMOTE		a54e183f0e2c8fabcce945af356e063b
+2589	c9de1579-324c-11ea-92fa-eb8955b7c3dd	1	2020-01-08 19:26:37.389976	CREATE		
+2590	c9de1579-324c-11ea-92fa-eb8955b7c3dd	4	2020-06-10 17:58:05.176597	PROMOTE		
+2591	c9de1579-324c-11ea-92fa-eb8955b7c3dd	1	2020-08-03 19:57:49.96445	MODIFY		
+2592	c9de1579-324c-11ea-92fa-eb8955b7c3dd	1	2020-08-05 19:47:18.508491	PROMOTE		
+2593	c9de1579-324c-11ea-92fa-eb8955b7c3dd	1	2020-12-22 15:28:56.149102	MODIFY	12/22/20 Name changed from CK 50% off year @$30 then full price	b3db4db47a6ca3b49781963d95bd7c5f
+2594	c9de1579-324c-11ea-92fa-eb8955b7c3dd	1	2020-12-22 15:29:07.612705	PROMOTE		14bb5934da2130c5cc28e30c369039a1
+2595	c9de1579-324c-11ea-92fa-eb8955b7c3dd	1	2021-01-11 16:09:05.034773	MODIFY		f2a291520c65ab9f99cb54bf66a8c120
+2596	c9de1579-324c-11ea-92fa-eb8955b7c3dd	1	2021-01-11 16:09:15.380602	PROMOTE		fbfcc710e60b6ebcf37911976d692f10
+2597	c9de1579-324c-11ea-92fa-eb8955b7c3dd	2	2021-08-06 15:27:34.865199	MODIFY	Retired per Cooking offer chain review. Confirmed with Casey Bland on 8/6 that this is ok to retire for care use. 	dc5642d970b1ff2f69042891f9c339c0
+2598	c9de1579-324c-11ea-92fa-eb8955b7c3dd	2	2021-08-06 15:27:58.331935	PROMOTE		1c84a69bad51c7c74132b9e4eadaa52c
+2599	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2020-08-10 16:51:52.235605	CREATE		
+2600	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2020-08-11 20:31:46.084875	PROMOTE		
+2601	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2020-08-11 20:33:57.287995	PROMOTE		
+2602	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2020-10-15 16:03:13.374597	MODIFY		1307c5a18a8cca58b11fcb3d700c7707
+2603	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2020-10-16 15:03:31.215225	PROMOTE		8499a27226544be406d420ebf25cf00f
+2604	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2020-11-18 19:48:25.877599	MODIFY		1c0b85debabec17e63d2787fb8c81b9c
+2605	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2020-11-20 21:26:54.968095	PROMOTE		33efaccf4d999e152d34105783702bb1
+2606	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2021-11-22 16:37:00.571812	MODIFY		0e28168b4b5b36f79ddc39ac5b16c98e
+2607	ca4c371c-db29-11ea-9d62-7a958c5d7319	1	2021-11-22 16:38:32.882055	PROMOTE		4b95e7b68e99f780f0ebef74d3a2353d
+2608	cba20597-afe3-11ea-9f79-0838ef53fe29	2	2020-06-16 15:12:29.705163	CREATE		
+2609	cba20597-afe3-11ea-9f79-0838ef53fe29	2	2020-06-16 15:38:16.057365	PROMOTE		
+2611	cba20597-afe3-11ea-9f79-0838ef53fe29	2	2020-06-16 16:02:10.648693	PROMOTE		
+2612	cba20597-afe3-11ea-9f79-0838ef53fe29	1	2020-07-29 20:35:38.356358	MODIFY		
+2613	cba20597-afe3-11ea-9f79-0838ef53fe29	1	2020-08-05 19:46:13.131828	PROMOTE		
+2614	cba20597-afe3-11ea-9f79-0838ef53fe29	1	2021-04-19 15:56:43.749306	MODIFY		15bebd4d81de763ab24ec675162d0928
+2615	cba20597-afe3-11ea-9f79-0838ef53fe29	1	2021-04-19 16:11:37.79101	PROMOTE		e5f281a9cf3384028b4bdc2550e77944
+2616	cba20597-afe3-11ea-9f79-0838ef53fe29	1	2021-11-19 18:10:05.557928	MODIFY		5c1343b2ad79906202ebd966f0154d38
+2617	cba20597-afe3-11ea-9f79-0838ef53fe29	1	2021-11-19 18:10:37.731605	PROMOTE		6ab730219b0b9116a6da90e940aa22a0
+2618	cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:12:21.544234	CREATE		
+2619	cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	1	2020-09-17 20:27:28.000389	PROMOTE		
+2620	cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:18:23.84238	MODIFY		c5fb5f6cfeb79f248abb3556f597dfe4
+2621	cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:20:57.741849	PROMOTE		4fb7e2a49a0566896b214f39ef64c7cd
+2622	cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:06:30.699256	MODIFY		28c66bd2ede391bbbba181870b7b69c2
+2623	cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:07:30.746252	PROMOTE		6dc60e1d58239bb882ff388196a50646
+2624	cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	2	2020-08-05 17:12:12.736077	CREATE		
+2625	cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	2	2020-08-05 17:13:13.636394	PROMOTE		
+2626	cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	1	2020-08-21 17:10:23.025233	MODIFY		
+2627	cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	1	2020-08-21 18:48:42.201908	PROMOTE		
+2628	cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	2	2020-08-28 16:47:05.009044	MODIFY		
+2629	cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	2	2020-08-28 16:47:13.351605	PROMOTE		
+2630	d030caac-3965-11eb-bf58-da4ba1647a90	1	2020-12-08 14:58:21.227077	CREATE		6bdb5ad320c193ed4f491f8a091a5f67
+2631	d030caac-3965-11eb-bf58-da4ba1647a90	1	2020-12-11 15:57:02.982419	PROMOTE		83cd13853f5e4da88bcc0e583e4d766f
+2632	d030caac-3965-11eb-bf58-da4ba1647a90	1	2021-10-18 21:05:40.649676	MODIFY		25f585c40f17d72b3e31a9fd49980a9c
+2633	d030caac-3965-11eb-bf58-da4ba1647a90	1	2021-10-18 21:06:33.49341	PROMOTE		2cdc54d7a84c266c76fd174393e6bed7
+2634	d0760d16-bfba-11eb-93f5-024cda8b295f	1	2021-05-28 13:44:24.715193	CREATE	Created per DGP, Cooking international annual offer for ROW low conversion markets	91a25aa8f26f3d937b9ab74c9e7707d7
+2635	d0760d16-bfba-11eb-93f5-024cda8b295f	1	2021-05-28 14:04:03.243234	PROMOTE		3c4f7e4e63af331631c6d6ab95e81ad1
+2636	d0760d16-bfba-11eb-93f5-024cda8b295f	1	2021-11-23 15:39:52.701101	MODIFY		f36af0b9f24c81df8b127854bf611159
+2637	d0760d16-bfba-11eb-93f5-024cda8b295f	1	2021-11-23 15:41:14.23538	PROMOTE		67dbe5ee497276efc384038a2d6a911f
+2638	d0fa42c5-ec81-11ea-a052-cb28611c7be8	1	2020-09-01 18:34:48.921979	CREATE		
+2639	d0fa42c5-ec81-11ea-a052-cb28611c7be8	1	2020-09-16 18:32:18.295215	MODIFY		
+2640	d0fa42c5-ec81-11ea-a052-cb28611c7be8	1	2020-09-16 18:32:38.656081	PROMOTE		
+2641	d0fa42c5-ec81-11ea-a052-cb28611c7be8	1	2020-11-11 19:54:25.95846	MODIFY		e3edcc98ddbb75899a49ec96cbba6936
+2642	d0fa42c5-ec81-11ea-a052-cb28611c7be8	1	2020-11-11 19:58:05.222638	PROMOTE		09f8ef16d6ccdc9564eba7bfc0a546bd
+2643	d0fa42c5-ec81-11ea-a052-cb28611c7be8	2	2020-11-19 22:02:34.741792	MODIFY		009e15fd87a5e378ecdba7b091afb736
+2644	d0fa42c5-ec81-11ea-a052-cb28611c7be8	2	2020-11-19 22:02:43.196759	PROMOTE		5a95229e2bf42e7af2ad14146cdb125e
+2645	d159fbe2-e93d-11ea-873f-74f46cae88b8	5	2020-08-28 14:50:30.283367	CREATE		
+2646	d159fbe2-e93d-11ea-873f-74f46cae88b8	1	2020-09-02 20:09:57.730019	MODIFY		
+2647	d159fbe2-e93d-11ea-873f-74f46cae88b8	1	2020-09-30 16:03:03.924198	PROMOTE		
+2648	d1a95c49-8506-11ec-8037-4f3e27e4d492	1	2022-02-03 15:34:47.54821	CREATE		b4716a0bb41ff28b45ea25d4023ede13
+2649	d1a95c49-8506-11ec-8037-4f3e27e4d492	1	2022-02-03 15:56:37.677527	PROMOTE		b7565f9d6293936316d92599f3007ff9
+2650	d22818b8-dc00-11ea-9596-859e83a0873f	1	2020-08-11 18:31:07.217532	CREATE		
+2651	d22818b8-dc00-11ea-9596-859e83a0873f	1	2020-08-11 20:41:19.17244	PROMOTE		
+2652	d22818b8-dc00-11ea-9596-859e83a0873f	1	2020-10-15 17:00:10.841676	MODIFY		bd62a41a33a9f7f5545abf3cb54689c6
+2653	d22818b8-dc00-11ea-9596-859e83a0873f	1	2020-10-16 15:03:21.820319	PROMOTE		ab1ecb513eebd9a46b9dfaa96c54248b
+2654	d22818b8-dc00-11ea-9596-859e83a0873f	1	2020-12-18 16:58:52.543556	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia\n12/21/20 added Care Placement	6cfed5f924f8e25cf89c36319ce67a0d
+2655	d22818b8-dc00-11ea-9596-859e83a0873f	1	2020-12-22 14:34:31.191464	PROMOTE		e5ea118f07e7373e2bfdde531b678aa0
+2656	d22818b8-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:20:55.469419	MODIFY		42e4d786a90dcf1a9901818df6904bd3
+2657	d22818b8-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:21:05.301063	PROMOTE		1f82faff9c24694a7ae47abc5bef0621
+2658	d22818b8-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:24:04.76029	MODIFY	Adding Magnolia placement back 1/12/2021. Was previously marked as not needed but appears to be used on a source doc. https://docs.google.com/spreadsheets/d/1iMt_tncT1tQ0sbxogV1AoO5iC-o30LU7fktFWY7raEs/edit#gid=0	80331d4e033d5d0efe0375e5672e0521
+2659	d22818b8-dc00-11ea-9596-859e83a0873f	2	2021-01-12 23:24:23.935673	PROMOTE		5e1bffcc762c5e245bfe8e2bf95faeba
+2660	d22818b8-dc00-11ea-9596-859e83a0873f	1	2021-11-22 18:25:43.730614	MODIFY		be7b7379bc6040d271190393b190c178
+2661	d22818b8-dc00-11ea-9596-859e83a0873f	1	2021-11-22 18:26:32.675962	PROMOTE		d981b67b46cf638752b6deb06d2be35e
+2662	d22818b8-dc00-11ea-9596-859e83a0873f	1	2022-06-06 14:57:38.874182	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	5158d423f55fa412682222ee31563a35
+2663	d22818b8-dc00-11ea-9596-859e83a0873f	1	2022-06-06 15:14:18.124794	PROMOTE		ac5e580a0898a25347327207e2d14d3b
+2664	d2615176-dc02-11ea-9596-859e83a0873f	1	2020-08-11 18:45:26.585999	CREATE		
+2665	d2615176-dc02-11ea-9596-859e83a0873f	1	2020-08-11 20:42:11.782686	PROMOTE		
+2666	d2615176-dc02-11ea-9596-859e83a0873f	1	2020-10-15 17:14:33.317567	MODIFY		00232d3ac0fe435c05495126d5f7b01b
+2667	d2615176-dc02-11ea-9596-859e83a0873f	1	2020-10-16 15:03:15.234741	PROMOTE		32f4d7c8d569b670c59c7864572d28c0
+2668	d2615176-dc02-11ea-9596-859e83a0873f	1	2020-12-18 17:09:42.668085	MODIFY	10/21/20 added Subscriber Advocacy Placement\n12/21/20 added Care Placement	0d635973ef2d67f4186f81cb7192e33b
+2669	d2615176-dc02-11ea-9596-859e83a0873f	1	2020-12-22 14:34:26.766182	PROMOTE		15a452c5ce65afe0e1726cf1d7ab8c42
+2670	d2615176-dc02-11ea-9596-859e83a0873f	1	2021-04-12 21:37:14.662266	MODIFY		d663daf0a475de31d37e6a1ce3624852
+2671	d2615176-dc02-11ea-9596-859e83a0873f	1	2021-04-12 21:55:41.441652	PROMOTE		6ba3d51813cc9da93d7c5d744d9a4a5c
+2672	d2615176-dc02-11ea-9596-859e83a0873f	1	2021-11-22 19:19:41.700403	MODIFY		6b100526bbecd2c305e1847b3a58ccea
+2673	d2615176-dc02-11ea-9596-859e83a0873f	1	2021-11-22 19:23:14.00508	PROMOTE		9d4cdf8302cdbfb958f7e16229fd46ed
+2674	d2615176-dc02-11ea-9596-859e83a0873f	1	2022-06-06 14:56:35.482273	MODIFY	Removed Care and Cons Adv Placement pending retirement https://docs.google.com/spreadsheets/d/1_6XIc-5QeGlz8fDjbUxvR5kj82pcIzRENd3m94N_h7s/edit#gid=1153944505	c2ff4c8fbe13624ea783fa93d966717e
+2675	d2615176-dc02-11ea-9596-859e83a0873f	1	2022-06-06 15:14:22.025703	PROMOTE		78a48554615c1c158d9090e56fe770ce
+2676	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-07-27 18:20:20.210914	CREATE		
+2677	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-07-27 19:12:10.985021	PROMOTE		
+2678	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-07-29 20:31:07.671919	MODIFY		
+2679	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-08-03 18:21:27.819236	MODIFY		
+2680	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-08-05 19:34:23.049611	PROMOTE		
+2681	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-11-09 15:40:53.724035	MODIFY		49fbd614a8414fe72b48880f38a5db16
+2682	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-11-09 16:27:44.255842	PROMOTE		adedc73532964952a7b057c4836d3c68
+2683	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-11-20 19:16:42.284527	MODIFY		ee763b004dadad8619c688b19045a99a
+2684	d45078b9-d035-11ea-a072-340cee6a52b6	1	2020-11-20 19:17:57.633226	PROMOTE		7698fa203a2a5ad17f0745d37b93a894
+2685	d45078b9-d035-11ea-a072-340cee6a52b6	1	2021-11-19 15:04:02.968485	MODIFY	11/19/21 - Removed Acq and Prod Change - added USD to name per C Bland	42639fc86d2729ab30267199c0f61f1e
+2686	d45078b9-d035-11ea-a072-340cee6a52b6	1	2021-11-19 15:12:34.038503	PROMOTE		a08b249748b5533926e0285798cb037d
+2687	d45078b9-d035-11ea-a072-340cee6a52b6	1	2022-01-26 15:07:59.124562	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	749a6cf4635e4a2780a6814392ee30f9
+2688	d45078b9-d035-11ea-a072-340cee6a52b6	1	2022-01-26 15:31:43.179138	PROMOTE		91295696810958aa8c4ed71beda7fad0
+2689	d544f9bc-f1db-11ea-942b-2b10751285b6	1	2020-09-08 14:01:46.642068	CREATE		
+2690	d544f9bc-f1db-11ea-942b-2b10751285b6	1	2020-09-17 13:06:46.228896	MODIFY		
+2691	d544f9bc-f1db-11ea-942b-2b10751285b6	1	2020-09-17 13:07:55.237076	PROMOTE		
+2692	d544f9bc-f1db-11ea-942b-2b10751285b6	1	2020-11-11 20:16:19.546895	MODIFY		f53c884d7a978ca8ae4ac256f08bbeaa
+2693	d544f9bc-f1db-11ea-942b-2b10751285b6	1	2020-11-11 20:20:45.067954	PROMOTE		6755f0cb279ddf972b7285d07c69a0f5
+2694	d544f9bc-f1db-11ea-942b-2b10751285b6	1	2020-11-19 21:58:54.334823	MODIFY		99a6c824facda1d5e2ad552f0e725001
+2695	d544f9bc-f1db-11ea-942b-2b10751285b6	1	2020-11-19 22:07:39.985354	PROMOTE		e5ac422781c545f2dbba1c64b0b4697f
+2696	d5c0e892-f94f-11eb-a8d7-c491e9cc8136	1	2021-08-09 20:24:44.88603	CREATE		578a97241f7e6e3665c6f2ade2a73c2e
+2697	d5c0e892-f94f-11eb-a8d7-c491e9cc8136	1	2021-08-10 13:42:01.401707	PROMOTE		faa0bce39f7e006db49ccea9a39a04ce
+2698	d5c0e892-f94f-11eb-a8d7-c491e9cc8136	1	2021-11-23 18:05:32.416789	MODIFY		9b591eb13dc0fa303bc757e31d579021
+2699	d5c0e892-f94f-11eb-a8d7-c491e9cc8136	1	2021-11-23 18:40:00.874168	PROMOTE		7df96660c562465432d52f36d0c37075
+2700	d5fb6c43-cda8-11ea-b464-e4d44f10848e	1	2020-07-24 12:26:01.644554	CREATE		
+2701	d5fb6c43-cda8-11ea-b464-e4d44f10848e	1	2020-07-24 12:53:20.644527	PROMOTE		
+2702	d5fb6c43-cda8-11ea-b464-e4d44f10848e	1	2020-07-29 20:20:28.344979	MODIFY		
+2703	d5fb6c43-cda8-11ea-b464-e4d44f10848e	1	2020-08-03 18:08:02.334776	MODIFY		
+2704	d5fb6c43-cda8-11ea-b464-e4d44f10848e	1	2020-08-21 12:27:20.74913	PROMOTE		
+2705	d5fb6c43-cda8-11ea-b464-e4d44f10848e	1	2020-08-21 17:09:45.583816	MODIFY		
+2706	d5fb6c43-cda8-11ea-b464-e4d44f10848e	1	2020-08-21 18:48:32.975442	PROMOTE		
+2707	d6880dc7-de49-11ea-a319-6320d3f2fb09	2	2020-08-14 16:18:50.1441	CREATE		
+2708	d6880dc7-de49-11ea-a319-6320d3f2fb09	1	2020-08-14 17:14:44.096203	PROMOTE		
+2709	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2020-07-28 12:07:01.317956	CREATE		
+2710	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2020-07-28 14:00:43.2394	PROMOTE		
+2711	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2020-12-18 16:44:44.947298	MODIFY	12/21/20 added Care Placement	892183797071af3bb4259240a0722034
+2712	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2020-12-22 14:38:44.100828	PROMOTE		f5f78c32e7d21d721e0252d606794ddc
+2713	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2021-04-12 21:46:19.841932	MODIFY		b5eb5ef0b4be8b3cbca073d7c6441cb9
+2714	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2021-04-12 21:56:02.901858	PROMOTE		18a1fa80a15a810ed61ddba255360580
+2715	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2021-09-28 16:39:56.047076	MODIFY		5070fdb7834c19d327a90fc43bfc8ca1
+2716	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2021-09-28 17:27:16.505693	PROMOTE		18c07adca6a701c9e06fb830ed3663b0
+2717	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2021-10-28 14:30:09.837805	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	47c4a88f5b1b1e092693825b9cbc1e3b
+2718	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2021-10-28 14:53:47.801702	PROMOTE		5d321c3d50cb4d18b9b53f0bce512c9a
+2719	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2021-11-19 18:01:11.717772	MODIFY	Retired as part of EDU Decom per C Bland	8e4903f35fc598115ad9147cd1083370
+2720	d7f26490-d0ca-11ea-ad31-6380fc00472d	1	2021-11-19 18:02:25.256418	PROMOTE		55bf402b2c71ad2213c71636b51e85e5
+2721	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	2	2019-11-18 19:15:56.412429	CREATE		
+2722	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2020-02-26 18:53:41.388125	MODIFY		
+2723	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	4	2020-06-10 17:58:32.848727	PROMOTE		
+2724	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2021-03-08 20:48:06.428967	MODIFY		ecae3ea46ab826475a26d786d9009ff4
+2725	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2021-03-08 20:48:17.243411	PROMOTE		8569e4c21e7913850fae623cc34173a2
+2726	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2021-03-09 16:37:23.645398	MODIFY		49ae93e96fef3191d4370f257f714f46
+2727	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2021-03-09 16:37:32.630156	PROMOTE		4f043fc46f064438d61d5444b73ac9d6
+2728	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2021-11-09 14:25:49.037475	MODIFY	Remove audience 119725 and added to OM-10020 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	b7b317d6a9c4815259ede3b75bcc69bd
+2729	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2021-11-15 14:47:55.804589	PROMOTE		dbac03b8e1e17bcec8aa9f19c50b7247
+2730	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2021-11-19 17:53:02.318893	MODIFY	Added USD to name - removed OLC as no longer applicable	5c7dd471da2ab85ce6d88b9d598331e2
+2731	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2021-11-19 17:53:42.255878	PROMOTE		a48cb898146ceb08395bb91252a35101
+2732	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2022-02-02 20:12:51.319857	MODIFY	2/2/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505\nChristina Malis confirmed retiremenet - Audiences will not be reassigned.	28fc227c9958ea25fa7ba24b5d459228
+2733	d8bf6c5b-0a37-11ea-906e-925cd985ab3d	1	2022-05-03 19:00:53.539336	PROMOTE		8c70d95bf629c18025ab9556bab6c9d7
+2734	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2020-02-06 16:22:19.412535	CREATE		
+2735	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2020-02-14 21:41:05.510088	MODIFY		
+2736	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2020-02-20 19:54:44.324805	MODIFY		
+2737	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2020-02-21 13:35:35.461732	MODIFY		
+2738	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2020-02-21 22:51:05.597116	MODIFY		
+2739	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	4	2020-06-10 17:55:28.892653	PROMOTE		
+2740	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2020-07-09 17:21:56.979557	MODIFY		
+2741	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2020-07-23 17:26:39.162245	PROMOTE		
+2742	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2020-07-23 17:30:54.495174	PROMOTE		
+2743	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2021-09-28 16:03:08.093913	MODIFY		853995b04a1db8f8aaf46ca8b163f8d2
+2744	d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	1	2021-09-28 17:26:10.459828	PROMOTE		0a9ad4addeb59dac01e1e3ae3533c417
+2745	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2020-07-27 16:33:05.673717	CREATE		
+2746	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2020-07-27 16:55:31.709389	PROMOTE		
+2747	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2020-07-28 12:23:35.221637	MODIFY		
+2748	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2020-07-29 20:40:15.898261	MODIFY		
+2749	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2020-08-03 20:06:03.496874	MODIFY		
+2750	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2020-08-05 19:50:51.419961	PROMOTE		
+2751	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2021-02-12 16:29:36.421646	MODIFY		289d67cd287382d27759ae670143f712
+2752	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2021-02-12 16:36:20.614732	PROMOTE		0b5718373bcfc022e8c4b792f27e1099
+2753	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2021-04-19 15:59:00.685824	MODIFY		61c116f62af3e5a0ee5f7800270fb4ed
+2754	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2021-04-19 16:11:39.688995	PROMOTE		2379baefab4c8ac0a40f3f46d92ba827
+2755	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2021-09-20 20:53:50.867528	MODIFY	Offer retired per S Wang as part of Games OC review/retirement	9402d254916345c00efa14ae282f50e8
+2756	d9080372-d026-11ea-aff7-6ff2a1213fc4	1	2021-09-20 20:55:20.616374	PROMOTE		81ac4e3122ecdd3937773f6af72b1809
+2757	da06f835-1ddb-11eb-95b8-b4165a586460	1	2020-11-03 13:52:45.786538	CREATE		49b2263264fbb7d496760cf48662c7bb
+2758	da06f835-1ddb-11eb-95b8-b4165a586460	1	2020-11-05 16:41:39.079559	MODIFY		17ae64457215abe76d80218a8655f9e7
+2759	da06f835-1ddb-11eb-95b8-b4165a586460	1	2020-11-10 17:56:41.857886	PROMOTE		57718104502e5ffd67d97b4140b27024
+2760	da06f835-1ddb-11eb-95b8-b4165a586460	1	2021-10-04 16:41:45.469934	MODIFY	Premium removed and promo changed from PEN I01 + RDGT Pending Launch	d8cbbf849fc1026c6511acf0dd76959a
+2761	da06f835-1ddb-11eb-95b8-b4165a586460	1	2021-10-11 16:03:27.711113	PROMOTE		775fb9decafcad993069d37433729429
+2762	da971b00-e7bf-11ea-af4f-2e30bb3b6d1a	1	2020-08-26 17:16:18.032829	CREATE		
+2763	da971b00-e7bf-11ea-af4f-2e30bb3b6d1a	1	2020-08-26 17:58:08.034661	PROMOTE		
+2764	da971b00-e7bf-11ea-af4f-2e30bb3b6d1a	1	2020-11-09 16:05:06.446885	MODIFY		77a05022dd291b0cc15061bd6db31afb
+2765	da971b00-e7bf-11ea-af4f-2e30bb3b6d1a	1	2020-11-09 16:22:21.78034	PROMOTE		ae02459c6007caf00dd128495a3f5d55
+2766	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	2	2020-08-05 17:34:04.936642	CREATE		
+2767	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	2	2020-08-05 17:34:14.938649	PROMOTE		
+2768	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	2	2020-08-10 13:38:40.574785	MODIFY		
+2769	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-08-27 13:41:04.159421	MODIFY		
+2770	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-09-16 17:02:54.201175	MODIFY		
+2771	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-09-16 17:03:06.348496	PROMOTE		
+2772	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-09-16 17:06:21.51415	PROMOTE		
+2773	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-10-22 13:50:09.748247	MODIFY		c514c3d7d4d43625d765927ea20228b8
+2774	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-10-22 13:50:18.917476	PROMOTE		fb22892bafeaa0a174f3e4363758b07a
+2775	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-12-14 21:42:56.436154	MODIFY		4aa2e0bacefcb7fd3c5e19654f7b1222
+2776	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-12-14 21:42:56.509903	MODIFY		11dfadd3c4ee9cfa51cf70bc314b26f4
+2777	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2020-12-14 21:43:07.859708	PROMOTE		feef154e2362b23e2c9cf5e165668103
+2778	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2021-10-04 14:29:21.269474	MODIFY	Name Changed from EDU Premium HD 50% off til forbid,Premium removed and promo changed from PEN 141 + RDGT Pending Launch	b408a7ab09eb4ce72a777d38b52eff73
+2779	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2021-10-04 14:30:16.36971	MODIFY		6a2fc048301ffcb9f4841c2c6dd3f70e
+2780	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2021-10-11 16:02:55.332156	PROMOTE		3f043b59fc3e2e91cba740ceb6665948
+2781	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2022-01-26 15:28:37.971333	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	90ee2158db8396dadfb9f9f03a17e2ab
+2782	dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	1	2022-01-26 15:32:32.690786	PROMOTE		60ec7e2416d0db8dbc7db28a9772cc82
+2783	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2021-08-10 15:58:54.377209	CREATE	Set up for SPSO - https://docs.google.com/spreadsheets/d/1c65TIboHyoM3zyqtpPTcHlmsGuAo10aWXZidv226nWk/edit#gid=1153944505	84c512712298a45c35ec5a9a2874c168
+2784	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2021-08-10 16:25:48.122972	MODIFY	corrected link - https://docs.google.com/spreadsheets/d/1CX_3x_LtCIEvTBn48Gl7KAEQOH7Sytv29RUweU1QoRk/edit#gid=0	786cc981927de40763cb7fc58916e657
+2785	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	2	2021-08-10 17:03:49.589753	PROMOTE		c5daf39200009b0bd1b842a5b62de095
+2786	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2021-10-29 17:16:25.028813	MODIFY	Updated to include Placement=Account and Type=Cancel the Cancel per M Elliott https://docs.google.com/spreadsheets/d/1cr5qW4rDx7LjQ8Bc7lntBHTk9OKMyRx7ux9DXviOzmA/edit#gid=0	f8f4027f26e5408e6b584fb3540a9bac
+2787	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2021-10-29 17:20:44.445995	PROMOTE		0e03c49cfdd181e8ea5cf936cc4936ad
+2788	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2021-11-23 18:07:37.951279	MODIFY		a14b82c30543730219e1d535aae57845
+2789	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2021-11-23 18:40:21.301672	PROMOTE		a06e5b71f61125f3603e5cf884494587
+2790	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2021-12-09 14:29:41.690679	MODIFY	Added OLC per M Elliott -https://docs.google.com/spreadsheets/d/1UUEfG3nEWSoXHSTLTItqZiBW536_wL_i9O_Gx9EcacM/edit#gid=1153944505\n	5d6d23d0b4567a8321bcbfe5e0e5332b
+2791	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2021-12-09 15:47:27.770494	PROMOTE		2c47af7f5fad7feaa60088b2328bad3b
+2792	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2022-04-20 21:36:48.727675	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	cbef6c381788823b6ab26b8ec51ba187
+2793	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2022-04-20 21:42:19.068976	PROMOTE		656474d4672bbece6edef7e4b5b6d360
+2794	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2022-05-03 17:52:57.229367	MODIFY		c0517f074f939ae512773f63e8b3c27d
+2795	dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	1	2022-05-03 17:54:16.04728	PROMOTE		873230bef3997d1222034fc36aa133d6
+2796	ddb07933-3964-11eb-bf58-da4ba1647a90	1	2020-12-08 14:51:34.377504	CREATE		2d05ea16b7ba1170fb94d983e6e9e92e
+2797	ddb07933-3964-11eb-bf58-da4ba1647a90	1	2020-12-11 15:56:37.108034	PROMOTE		377b74047b06cc361429df1cb2faa1f3
+2798	ddb07933-3964-11eb-bf58-da4ba1647a90	1	2021-10-18 21:02:27.940348	MODIFY		335d61c5b2db89f374a8f8546d16d279
+2799	ddb07933-3964-11eb-bf58-da4ba1647a90	1	2021-10-18 21:06:21.713231	PROMOTE		ad82bab4d3ba9c6c65282b5aa814de84
+2800	de7fee0b-d590-11ea-9001-bc80ca56468d	1	2020-08-03 13:54:37.315432	CREATE		
+2801	de7fee0b-d590-11ea-9001-bc80ca56468d	1	2020-08-05 20:23:31.110256	PROMOTE		
+2802	de7fee0b-d590-11ea-9001-bc80ca56468d	1	2020-09-17 13:18:04.962269	MODIFY		
+2803	de7fee0b-d590-11ea-9001-bc80ca56468d	1	2020-09-17 13:18:14.063315	PROMOTE		
+2804	de7fee0b-d590-11ea-9001-bc80ca56468d	1	2020-10-22 13:58:26.415264	MODIFY		32c97a1bbcbfc6513524f456d79fb51d
+2805	de7fee0b-d590-11ea-9001-bc80ca56468d	1	2020-10-22 13:58:35.096392	PROMOTE		afb6b09fb4e34c4a5b1e5526db109623
+2806	de7fee0b-d590-11ea-9001-bc80ca56468d	1	2021-10-04 16:18:54.174141	MODIFY	Name Changed from Premium HD Full Rate,Premium removed and promo changed from PEN 414 + RDGT Pending Launch	51c97c063edc3c17ffbf9ee77946159b
+2807	de7fee0b-d590-11ea-9001-bc80ca56468d	1	2021-10-11 16:03:20.013127	PROMOTE		cfba52e7281b493f115067d22f3b505a
+2808	df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	1	2020-08-31 17:39:07.703943	CREATE		
+2809	df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	1	2020-09-16 18:29:56.723851	MODIFY		
+2810	df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	1	2020-09-16 18:30:08.093048	PROMOTE		
+2811	df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	1	2020-11-11 19:53:05.351918	MODIFY		86d0bb5b60d2197b3e3beec7436b3889
+2812	df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	1	2020-11-11 19:58:00.327907	PROMOTE		d1e493524203d589ea784fc12b0010ea
+2813	df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	2	2020-11-19 21:58:03.748766	MODIFY		10e8a8b32a03ca29290d4a3ffade8db4
+2814	df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	2	2020-11-19 21:58:17.704511	PROMOTE		a8f8b4ce27e4d909c5990c3836ad2b81
+2815	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2020-07-28 12:50:11.909936	CREATE		
+2816	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2020-07-28 14:02:30.873526	PROMOTE		
+2817	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2020-12-18 16:07:34.528533	MODIFY	12/18/20 Added Care Placement	321aec43f4280026ca4ec9f8dd9dd306
+2818	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2020-12-22 14:39:16.750593	PROMOTE		b3477fda7aae852faad2d8bdc7d295b3
+2819	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2021-04-12 21:53:57.692448	MODIFY		ca59c7b0724af5f04b8d42ba0abfe638
+2820	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2021-04-12 21:55:47.795024	PROMOTE		3a9efe192638fccafb117ef2eb590034
+2821	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2021-10-28 14:31:52.186178	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	e32ad05e1e325ea2c53f20adc0a95e1b
+2822	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2021-10-28 14:54:23.915675	PROMOTE		ccd92f08a72bb51d476613c3651bfa5a
+2823	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2021-11-19 16:05:51.328651	MODIFY	Offer retired - EDU decom per C Bland	078b040d1177294e1748a69a8b958e0e
+2824	e00f5bbd-d0d0-11ea-ad31-6380fc00472d	1	2021-11-19 16:06:12.980699	PROMOTE		a87c28ae86067be33260191c20187128
+2825	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-07-27 16:40:27.977338	CREATE		
+2826	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-07-27 16:55:40.782221	PROMOTE		
+2827	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-07-29 20:53:03.231731	MODIFY		
+2828	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-08-03 20:08:32.896941	MODIFY		
+2829	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-08-05 19:52:36.965671	PROMOTE		
+2830	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-08-24 17:04:46.268287	MODIFY		
+2831	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-08-24 17:04:54.81865	PROMOTE		
+2832	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-09-03 12:48:34.91733	MODIFY		
+2833	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-09-03 13:43:28.34667	PROMOTE		
+2834	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-10-15 17:18:21.823892	MODIFY		3f33964d1e5ad50fc165e6ea3c8906c4
+2835	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-10-16 15:03:00.025143	PROMOTE		6be463ae7edf5cfb2ce3f35292e76f82
+2836	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-11-20 19:55:40.047395	MODIFY		7cd9b1f47a8c039d6fccc8014a3cbc00
+2837	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-11-20 19:55:51.311719	PROMOTE		f37fee269eeea4e16ea45f064cd0477e
+2838	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-11-20 21:24:53.604785	MODIFY		b49d618f1c4c4c1fabd1cb9aee490a83
+2839	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2020-11-20 21:25:52.183002	PROMOTE		cfc99d7296c22776bc0c091668a72e5c
+2840	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2021-11-22 19:21:14.897414	MODIFY		7970260381a92d5fd2fd0ca86cab770b
+2841	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2021-11-22 19:23:31.793629	PROMOTE		af2f2ddf5fa0a2d56aceccceb16f1b9c
+2842	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2022-02-17 20:10:01.883227	MODIFY	Updated name to include INTL per Caseys request - OC request states "These offers should only be used in the UK, Europe, India, and ROW. They should NOT be used in Canada and Australia.'	353544c9048d3f452111f8ed3168f2a0
+2843	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2022-02-17 20:10:13.424447	PROMOTE		baa8c9579cb14d8b468c719b5e77cd6d
+2844	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2022-02-17 20:34:57.599032	MODIFY		5205f5fe3a15dcaf35b45e8aa8125dc5
+2845	e0aa30ad-d027-11ea-a072-340cee6a52b6	1	2022-02-17 20:35:30.825036	PROMOTE		9006b328e75f783b6ab7ba0cefa108f8
+2846	e0c6a064-0775-11ec-b463-73f0d48bb750	2	2021-08-27 20:32:20.532444	CREATE	Intended for use in Canada and Australia 	3705baab2c69759468c034cd4e416f9b
+2847	e0c6a064-0775-11ec-b463-73f0d48bb750	2	2021-08-27 20:33:30.605443	PROMOTE		210fe8e6e6996284c3e5bca5ed303ce0
+2848	e0c6a064-0775-11ec-b463-73f0d48bb750	1	2021-11-23 17:52:13.641735	MODIFY		43bed46a246ba7bf213982989b922ff6
+2849	e0c6a064-0775-11ec-b463-73f0d48bb750	1	2021-11-23 17:53:08.199562	PROMOTE		d0f26b41a562a61ac0cd0da88bf7ecb2
+2850	e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	5	2020-10-02 14:59:33.216641	CREATE		
+2851	e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	5	2020-10-02 16:05:13.841751	PROMOTE		
+2852	e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	1	2020-11-11 20:09:47.238774	MODIFY		988454b05a696c2bd1cacec6ec8da21b
+2853	e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	1	2020-11-11 20:20:40.925811	PROMOTE		1c0c9f61c6d4b20c86c3c52df3195c5b
+2854	e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	1	2020-11-19 21:56:29.493757	MODIFY		34005f35a92bece29bd2253ae93c1851
+2855	e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	1	2020-11-19 22:07:45.11567	PROMOTE		8e0ed8c96a4cef19e985b2662a24e390
+2856	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-01-13 19:38:16.793235	CREATE		869a8396c1cbc107a8f58136013e9ba0
+2857	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-01-13 19:39:38.751196	PROMOTE		902d829a9fcee9ac079fabfdcc300b14
+2858	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-04-19 15:51:39.430829	MODIFY		cc715c4dc9ee744fbc41662c11c4dec1
+2859	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-04-19 16:11:02.406823	PROMOTE		a256c4a6f1a78b062611e9d90d27564e
+2860	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-07-07 14:39:20.325639	MODIFY	Added Placement for Account to be used for Product Switch.	4652880705483584729b732cd80c23cd
+2861	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-07-07 18:27:53.488511	PROMOTE		0b9885f9f07d5354addbd13de34bb720
+2862	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-07-27 14:21:37.671649	MODIFY	Updated Offer Type to include Product Change per M Elliott https://docs.google.com/spreadsheets/d/15DcHX9az-Im8tb7O9mfZKLZHCrjmu2IfsM4pCxOknwE/edit#gid=1153944505	10cf240700d012fd4010e59e57fae30f
+2863	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-07-27 14:22:19.321419	PROMOTE		f66f167a7394f5ee46a745189c58c919
+2864	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-11-23 15:23:34.010958	MODIFY		9a325380d779c6e5aa393fe7857a2c4c
+2865	e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	1	2021-11-23 15:25:29.12122	PROMOTE		19eda46355870b6433c51e14d3a4e575
+2866	e217a4c1-f1d8-11ea-942b-2b10751285b6	1	2020-09-08 13:40:39.665179	CREATE		
+2867	e217a4c1-f1d8-11ea-942b-2b10751285b6	1	2020-09-17 13:02:49.356282	MODIFY		
+2868	e217a4c1-f1d8-11ea-942b-2b10751285b6	1	2020-09-17 13:02:57.723128	PROMOTE		
+2869	e217a4c1-f1d8-11ea-942b-2b10751285b6	1	2020-11-11 19:59:59.190046	MODIFY		5fcf284d36e5034c5cfbe56901d538d5
+2870	e217a4c1-f1d8-11ea-942b-2b10751285b6	1	2020-11-11 20:20:29.913097	PROMOTE		a325abe38311936da7b961e35118f8b2
+2871	e217a4c1-f1d8-11ea-942b-2b10751285b6	1	2020-11-19 21:54:36.193771	MODIFY		bca36ceee49de98cf8493a00c6a56107
+2872	e217a4c1-f1d8-11ea-942b-2b10751285b6	1	2020-11-19 22:07:55.527103	PROMOTE		7ca6f1be6ac83fc098ecef41a68ddb38
+2873	e232c385-73cb-11ec-8aab-240fce94ef66	1	2022-01-12 17:20:05.217941	CREATE		1d84b41d86c24e7fcc8dd71a30448cd9
+2874	e232c385-73cb-11ec-8aab-240fce94ef66	1	2022-01-12 17:25:05.595552	PROMOTE		5cc129b3540d02f4d13488bab7254e9d
+2875	e232c385-73cb-11ec-8aab-240fce94ef66	1	2022-01-13 15:38:03.17755	MODIFY		0b01903356ce160a7148803a7e194993
+2876	e232c385-73cb-11ec-8aab-240fce94ef66	1	2022-01-13 15:43:25.942182	PROMOTE		aadc29322e89eeeed4029e4649e8a92e
+2877	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2020-07-24 12:33:32.367545	CREATE		
+2878	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2020-07-27 16:07:04.360209	PROMOTE		
+2879	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2020-07-27 16:14:03.433808	PROMOTE		
+2880	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2020-12-18 16:34:36.657227	MODIFY	12/21/20 added Care Placement	062a463340ac090485acc16d278f103e
+2881	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2020-12-22 14:38:52.555207	PROMOTE		8cade94b3a721a51bab959f29e7ca690
+2882	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2021-03-08 20:39:00.595322	MODIFY		06473fb98e840d63097d45e940e48662
+2883	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2021-03-08 20:39:12.775713	PROMOTE		f51f962eac184dc13fb69f6b7927c8a9
+2884	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2021-09-28 16:34:05.705247	MODIFY		ebd1a4696c61871bcbaecc9e73d5f040
+2885	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2021-09-28 17:27:36.530988	PROMOTE		7122338eed699306d693012c22ba31b3
+2886	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:26:53.108959	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	fe4b0881aa3a885bc19ea3f3366f5a2f
+2887	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2021-10-28 14:53:55.613245	PROMOTE		60145b7c02168f4e4ea407e650c8461e
+2888	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2021-11-19 17:05:10.327855	MODIFY	Retired as part of EDU Decom per C Bland	48012469633a5e8800ff75645d190128
+2889	e2a24b17-cda9-11ea-b464-e4d44f10848e	1	2021-11-19 17:05:33.519809	PROMOTE		0ad12078684a9f1c2ce4aec3da7befd4
+2890	e3743132-e219-11ea-bd88-1c23e3dcaa84	1	2020-08-19 12:45:40.632409	CREATE		
+2891	e3743132-e219-11ea-bd88-1c23e3dcaa84	1	2020-08-19 12:46:10.89423	PROMOTE		
+2892	e3743132-e219-11ea-bd88-1c23e3dcaa84	1	2020-08-19 13:24:00.952399	PROMOTE		
+2893	e3743132-e219-11ea-bd88-1c23e3dcaa84	1	2020-08-19 13:25:43.489001	PROMOTE		
+2894	e3743132-e219-11ea-bd88-1c23e3dcaa84	1	2020-10-22 15:40:50.516689	MODIFY		290ea2c61491f65186e5336d6bb09453
+2895	e3743132-e219-11ea-bd88-1c23e3dcaa84	1	2020-10-22 15:40:58.089221	PROMOTE		674a90c4c2928bb475dd558fc3e94f74
+2896	e3743132-e219-11ea-bd88-1c23e3dcaa84	1	2021-10-11 17:07:24.851707	MODIFY	Offer retired as part of 'Premium' review - no active subscribers.	7a166175b32e04ebe76297d9eabc04fe
+2897	e3743132-e219-11ea-bd88-1c23e3dcaa84	1	2021-10-11 17:07:39.532886	PROMOTE		7284e9779887b3ce0a6d0f718ec19032
+2898	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-07-27 16:47:44.25357	CREATE		
+2899	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-07-27 16:58:20.794348	PROMOTE		
+2900	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-07-29 20:57:19.035287	MODIFY		
+2901	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-08-03 20:09:57.863155	MODIFY		
+2902	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-08-05 19:55:03.099271	PROMOTE		
+2903	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-10-29 17:14:42.448451	MODIFY		caf3221a4489a630ee6a29b28c045c6f
+2904	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-10-29 17:14:53.393243	PROMOTE		e34173ba5c02d524652f409af8157fbe
+2905	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-11-20 20:13:40.677187	MODIFY		8d892fd2ffc4d8fa67c14f6e0494bd80
+2906	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2020-11-20 21:26:01.064928	PROMOTE		f68aa0977a45934896aabb73b01801e1
+2907	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2021-11-23 14:47:56.680219	MODIFY		1c6e1eeec0d9d1ca9d5161ad2a99b932
+2908	e4b4a8cb-d028-11ea-a072-340cee6a52b6	1	2021-11-23 14:48:57.45744	PROMOTE		028dd09310ed65b2cf4b21b7d1ae1bd9
+2909	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2020-08-26 16:40:48.666649	CREATE		
+2910	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2020-08-26 17:56:26.518929	PROMOTE		
+2911	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2020-10-15 17:20:47.306354	MODIFY		ac5b7cca2c8fdfc92587fe419bbeb199
+2912	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2020-10-15 17:21:11.206021	MODIFY		281e4c15bd69f779e4ba324aab9285b4
+2913	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2020-10-16 15:02:57.456277	PROMOTE		ed7dfdf0eef229580bd1f45fa1de885f
+2914	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2020-12-18 17:44:19.891474	MODIFY	10/21/20 added Subscriber Advocacy Placement - removed Magnolia	c75e9b7cfa09a74320531f724c06a524
+2915	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2020-12-18 17:44:49.646908	MODIFY	12/21/20 added Care Placement	f7a2be5694fd03f10cecbf16aed1c4dc
+2916	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2020-12-22 14:33:55.581089	PROMOTE		b21a2191ff27dd4523c70559ea5be080
+2917	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2021-11-23 15:27:56.475391	MODIFY		24ccefe3e7c419d2c6fa86dcb11789a4
+2918	e563a0de-e7ba-11ea-82f3-296e0f812249	1	2021-11-23 15:28:05.054856	PROMOTE		bf0bfecd91444217b2437adb6daa2b84
+2919	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2019-12-10 18:43:05.025751	CREATE		
+2920	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-21 16:36:35.81841	MODIFY		
+2921	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-01-22 20:20:49.38895	MODIFY		
+2922	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-02-14 18:56:05.840377	MODIFY		
+2923	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-02-26 20:29:21.437214	MODIFY		
+2924	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-03-02 14:18:17.683878	MODIFY		
+2925	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	2	2020-03-02 21:39:45.627042	MODIFY		
+2926	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-04-09 20:25:41.222486	MODIFY		
+2927	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-04-24 18:32:21.353968	MODIFY		
+2928	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	4	2020-06-10 17:58:02.630794	PROMOTE		
+2929	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-09-04 15:43:13.534376	MODIFY		
+2930	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-09-04 18:23:14.489089	MODIFY		
+2931	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2020-09-04 18:56:00.839929	MODIFY		
+2932	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	2	2020-09-08 21:36:55.37311	PROMOTE		
+2933	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	2	2020-11-20 21:14:19.29378	MODIFY		ae417e0ce191899e06547de9095b347b
+2934	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	2	2020-11-20 21:14:25.022425	PROMOTE		8880706b03e6557af6496cf4bfa42318
+2935	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2021-04-23 13:59:30.103414	MODIFY		7bcea64345be8506926aab6b700e9651
+2936	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2021-04-23 14:03:00.809516	MODIFY	Removed audiences 119635, 119651, 119661, 119636, 119652, 119662 - added to OM-10020 per S Wang	f47f2d47055f0802fae15d609a48f3ae
+2937	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2021-04-26 13:06:01.176788	PROMOTE		cf0aba61977a17dc08ed51540b3dd4b5
+2938	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2021-04-28 16:29:57.950857	MODIFY	Removed audience 119639 - added to OM-10713	608ef4cc1abd5cfb377d560494d09850
+2939	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2021-04-28 18:48:46.917224	PROMOTE		71b8fe10eba6b4ebdaeeb163dc599a0c
+2940	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-23 14:47:34.455159	MODIFY		e3d7c252ba03d8849eaa0c2cfd99bfc6
+2941	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2021-11-23 14:49:21.078442	PROMOTE		7de83b98b2d84f98395f187d2e9a8965
+2942	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2022-04-20 21:34:55.060004	MODIFY	Add Audience 262952 for Athletic test - test expires 12/2022	9be3e18752aaa029747095e12918fcdc
+2943	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2022-04-27 14:43:05.154903	PROMOTE		4be7df141db5cdecdfe4a12180f600c3
+2944	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2022-05-23 19:42:54.731822	MODIFY	Added audience 268352 for STS-RCT https://docs.google.com/spreadsheets/d/1JbsIsn3D1HNauwkfNXrH_hGYq49xnZd1PwHITv2_Y24/edit#gid=1153944505	36a8f6aa823945d5e5372fe6876edc1c
+2945	e6cc3048-1b7c-11ea-8a1a-54900ccd666e	1	2022-05-25 12:05:56.853322	PROMOTE		47e1cebf761e4223117581e874031a6c
+2946	e71bb09d-2b71-11eb-a8a3-0715bbac1279	1	2020-11-20 20:49:37.358253	CREATE		48bcfd29efa5796cf65c78da0e5514e3
+2947	e71bb09d-2b71-11eb-a8a3-0715bbac1279	1	2020-11-20 20:51:00.297546	PROMOTE		a2a9f15982bdb4dfa2d852a55b151654
+2948	e71bb09d-2b71-11eb-a8a3-0715bbac1279	1	2021-03-08 15:06:38.087544	MODIFY		8f6be9c86b374df5d12e3e812479a5f0
+2949	e71bb09d-2b71-11eb-a8a3-0715bbac1279	1	2021-03-08 20:08:21.545561	PROMOTE		8aa4b5dc309fe31c46f1070129c962cc
+2950	e7287228-cdad-11ea-b464-e4d44f10848e	1	2020-07-24 13:02:17.944533	CREATE		
+2951	e7287228-cdad-11ea-b464-e4d44f10848e	1	2020-07-27 16:09:49.302136	PROMOTE		
+2952	e7287228-cdad-11ea-b464-e4d44f10848e	1	2020-07-29 20:27:16.686892	MODIFY		
+2953	e7287228-cdad-11ea-b464-e4d44f10848e	1	2020-08-03 18:14:17.093894	MODIFY		
+2954	e7287228-cdad-11ea-b464-e4d44f10848e	1	2020-08-21 12:16:53.873202	MODIFY		
+2955	e7287228-cdad-11ea-b464-e4d44f10848e	1	2020-08-21 12:17:03.881745	PROMOTE		
+2956	e7287228-cdad-11ea-b464-e4d44f10848e	2	2020-08-26 14:46:20.903226	MODIFY		
+2957	e7287228-cdad-11ea-b464-e4d44f10848e	2	2020-08-26 14:46:30.930073	PROMOTE		
+2958	e7287228-cdad-11ea-b464-e4d44f10848e	2	2020-08-26 14:46:58.105856	PROMOTE		
+2959	e784582a-1e1c-11eb-bba0-ba60d8ae7b87	5	2020-11-03 21:38:25.706002	CREATE		e757e0b863e7b04d503c58569bb33eca
+2960	e784582a-1e1c-11eb-bba0-ba60d8ae7b87	1	2020-11-05 16:46:28.00553	MODIFY		fe26012693e8f5d68523989eaec33b41
+2961	e784582a-1e1c-11eb-bba0-ba60d8ae7b87	1	2020-11-10 17:57:19.223561	PROMOTE		c821853622ee3b18baa4092859cc03cc
+2962	e784582a-1e1c-11eb-bba0-ba60d8ae7b87	1	2021-10-04 17:35:37.611772	MODIFY	Premium removed and promo changed from PEN I23 + RDGT Pending Launch	1457bf555d6b8690e9094313fa62f6c3
+2963	e784582a-1e1c-11eb-bba0-ba60d8ae7b87	1	2021-10-11 16:03:46.769052	PROMOTE		efa91a20f4dc79ed72b4003c6237944d
+2964	e7b2759c-d0cc-11ea-ad31-6380fc00472d	1	2020-07-28 12:21:46.735968	CREATE		
+2965	e7b2759c-d0cc-11ea-ad31-6380fc00472d	1	2020-07-28 14:01:01.586369	PROMOTE		
+2966	e7b2759c-d0cc-11ea-ad31-6380fc00472d	1	2020-08-21 17:12:00.418905	MODIFY		
+2967	e7b2759c-d0cc-11ea-ad31-6380fc00472d	1	2020-08-21 18:49:07.864917	PROMOTE		
+2968	e7b2759c-d0cc-11ea-ad31-6380fc00472d	2	2020-08-28 17:19:19.425312	MODIFY		
+2969	e7b2759c-d0cc-11ea-ad31-6380fc00472d	2	2020-08-28 17:19:28.203886	PROMOTE		
+2970	e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	1	2021-05-28 13:37:54.647371	CREATE	Created per DGP, Games international pricing - ROW high-conversion markets only	14b033d7a9d41666ba81bccf157751b8
+2971	e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	1	2021-05-28 14:04:00.754041	PROMOTE		5406e7f82eb2c36e68e1866854b18d27
+2972	e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	1	2021-11-23 15:39:33.26673	MODIFY		0749c037b210eb61c7f3d7c74c52b2f5
+2973	e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	1	2021-11-23 15:41:22.917501	PROMOTE		69f6d592ecbf7bf5e43ea3d83b6ee70a
+2974	e8eb9f76-d0d6-11ea-ad31-6380fc00472d	1	2020-07-28 13:33:23.755611	CREATE		
+2975	e8eb9f76-d0d6-11ea-ad31-6380fc00472d	1	2020-07-28 18:31:09.686947	PROMOTE		
+2976	e8eb9f76-d0d6-11ea-ad31-6380fc00472d	1	2020-12-18 17:25:40.471263	MODIFY	This 1 wk free offer should not be retired per DGP 8/2020\n12/21/20 added Care Placement	76a810814321fc93350e67243d0b7830
+2977	e8eb9f76-d0d6-11ea-ad31-6380fc00472d	1	2020-12-22 14:34:16.358088	PROMOTE		987b69eae967ec37d5c2ce21d7421fb0
+2978	e8eb9f76-d0d6-11ea-ad31-6380fc00472d	1	2021-04-12 21:36:21.561997	MODIFY		a446a58343987efc65fe3c059c8268e0
+2979	e8eb9f76-d0d6-11ea-ad31-6380fc00472d	1	2021-04-12 21:55:29.80968	PROMOTE		34ec7e5516ce7155d43e2f48280e4249
+2980	e8eb9f76-d0d6-11ea-ad31-6380fc00472d	1	2021-11-23 15:21:23.274324	MODIFY		1d48da4b95f6c0d1505cb45d0cc77f90
+2981	e8eb9f76-d0d6-11ea-ad31-6380fc00472d	1	2021-11-23 15:24:55.721891	PROMOTE		b97a0c6a78c1434b03385b55aa16f0df
+2982	e9a18630-1b7b-11ea-8a1a-54900ccd666e	1	2019-12-10 18:36:00.282582	CREATE		
+2983	e9a18630-1b7b-11ea-8a1a-54900ccd666e	4	2020-06-10 17:57:43.755727	PROMOTE		
+2984	e9a18630-1b7b-11ea-8a1a-54900ccd666e	1	2020-08-04 11:27:48.291974	MODIFY		
+2985	e9a18630-1b7b-11ea-8a1a-54900ccd666e	1	2020-08-05 20:11:10.054421	PROMOTE		
+2986	e9a18630-1b7b-11ea-8a1a-54900ccd666e	1	2020-09-04 15:45:42.148715	MODIFY		
+2987	e9a18630-1b7b-11ea-8a1a-54900ccd666e	2	2020-09-08 21:37:03.236698	PROMOTE		
+2988	e9a18630-1b7b-11ea-8a1a-54900ccd666e	1	2021-07-09 16:51:47.261895	MODIFY		6541d7e1c892754ab425bbef43729f09
+2989	e9a18630-1b7b-11ea-8a1a-54900ccd666e	1	2021-07-09 16:51:56.707519	PROMOTE		f7be81e39479632ae6ceb53c123ca66a
+2990	e9a18630-1b7b-11ea-8a1a-54900ccd666e	1	2021-09-28 16:04:45.527036	MODIFY		3a818ca3f3af437a3a4cdd8de6b1eb15
+2991	e9a18630-1b7b-11ea-8a1a-54900ccd666e	1	2021-09-28 17:25:42.057001	PROMOTE		a20d43b0e9bf09f8a04abafe63c63186
+2992	ea737858-d908-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:51:30.46232	CREATE		
+2993	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:28:33.227528	MODIFY		
+2994	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:28:45.031875	PROMOTE		
+2995	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-09-16 17:34:55.558125	MODIFY		
+2996	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-09-16 17:35:06.450203	PROMOTE		
+2997	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-10-22 15:39:56.269678	MODIFY		8e9a72b89c47e5a1316d58b10049ff48
+2998	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-10-22 15:40:04.825881	PROMOTE		19e6b51ccc3e52f14723a18fe9163f9e
+2999	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-11-17 18:17:47.593762	MODIFY		d505e465ef5ab769602ef9e9e207fff8
+3000	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-11-17 18:18:06.295949	PROMOTE		b0fa9755b279390f1242200f677f9104
+3001	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-11-19 22:10:14.702541	MODIFY		3b09ce62a7dc78cc853d1647f5a64d91
+3002	ea737858-d908-11ea-94d3-9a1933fc44f2	1	2020-11-19 22:10:27.075991	PROMOTE		f85009ec15441b8b91e6c1ecd90d4abc
+3003	ea9d77f9-a401-11e9-b054-57354076a64c	3	2019-07-11 17:32:54.962178	CREATE		
+3004	ea9d77f9-a401-11e9-b054-57354076a64c	1	2020-02-14 21:16:56.338417	MODIFY		
+3005	ea9d77f9-a401-11e9-b054-57354076a64c	1	2020-03-24 18:19:41.725591	MODIFY		
+3006	ea9d77f9-a401-11e9-b054-57354076a64c	4	2020-06-10 17:57:21.968818	PROMOTE		
+3007	ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	1	2020-08-17 16:15:52.314336	CREATE		
+3008	ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	1	2020-08-19 13:25:05.153626	PROMOTE		
+3009	ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	1	2020-12-28 16:53:07.115051	MODIFY		d9ceecdaba67a2954bb6d5097cb4a6a2
+3010	ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	1	2020-12-28 16:53:23.732306	PROMOTE		d7da7575f6198d76a374828676b481e9
+3011	ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	1	2021-04-12 21:47:03.601022	MODIFY		a50149dd949e9b0f05f86a46078863f1
+3012	ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	1	2021-04-12 21:56:33.956144	PROMOTE		b777d3d66d78273a18ad7578222ae883
+3013	ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:58:43.80134	CREATE		
+3014	ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:25:23.052139	PROMOTE		
+3015	ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	1	2020-09-17 13:22:31.929038	MODIFY		
+3016	ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	1	2020-09-17 13:22:40.506117	PROMOTE		
+3017	ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	1	2020-10-22 15:48:28.073293	MODIFY		a430676d8c34cb7c5ccbef9de0f8db35
+3018	ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	1	2020-10-22 15:48:42.327287	PROMOTE		262e62e600075e798cf7f3467cc60a4c
+3019	ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	1	2021-10-04 15:21:40.1578	MODIFY	Name Changed from Premium HD 50% off for 12 weeks,Premium removed and promo changed from PEN 404+RDGT Pending Launch	e1d83eadf1a67dc723350e0ce591204f
+3020	ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	1	2021-10-11 16:03:02.100709	PROMOTE		928fef2ab3148bab60c6bb464920c594
+3021	ed1e0b41-1dde-11eb-95b8-b4165a586460	1	2020-11-03 14:14:46.304648	CREATE		7813fdd8b4f1a8e06aa835b034567c86
+3022	ed1e0b41-1dde-11eb-95b8-b4165a586460	1	2020-11-05 16:42:06.51879	MODIFY		bce4a20b254d9e02827853b7695ac82c
+3023	ed1e0b41-1dde-11eb-95b8-b4165a586460	1	2020-11-10 17:56:44.69464	PROMOTE		64d5ccbcd9e4a4c74de07cbb532aa60a
+3107	f5be9e45-fe98-11ea-ab6c-3301e5e23406	2	2020-09-24 19:05:49.96159	CREATE		
+3024	ed1e0b41-1dde-11eb-95b8-b4165a586460	1	2021-10-04 16:43:09.485948	MODIFY	Premium removed and promo changed from PEN I05 + RDGT Pending Launch	73cf2d9dbc2d3a9ece91342d01da8321
+3025	ed1e0b41-1dde-11eb-95b8-b4165a586460	1	2021-10-11 16:03:29.579728	PROMOTE		95201473339f223f5dee0b5318c93557
+3026	ee582df8-a94d-11ec-94dd-2e703e69da05	1	2022-03-21 19:34:31.797507	CREATE		b129b19bbeacda59f0c33a59ac4e2be0
+3027	ee582df8-a94d-11ec-94dd-2e703e69da05	2	2022-03-22 15:58:13.311851	PROMOTE		96de0adadcdf43d558d0dcf3829dcdfd
+3028	eebd99d5-cc8f-11ec-831a-c27d9c4b082d	1	2022-05-05 16:25:09.943731	CREATE	5/5/2022 https://docs.google.com/spreadsheets/d/1sw02_w2Re2HXFTW66rDwBx-GwN4zTJFcV463tE5SH0w/edit#gid=1153944505	b3be2eeb279e33ca00cdb867932b86a3
+3029	eebd99d5-cc8f-11ec-831a-c27d9c4b082d	1	2022-05-05 16:25:28.192569	PROMOTE		858419a1139b212925c9c39332e82097
+3030	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	1	2020-09-04 15:47:27.637447	CREATE		
+3031	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	2	2020-09-08 21:37:11.634116	PROMOTE		
+3032	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	1	2021-03-05 14:18:50.331266	MODIFY		9c4f98efeb126454dc5fa9bbbb8ccb6a
+3033	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	1	2021-03-05 14:19:06.807582	PROMOTE		f877061fe3cd56f5d591d3451d32ae31
+3034	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	1	2021-11-23 14:56:17.582125	MODIFY		7c2f3bf61d9d3f77f6996dae46a9af37
+3035	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	1	2021-11-23 14:57:50.164498	PROMOTE		abd8a723f6b88c7e49acfe9eda794b4a
+3036	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	2	2021-12-10 21:38:13.828663	MODIFY	Online cancel tag added per Peter Gillies and Megan Elliotts request 12/10/21	63a87f1c18e524730aae0e0058673b7e
+3037	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	2	2021-12-10 21:38:46.554366	MODIFY		ea4d7b4eb832bc83235fc590bc12032a
+3038	ef2515ab-eec5-11ea-997f-2cc0a4e691d2	2	2021-12-10 21:39:31.163254	PROMOTE		be07eab3d1bbf8a38bcfac6c8057e2a6
+3039	effcb663-c35d-11e9-acaf-889c68f5a76b	3	2019-08-20 15:19:43.720209	CREATE		
+3040	effcb663-c35d-11e9-acaf-889c68f5a76b	1	2020-06-09 12:35:47.667587	MODIFY		
+3041	effcb663-c35d-11e9-acaf-889c68f5a76b	4	2020-06-10 17:59:40.939216	PROMOTE		
+3042	f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	1	2021-01-07 15:42:24.440418	CREATE		665ae956cededbf9cc238888ed39d567
+3043	f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	1	2021-01-07 15:45:32.776704	PROMOTE		36ade4dfc7592503217f62c8e518c995
+3044	f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	1	2021-02-16 22:45:40.180053	MODIFY		508edb95fbe0c2577dcb5d04c28a7739
+3045	f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	1	2021-02-16 22:46:36.199562	PROMOTE		8a412ee545dd04f07d4dd26d114e9ead
+3046	f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	1	2022-01-05 20:29:51.65438	MODIFY		c17a822ed4966ce8dc95d1bb12930d10
+3047	f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	1	2022-01-05 20:30:45.676249	PROMOTE		d8a4c40347eeac92c70fd35b5ebeb93c
+3048	f03c648a-e880-11ea-b93e-180f500cdc79	5	2020-08-27 16:18:27.216924	CREATE		
+3049	f03c648a-e880-11ea-b93e-180f500cdc79	1	2020-08-27 17:25:35.637218	PROMOTE		
+3050	f03c648a-e880-11ea-b93e-180f500cdc79	1	2020-11-09 15:17:33.42733	MODIFY		89662d85f94eecded10763716b505ce8
+3051	f03c648a-e880-11ea-b93e-180f500cdc79	1	2020-11-09 16:23:15.74695	PROMOTE		7b29181653ce9a0b21fc0661be47e9f9
+3052	f05944cb-e93c-11ea-873f-74f46cae88b8	5	2020-08-28 14:44:12.79132	CREATE		
+3053	f05944cb-e93c-11ea-873f-74f46cae88b8	5	2020-09-03 20:45:46.374235	PROMOTE		
+3054	f05944cb-e93c-11ea-873f-74f46cae88b8	1	2020-11-09 15:28:43.484115	MODIFY		e51ec91b68c026aeba3f8382379c8eac
+3055	f05944cb-e93c-11ea-873f-74f46cae88b8	1	2020-11-09 16:23:45.261512	PROMOTE		768a739844bd0241bc8b8fb73faf4013
+3056	f099b17d-5519-11eb-b599-1505d28e525c	1	2021-01-12 21:05:46.407978	CREATE	1/12/21 - Added for Magnolia Integration to Omelette	febdc4bbd35c110d0431d85e32ebdc83
+3057	f099b17d-5519-11eb-b599-1505d28e525c	1	2021-01-12 21:06:24.355406	PROMOTE		01a3508960fb7cb3a195d05974483a9f
+3058	f0b817dc-e7c0-11ea-be14-d34dfa7bd272	1	2020-08-26 17:24:04.655514	CREATE		
+3059	f0b817dc-e7c0-11ea-be14-d34dfa7bd272	1	2020-08-26 18:00:25.783519	PROMOTE		
+3060	f0b817dc-e7c0-11ea-be14-d34dfa7bd272	1	2020-11-09 16:07:35.414773	MODIFY		c3b87a3d389158c0ad578c3db81a4293
+3061	f0b817dc-e7c0-11ea-be14-d34dfa7bd272	1	2020-11-09 16:22:31.769882	PROMOTE		bd7400a63818291aa5bc6727967be2d4
+3062	f0f1043c-a402-11e9-b054-57354076a64c	3	2019-07-11 17:40:15.072778	CREATE		
+3063	f0f1043c-a402-11e9-b054-57354076a64c	1	2020-02-14 21:29:27.850203	MODIFY		
+3064	f0f1043c-a402-11e9-b054-57354076a64c	4	2020-06-10 17:59:32.120601	PROMOTE		
+3065	f18d8314-ebd3-11ea-ba6a-bd981f8d0c12	2	2020-08-31 21:50:11.143147	CREATE		
+3066	f18d8314-ebd3-11ea-ba6a-bd981f8d0c12	2	2020-08-31 21:50:20.017339	PROMOTE		
+3067	f18d8314-ebd3-11ea-ba6a-bd981f8d0c12	1	2020-11-09 15:49:59.615818	MODIFY		26c21dd7b9f83565613c2d995d37e2c7
+3068	f18d8314-ebd3-11ea-ba6a-bd981f8d0c12	1	2020-11-09 16:25:04.977639	PROMOTE		7160912f86b4a454e6538485de1210a6
+3069	f1a099ca-fe99-11ea-ab6c-3301e5e23406	2	2020-09-24 19:12:52.550703	CREATE		
+3070	f1a099ca-fe99-11ea-ab6c-3301e5e23406	1	2020-09-28 16:57:26.598066	PROMOTE		
+3071	f1a099ca-fe99-11ea-ab6c-3301e5e23406	1	2020-10-22 15:43:40.363373	MODIFY		4d217eb43e95a4f8a6c9d2745f370a51
+3072	f1a099ca-fe99-11ea-ab6c-3301e5e23406	1	2020-10-22 15:43:49.597377	PROMOTE		ae0cc5fb006a7e43dd1d4bf736f688ad
+3073	f1a099ca-fe99-11ea-ab6c-3301e5e23406	1	2021-10-04 14:43:14.150738	MODIFY	Name Changed from $15 4wks for 12wks SO_+HD Prem WCM, Premium removed and promo changed from PEN 219 + RDGT Pending Launch	a7b427caba5a7a67d4927468d9687c22
+3074	f1a099ca-fe99-11ea-ab6c-3301e5e23406	1	2021-10-04 14:53:51.707182	MODIFY		617306a843466dec5a624c264ff7a897
+3075	f1a099ca-fe99-11ea-ab6c-3301e5e23406	1	2021-10-11 16:02:03.750309	PROMOTE		aaaffd5b91976a6cb649d9b021a0677e
+3076	f2b953ab-e881-11ea-bee3-410e24c0cdb9	5	2020-08-27 16:25:40.887854	CREATE		
+3077	f2b953ab-e881-11ea-bee3-410e24c0cdb9	1	2020-08-27 17:26:31.298216	PROMOTE		
+3078	f2b953ab-e881-11ea-bee3-410e24c0cdb9	1	2020-11-09 15:25:22.873587	MODIFY		3940fe1a30c0784936de4cc8566501ac
+3079	f2b953ab-e881-11ea-bee3-410e24c0cdb9	1	2020-11-09 16:23:26.164135	PROMOTE		4b1174b5aca8177a8354c2b56d192ca0
+3080	f3cf5e17-2b7a-11eb-a173-b430a1e0319b	1	2020-11-20 21:54:24.139034	CREATE		f513e1b30f25fd6892aace0d9e7692aa
+3081	f3cf5e17-2b7a-11eb-a173-b430a1e0319b	1	2020-11-20 21:57:13.533693	PROMOTE		48fa493ae7397f709840ef981ae0348c
+3082	f3cf5e17-2b7a-11eb-a173-b430a1e0319b	1	2021-10-04 16:22:01.74573	MODIFY	Name Changed from HD Premium 50% off for 16 weeks RC1 2021,Premium removed and promo changed from PEN 422 + RDGT Pending Launch	cedb68b803d33846de6e02f0fa3e93f1
+3083	f3cf5e17-2b7a-11eb-a173-b430a1e0319b	1	2021-10-11 16:03:04.920209	PROMOTE		8981661c1b665dda2e2a492a17b8fda9
+3084	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2020-01-08 19:27:49.250384	CREATE		
+3085	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	4	2020-06-10 17:58:28.522792	PROMOTE		
+3086	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2020-08-03 19:59:21.163626	MODIFY		
+3087	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2020-08-05 19:48:21.60057	PROMOTE		
+3088	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2021-01-11 16:11:19.27941	MODIFY		f16e5a9f41af599738f3a24303f26b0a
+3089	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2021-01-11 16:11:29.84481	PROMOTE		46bd070013d87842157aed4cbd86ab54
+3090	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2021-02-12 16:38:34.92343	MODIFY		d3eabaeeb70ce2cdda349c22e1e172ef
+3091	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2021-02-12 16:38:45.49738	PROMOTE		b02f05773291a94f6ef5a05b37d9cf5f
+3092	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2021-04-19 15:56:18.653676	MODIFY		829f40d2b69ddd4064de6e10e62a1ac8
+3093	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2021-04-19 16:11:25.046322	PROMOTE		51d5562cdfd3faa40db27e84a70b108a
+3094	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	2	2021-09-17 13:44:50.135006	MODIFY	Product change and acquisition removed per Sam Wang's request. This is an offer charged every 30 days, but the decision was made to keep it active for care STS use only. 	7815a9c51fdf14ae13375dc83e0871ce
+3095	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	2	2021-09-17 13:45:01.090215	PROMOTE		e2757fcb01b8102957825db1725e9fda
+3096	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2021-11-22 17:01:09.862256	MODIFY		c08afea52e8df641c9156a3f4b8be301
+3097	f4b31d01-324c-11ea-92fa-eb8955b7c3dd	1	2021-11-22 17:06:23.693136	PROMOTE		21f3f48e0ed0bae5aa67b90af0103a5b
+3098	f4bdeab0-eba1-11ea-8511-474d7bc12993	1	2020-08-31 15:52:21.657056	CREATE		
+3099	f4bdeab0-eba1-11ea-8511-474d7bc12993	1	2020-09-15 16:22:24.059893	PROMOTE		
+3100	f4bdeab0-eba1-11ea-8511-474d7bc12993	1	2020-09-16 16:56:39.295418	MODIFY		
+3101	f4bdeab0-eba1-11ea-8511-474d7bc12993	1	2020-09-16 16:56:53.223141	PROMOTE		
+3102	f4bdeab0-eba1-11ea-8511-474d7bc12993	1	2020-11-17 18:18:57.989093	MODIFY		9dbc6219f1c6b8db352f6d36bccebe73
+3103	f4bdeab0-eba1-11ea-8511-474d7bc12993	1	2020-11-19 22:18:00.146318	MODIFY		6ee72ca0f3d03dbe2ec3b2ce0ea70c63
+3104	f4bdeab0-eba1-11ea-8511-474d7bc12993	1	2020-11-19 22:18:08.125559	PROMOTE		26b695fc77d1172f7932a5afe1d31ee7
+3105	f4bdeab0-eba1-11ea-8511-474d7bc12993	2	2020-11-19 22:18:15.322946	MODIFY		7f294ae56dff26d3b6b463f8c86b7fcc
+3106	f4bdeab0-eba1-11ea-8511-474d7bc12993	2	2020-11-19 22:18:39.27704	PROMOTE		293d7bf26bbc05ac852c7fd12c34753d
+3108	f5be9e45-fe98-11ea-ab6c-3301e5e23406	2	2020-09-24 19:13:39.238007	MODIFY		
+3109	f5be9e45-fe98-11ea-ab6c-3301e5e23406	2	2020-09-25 16:36:47.989691	MODIFY		
+3110	f5be9e45-fe98-11ea-ab6c-3301e5e23406	2	2020-09-25 16:49:23.097579	MODIFY		
+3111	f5be9e45-fe98-11ea-ab6c-3301e5e23406	2	2020-09-25 18:14:33.316098	PROMOTE		
+3112	f5be9e45-fe98-11ea-ab6c-3301e5e23406	1	2020-10-22 13:57:38.844691	MODIFY		c20b01fa4a27e0c2d0f850cb415cfa2d
+3113	f5be9e45-fe98-11ea-ab6c-3301e5e23406	1	2020-10-22 13:57:48.376218	PROMOTE		fe904d7f97885265b7a03b86c5ad027e
+3114	f5be9e45-fe98-11ea-ab6c-3301e5e23406	1	2021-10-04 16:19:37.850844	MODIFY	Name Changed from Premium HD Full Rate WCM,Premium removed and promo changed from PEN 414 + RDGT Pending Launch	a5fffe4f636feb4cb6f5af0c99c13064
+3115	f5be9e45-fe98-11ea-ab6c-3301e5e23406	1	2021-10-11 16:03:21.622273	PROMOTE		d658037b54ffa2a345dd3285a7a0d801
+3116	f5be9e45-fe98-11ea-ab6c-3301e5e23406	1	2021-10-18 21:03:37.505643	MODIFY		ab329c0c1c54dccab625b7ce7cbdeae0
+3117	f5be9e45-fe98-11ea-ab6c-3301e5e23406	1	2021-10-18 21:06:27.540682	PROMOTE		ccc8b92ca11bcd6b781a694131793fd3
+3118	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2020-07-29 21:03:33.31609	CREATE		
+3119	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2020-08-04 11:37:29.7782	MODIFY		
+3120	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2020-08-05 20:14:24.394697	PROMOTE		
+3121	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2020-08-06 14:35:20.029076	MODIFY		
+3122	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2020-08-06 14:35:57.695645	MODIFY		
+3123	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2020-08-06 14:36:07.730256	PROMOTE		
+3124	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2020-08-06 16:00:57.047542	PROMOTE		
+3125	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2021-04-19 16:01:30.276837	MODIFY		f91401e02aba632e7e1671223f9ad8e5
+3126	f6493ba3-d1de-11ea-8e1a-26ceed7cecea	1	2021-04-19 16:11:45.394374	PROMOTE		bd68c3038d004a998a40818ab1fdd860
+3127	f73d506d-b853-11e9-b8ef-27f7ec03ccac	3	2019-08-06 14:10:38.12978	CREATE		
+3128	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2020-02-26 17:42:12.459956	MODIFY		
+3129	f73d506d-b853-11e9-b8ef-27f7ec03ccac	4	2020-06-10 17:58:48.78972	PROMOTE		
+3130	f73d506d-b853-11e9-b8ef-27f7ec03ccac	2	2020-11-20 21:05:59.154902	MODIFY		8dcac24889d7111afd75b5a0157b296d
+3131	f73d506d-b853-11e9-b8ef-27f7ec03ccac	2	2020-11-20 21:06:06.941152	PROMOTE		c8cfe1354ee98e9fc8ec69d8d5a058bf
+3132	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2021-03-05 18:36:00.493815	MODIFY		9d50a032e01b7515784d33b090c81a0e
+3133	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2021-03-05 18:36:16.390794	PROMOTE		5fcb64333b8f4825f0ea563a64a5d916
+3134	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2021-03-05 18:36:49.933754	MODIFY		c10cca6923c69536f104dce9696ef9b4
+3135	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2021-03-05 19:56:24.751658	PROMOTE		5ad563a68f93f73e45482edd117d7711
+3136	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2021-11-09 14:23:27.557816	MODIFY	Remove audience 119716, 119724 and added to OM-10020 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	c6e62d80e835db2558ba1a37436c1c28
+3137	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2021-11-15 14:47:08.480624	PROMOTE		33025e34c155840b9363e15279720a31
+3138	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2021-11-19 15:10:35.48518	MODIFY	11/19/21 - added USD to name per C Bland	63c1a4899b1d5c661f11962fa8f4ad80
+3139	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2021-11-19 15:13:04.968301	PROMOTE		f8807f6db240bb4c7fd6c3c06f574812
+3140	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2022-02-02 20:10:26.567474	MODIFY	2/2/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505\nChristina Malis confirmed retiremenet - Audiences will not be reassigned.	72dc03992b946a895138886a60f49134
+3141	f73d506d-b853-11e9-b8ef-27f7ec03ccac	1	2022-05-03 19:00:56.119194	PROMOTE		a9a573480af8dca2f524e4ea3dac7415
+3142	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2019-11-18 17:22:15.816473	CREATE		
+3143	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2020-02-26 18:49:36.732012	MODIFY		
+3144	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2020-04-27 19:38:44.804819	MODIFY		
+3145	f75b12db-0a27-11ea-906e-925cd985ab3d	4	2020-06-10 17:58:50.822266	PROMOTE		
+3146	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2020-08-04 11:35:05.99269	MODIFY		
+3147	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2020-08-05 20:13:20.158824	PROMOTE		
+3148	f75b12db-0a27-11ea-906e-925cd985ab3d	2	2020-11-20 21:06:38.097324	MODIFY		1aadaaa80136dea0055bcce570fbde58
+3149	f75b12db-0a27-11ea-906e-925cd985ab3d	2	2020-11-20 21:06:44.487592	PROMOTE		15969c0b7d7336a010c17e575ad3ed71
+3150	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2021-03-09 16:35:19.344671	MODIFY		26402854b60f3329919f47ee42de0034
+3151	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2021-03-09 16:35:30.153644	PROMOTE		dc71d41a2a6bb4127c6b1ca715054a00
+3152	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2021-11-09 14:24:29.1542	MODIFY	Remove audience 119718 and added to OM-10020 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	bb3029240f9cd1eed8cbf0f73077dc63
+3153	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2021-11-15 14:47:12.199584	PROMOTE		cc38aaf044f0e559a73e106d707c1499
+3154	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2021-11-19 16:16:54.095228	MODIFY	Removed Acq and Prod Change as part of EDU Decom - added USD to name per C Bland	271ada35e9db579d96bc9746c8e6f299
+3155	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2021-11-19 16:17:03.954262	PROMOTE		35f3a18864e577413c17c7fb9c0b7137
+3156	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2022-02-02 20:11:54.202891	MODIFY	2/2/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505\nChristina Malis confirmed retiremenet - Audiences will not be reassigned.	faf01fd2be436f3c28f06439af416513
+3157	f75b12db-0a27-11ea-906e-925cd985ab3d	1	2022-05-03 19:01:03.060617	PROMOTE		3e2ad21055a8b5421ca409c5359cc4ae
+3158	f7f963e2-bc2e-11ec-a0df-26852448f13d	1	2022-04-14 20:10:45.647869	CREATE		b0024ad2b57984a85d8022b4ae25c6f8
+3159	f7f963e2-bc2e-11ec-a0df-26852448f13d	1	2022-04-15 12:35:12.975928	MODIFY		6f82eb7246d261c7745756b23a1cef73
+3160	f7f963e2-bc2e-11ec-a0df-26852448f13d	1	2022-04-19 18:26:30.413344	MODIFY		bb8aba1a86ffb944635623065f7e90a6
+3161	f7f963e2-bc2e-11ec-a0df-26852448f13d	1	2022-04-19 18:44:41.444798	PROMOTE		7d3e08ddab73a02ae18523e5e0884a86
+3162	f8528587-eeb2-11ea-997f-2cc0a4e691d2	1	2020-09-04 13:31:42.596853	CREATE		
+3163	f8528587-eeb2-11ea-997f-2cc0a4e691d2	1	2020-09-17 12:49:37.514881	MODIFY		
+3164	f8528587-eeb2-11ea-997f-2cc0a4e691d2	1	2020-09-17 12:49:47.915987	PROMOTE		
+3165	f8528587-eeb2-11ea-997f-2cc0a4e691d2	1	2020-09-17 12:52:38.478881	MODIFY		
+3166	f8528587-eeb2-11ea-997f-2cc0a4e691d2	1	2020-09-17 12:52:48.385378	PROMOTE		
+3167	f8528587-eeb2-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:56:08.043044	MODIFY		e07f0fe494b84ce0113b4c908dca95bc
+3168	f8528587-eeb2-11ea-997f-2cc0a4e691d2	1	2020-11-11 19:58:13.578929	PROMOTE		dc2fb98dc88dfe7e433dba61496da3fb
+3169	f8528587-eeb2-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:08:37.754998	MODIFY		13cc869c7e41533d5e16b35b966fc19d
+3170	f8528587-eeb2-11ea-997f-2cc0a4e691d2	2	2020-11-19 22:12:26.632978	PROMOTE		ec18363de7214e2b09b1afcd556ca9a0
+3171	f855e284-80dc-11ea-899a-9e8b392bde36	1	2020-04-17 18:55:13.576003	CREATE		
+3172	f855e284-80dc-11ea-899a-9e8b392bde36	1	2020-04-20 18:31:41.823028	MODIFY		
+3173	f855e284-80dc-11ea-899a-9e8b392bde36	4	2020-06-10 17:59:11.758824	PROMOTE		
+3174	f855e284-80dc-11ea-899a-9e8b392bde36	1	2021-03-08 15:21:01.889054	MODIFY		0d4b452bf5a2cf866bc078b7478b5d7c
+3175	f855e284-80dc-11ea-899a-9e8b392bde36	1	2021-03-08 16:21:43.997964	PROMOTE		dff70635ed4c07436f11369b26531742
+3176	f883ba67-f8ef-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:13:33.847614	CREATE		
+3177	f883ba67-f8ef-11ea-aca5-1c2b82b39a01	1	2020-09-17 20:27:31.630437	PROMOTE		
+3178	f883ba67-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:19:02.688187	MODIFY		80eb97a0875006eaf155ae61c1a61d6a
+3179	f883ba67-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-11 20:20:59.591062	PROMOTE		94045c639286073d08d31ab43bad26a4
+3180	f883ba67-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:06:51.572295	MODIFY		25731221b5dd999259eead27909845e2
+3181	f883ba67-f8ef-11ea-aca5-1c2b82b39a01	1	2020-11-19 22:07:29.014101	PROMOTE		7404de97447c68458e16ac392dac6b7d
+3182	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	2	2020-08-07 23:44:44.938366	CREATE		
+3183	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:33:53.836217	MODIFY		
+3184	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2020-08-10 13:34:02.579396	PROMOTE		
+3185	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2020-09-16 22:18:11.731196	MODIFY		
+3186	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2020-09-16 22:18:21.98013	PROMOTE		
+3187	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2020-10-22 14:55:36.300076	MODIFY		96509d3f5f5a7296ee8cb85b6feb3279
+3188	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2020-10-22 14:55:45.007737	PROMOTE		0d7e3c4d31af455488ffcaa2c1b4f7e5
+3262	fe864333-b059-11ec-9421-5a740a103fd6	1	2022-04-13 16:25:58.922777	MODIFY		7b90ab7f0dfa80e0c837ffb7cbbb2d36
+3263	fe864333-b059-11ec-9421-5a740a103fd6	1	2022-04-13 16:28:25.581476	PROMOTE		9914d5a5b08c596590a86b6c3ea28c4a
+3189	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2021-10-04 14:31:22.710546	MODIFY	Name Changed from STS EDU HD Premium 50% off till forbid 2020,Premium removed and promo changed from PEN 141 + RDGT Pending Launch	e34fe0139031663c7ae832e8e7306fdf
+3190	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2021-10-04 14:51:19.648146	MODIFY		c54988d55b22ed7faa2710b681e5dbde
+3191	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2021-10-11 16:04:09.536351	PROMOTE		c8ea9654f17104833535fbc3059a7139
+3192	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2022-01-26 15:29:13.604668	MODIFY	1/25/22 - Retired part of EDU Decom https://docs.google.com/spreadsheets/d/1TiF4on7BEBObF0gRkeyJgHYpg-NOrE_KuTHsO6YAoKY/edit#gid=1153944505	eb5bc84f2e090f41c2e74997441f0b65
+3193	f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	1	2022-01-26 15:32:50.640051	PROMOTE		9fcca0a9393e32f6ab5efeff56f07816
+3194	f8c51f59-28e7-11ea-be1e-9caa769da9c7	9	2019-12-27 20:40:20.178133	MODIFY		
+3195	f8c51f59-28e7-11ea-be1e-9caa769da9c7	10	2019-12-31 19:53:47.334157	MODIFY		
+3196	f8c51f59-28e7-11ea-be1e-9caa769da9c7	10	2019-12-31 19:56:04.846241	MODIFY		
+3197	f8c51f59-28e7-11ea-be1e-9caa769da9c7	10	2019-12-31 19:59:02.207683	MODIFY		
+3198	f8c51f59-28e7-11ea-be1e-9caa769da9c7	1	2021-04-12 21:56:37.83222	PROMOTE		c068b798441d0e6b7b6fc33009e25e25
+3199	f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	1	2020-09-17 14:06:25.747063	CREATE		
+3200	f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	1	2020-09-17 20:26:44.122259	PROMOTE		
+3201	f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	1	2020-10-22 15:37:50.098685	MODIFY		a84526ad8903dccb7d60fd0362e2a1a4
+3202	f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	1	2020-10-22 15:38:01.798051	PROMOTE		a389826629f5c175519fbaa12d20949c
+3203	f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	1	2021-10-04 14:36:01.760235	MODIFY	Name Changed from $20 4wks for 12wks SO-$25 4wks for 8wks FS_+HD Prem WCM,Premium removed and promo changed from PEN 216 + RDGT Pending Launch	894f7ee2a63a99311b5dcee316281374
+3204	f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	1	2021-10-04 14:52:35.227794	MODIFY		3fec70cef08ba44a9daeb6b2d27305f9
+3205	f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	1	2021-10-11 16:02:34.476334	PROMOTE		c622be42d868a9550499a3553cefaf03
+3206	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2020-08-24 16:58:04.11199	CREATE		
+3207	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2020-08-25 16:24:34.130781	PROMOTE		
+3208	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	2	2020-09-21 19:38:56.078731	MODIFY		
+3209	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	2	2020-09-21 19:39:25.703322	PROMOTE		
+3210	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2021-02-12 16:20:54.678979	MODIFY		6e31fe78816dd7281b14dcae3913a880
+3211	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2021-02-12 16:36:49.150495	PROMOTE		dc78bd5cdf0eb1f8c5d69faac725ec6b
+3212	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2021-09-28 16:34:34.94312	MODIFY		60290ac28cce09a82b652838bbfcf7fd
+3213	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2021-09-28 17:27:47.670047	PROMOTE		8736654690ab7788bc0cc04b8462d480
+3214	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2021-10-28 14:51:49.891278	MODIFY	Removed LP Placement per T Searcy - EDU Retirement project (LP phase)	28da87624f316c8667b00396cd24e39b
+3215	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2021-10-28 14:53:59.338299	PROMOTE		c8300d841a9ae1b9ba7824f03ebacc4d
+3216	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2021-11-19 18:06:58.511166	MODIFY	Retired as part of EDU Decom per C Bland	6974bc42788dd557bf3e31475b711abf
+3217	f9bc8bc9-e62a-11ea-aeb8-762344d797b1	1	2021-11-19 18:07:07.424089	PROMOTE		a859db3fb178b7daf1c2aef1ddccda9a
+3218	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2020-11-17 21:08:02.366394	CREATE		50ff3507928221fcbe422867ff4b3f54
+3219	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2020-11-17 21:12:56.760331	PROMOTE		23f7311f28b83612bc7499eac2f1e2f8
+3220	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2020-12-18 17:36:13.226607	MODIFY	This 1 wk free offer should not be retired per DGP 8/2020\n12/20/20 Added Care Placement\n	da5fb86d987c0f419244a8f91c2e0daa
+3221	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2020-12-18 17:40:06.50869	MODIFY	Previous note entered in error - correct notation should be "12/21/20 added Care Placement"	54788d8ebba9c1ca3e3c6204adce7d59
+3222	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2020-12-22 14:38:40.441879	PROMOTE		606e1fa162a35434fe47ff63001bae2d
+3223	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-02-12 16:34:23.157534	MODIFY		a61d978645d045da5a26a9f6e77aa348
+3224	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-02-12 16:35:40.38904	PROMOTE		ec37b254cb14b9162fcb1baac075ed09
+3225	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-02-18 15:46:09.249707	MODIFY		896e46d3a96e4e42227b4b59c50f8ea9
+3226	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-02-18 15:46:54.258016	PROMOTE		dbab5386b8c0e6cc581626fcd7713ac7
+3227	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-04-19 16:02:05.979869	MODIFY		00b32f5c3daa3a8d6954cf414223a773
+3228	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-04-19 16:11:35.262082	PROMOTE		dc70a690d86f8511b243c60ce1e9172c
+3229	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-09-10 15:55:16.419978	MODIFY	Removed LP Placement - Vladimir confirmed via slack not in use	03c79e8eff80ce21e0c6e65648a28a02
+3230	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-09-10 15:55:27.634101	PROMOTE		1bc4b7854913c0a5b69349747d4c03df
+3231	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-09-20 20:51:17.508498	MODIFY	OM-10640	96befff201dba4d3f27ae6da10ba2a1c
+3232	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-09-20 20:52:39.078138	MODIFY	Offer retired per S Wang as part of Games OC review/retirement	b8fa18446514bbbf39d1d6bb416549ff
+3233	fa814cce-2918-11eb-9045-ad3b27c47ff3	1	2021-09-20 20:54:53.565996	PROMOTE		4cc6a122cfec36640a0709f0f7a5def5
+3234	fb92a7ad-88b6-11eb-bb87-85374f6d40e3	1	2021-03-19 13:28:25.105427	CREATE		ea29b57bdf81fde48b73baa24573b19d
+3235	fb92a7ad-88b6-11eb-bb87-85374f6d40e3	1	2021-03-19 13:33:53.845057	MODIFY		0c5e7b3dac2a7905afa1d4f99314c9d4
+3236	fb92a7ad-88b6-11eb-bb87-85374f6d40e3	1	2021-03-19 13:36:19.462587	PROMOTE		5cdce8415f0adafe668eab854b93f308
+3237	fb92a7ad-88b6-11eb-bb87-85374f6d40e3	1	2021-03-24 16:19:11.657399	MODIFY		257d8827c2cf83870f50abbe934a7058
+3238	fb92a7ad-88b6-11eb-bb87-85374f6d40e3	1	2021-03-24 16:19:22.172269	PROMOTE		e41ac4f51d7a076b70ce80f5a62a7427
+3239	fb92a7ad-88b6-11eb-bb87-85374f6d40e3	1	2021-11-09 14:21:56.649388	MODIFY	Retired and Remove audience 119642, 119643 and added to OM-10020 - https://docs.google.com/spreadsheets/d/1vO3hQyb-kjgmUY48IZ0_mE48uNW5RE2inHSTdUkKVL8/edit#gid=1302740657	2f10af894c4d40e3d732b77baf34cb86
+3240	fb92a7ad-88b6-11eb-bb87-85374f6d40e3	1	2021-11-15 14:43:04.888867	MODIFY		eda5846c1e57d4c090093b140fea7fb6
+3241	fb92a7ad-88b6-11eb-bb87-85374f6d40e3	1	2021-11-15 14:46:54.254817	PROMOTE		5bf172187fa469fb83fed46681182ed0
+3242	fbc1d51a-bfba-11eb-93f5-024cda8b295f	1	2021-05-28 13:45:37.353864	CREATE	Created per DGP, Cooking international annual offer - ROW high-conversion markets only	3bbe4d6d94244c93b64a3aec3935f8e7
+3243	fbc1d51a-bfba-11eb-93f5-024cda8b295f	1	2021-05-28 14:04:05.514939	PROMOTE		c2246a1cded584844b0eebbb3d89712f
+3244	fbc1d51a-bfba-11eb-93f5-024cda8b295f	1	2021-11-23 15:40:14.955462	MODIFY		f9907ccb2a6186d3d2f997b101f591ef
+3245	fbc1d51a-bfba-11eb-93f5-024cda8b295f	1	2021-11-23 15:41:16.60083	PROMOTE		6fa3b0f12a2f4d638fde986ed2ed24d6
+3246	fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	2	2020-11-03 14:22:21.322354	CREATE		3f6ef8f5d4f6acd827c33a5cbbaa40c5
+3247	fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	2	2020-11-03 15:54:34.575399	MODIFY		8437b74966b8618c945966f2afb91ef7
+3248	fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	1	2020-11-10 17:57:36.338705	PROMOTE		b7343e07b342ff649ce0d9aaf059aed5
+3249	fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	1	2021-10-04 17:45:55.854822	MODIFY	Premium removed and promo changed from PEN I34 + RDGT Pending Launch	f83ed7d8e76fd150461d6e4df85e1bfb
+3250	fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	1	2021-10-11 16:03:55.28518	PROMOTE		4300e76be237f0512436f592f4f6a66c
+3251	fdc68ddc-f94f-11eb-a943-ad23dd917b98	1	2021-08-09 20:25:52.031733	CREATE		9b7342282f57a6685b75e88ce6c26fec
+3252	fdc68ddc-f94f-11eb-a943-ad23dd917b98	1	2021-08-10 13:42:03.519427	PROMOTE		76aec7043ab49d018ff3f7353df0ede8
+3253	fdc68ddc-f94f-11eb-a943-ad23dd917b98	1	2021-11-23 18:06:18.514905	MODIFY		f17397f39957d353716e5767c0880255
+3254	fdc68ddc-f94f-11eb-a943-ad23dd917b98	1	2021-11-23 18:40:06.174267	PROMOTE		00f6f7f4860c840c5a0bb56c65fc53e7
+3255	fe600d4f-d0e5-11ea-ad31-6380fc00472d	1	2020-07-28 15:21:22.201741	CREATE		
+3256	fe600d4f-d0e5-11ea-ad31-6380fc00472d	1	2020-07-28 18:32:19.916745	PROMOTE		
+3257	fe600d4f-d0e5-11ea-ad31-6380fc00472d	1	2020-09-28 17:11:03.432446	MODIFY		
+3258	fe600d4f-d0e5-11ea-ad31-6380fc00472d	1	2020-09-30 16:00:11.710032	PROMOTE		
+3259	fe864333-b059-11ec-9421-5a740a103fd6	1	2022-03-30 18:48:31.043261	CREATE	https://docs.google.com/spreadsheets/d/1dQy_fDhe5Ihw953cc9NDHyAZebdSpymrpeMB7qKkGuU/edit#gid=1153944505	5e46223fe67a49f2d474f6e4067786c2
+3260	fe864333-b059-11ec-9421-5a740a103fd6	1	2022-03-30 18:59:48.68919	MODIFY		b41be5281c93dc3de11d06193695d6d5
+3261	fe864333-b059-11ec-9421-5a740a103fd6	1	2022-04-11 20:05:22.296354	MODIFY		5af936842bcd8b6ccbdcb165f246d854
+3264	fe864333-b059-11ec-9421-5a740a103fd6	1	2022-04-20 21:44:49.147237	MODIFY	https://docs.google.com/spreadsheets/d/1Og5m0weZ7-1jBnAuI5x3T6tcNZqZ8GmqTxP96oU49Yc/edit#gid=1153944505	6ee6ebfdaf8e6bd65bf74b7b28dc1903
+3265	fe864333-b059-11ec-9421-5a740a103fd6	1	2022-04-20 21:47:26.345742	PROMOTE		2891e3c79af353f4049e39a1681f4c41
+3266	fecb388a-0a35-11ea-906e-925cd985ab3d	1	2019-11-18 19:02:41.249707	CREATE		
+3267	fecb388a-0a35-11ea-906e-925cd985ab3d	1	2020-04-09 20:23:19.920169	MODIFY		
+3268	fecb388a-0a35-11ea-906e-925cd985ab3d	2	2020-04-14 16:10:55.724975	MODIFY		
+3269	fecb388a-0a35-11ea-906e-925cd985ab3d	4	2020-06-10 17:57:07.283353	PROMOTE		
+3270	ff0ad67c-432e-11ec-bf86-3d750e8c1023	2	2021-11-11 20:36:06.809974	CREATE	Requested by Charlotte Gordon to update our INTL gift pricing ahead of the 2021 holidays	d8c936de11375eb4d7620a7cfa2d97bf
+3271	ff0ad67c-432e-11ec-bf86-3d750e8c1023	2	2021-11-11 20:37:18.849004	PROMOTE		2c45ccf28a7e52316fe4ebb1ae6dee7e
+3272	fff7805b-6d95-11ec-9acc-7243aa5b9be8	1	2022-01-04 19:39:15.361266	CREATE	Created for L Sparks for use on LP only.	ecb122b2565ae7cdbec884de119f1083
+3273	fff7805b-6d95-11ec-9acc-7243aa5b9be8	1	2022-01-04 20:21:32.661063	PROMOTE		ece2906312fd15462b8d3441709132c2
+3274	fff7805b-6d95-11ec-9acc-7243aa5b9be8	2	2022-05-24 15:18:29.198697	MODIFY	Evan Zarowitz confirmed this is no longer needed and can be retired https://nytimes.slack.com/archives/C01KCB9QTC4/p1653394864922649	09cb645699886c573dd1186b6b18dc2c
+3275	fff7805b-6d95-11ec-9acc-7243aa5b9be8	2	2022-05-24 15:19:11.291258	PROMOTE		447f23be6c7d674e89287521a5b9d256
+3276	fff7805b-6d95-11ec-9acc-7243aa5b9be8	2	2022-05-24 15:32:25.307554	MODIFY		4bf6f830b2c2b87c78d01be1d1bcba48
+3277	fff7805b-6d95-11ec-9acc-7243aa5b9be8	2	2022-05-24 15:32:43.014674	PROMOTE		bba1f31643b6a573014322a6314faa0d
+3278	c8036ecc-1b72-4cf7-a374-f676311f7811	11	2022-07-14 11:37:19.535522	CREATE	here is a note! wow!	\N
+\.
+
+
+--
+-- Data for Name: offer_segments; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offer_segments (offer_id, action_iq_id) FROM stdin;
+0461584d-af6a-11ec-9421-5a740a103fd6	262953
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	119635
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	119651
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	119661
+052f6daa-0a29-11ea-906e-925cd985ab3d	119683
+1215fdec-a405-11e9-9b37-8232a257eff4	119630
+1215fdec-a405-11e9-9b37-8232a257eff4	119631
+1215fdec-a405-11e9-9b37-8232a257eff4	119634
+1215fdec-a405-11e9-9b37-8232a257eff4	119645
+1215fdec-a405-11e9-9b37-8232a257eff4	119646
+1215fdec-a405-11e9-9b37-8232a257eff4	119650
+1215fdec-a405-11e9-9b37-8232a257eff4	119657
+1215fdec-a405-11e9-9b37-8232a257eff4	119658
+1215fdec-a405-11e9-9b37-8232a257eff4	119660
+1215fdec-a405-11e9-9b37-8232a257eff4	119642
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	999999
+18689d2d-ef0c-11eb-a542-97973f1f4bd8	262952
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217488
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217491
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217469
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217470
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217472
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217489
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217548
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217549
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217551
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217576
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217577
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	217582
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	173523
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217477
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217487
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217492
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217494
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217495
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217466
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217498
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217467
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217500
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217502
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217503
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	217468
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	262952
+247ff222-4785-11ea-bc06-273bd7be5b42	119630
+247ff222-4785-11ea-bc06-273bd7be5b42	119631
+247ff222-4785-11ea-bc06-273bd7be5b42	119634
+247ff222-4785-11ea-bc06-273bd7be5b42	119645
+247ff222-4785-11ea-bc06-273bd7be5b42	119646
+247ff222-4785-11ea-bc06-273bd7be5b42	119650
+247ff222-4785-11ea-bc06-273bd7be5b42	119657
+247ff222-4785-11ea-bc06-273bd7be5b42	119658
+247ff222-4785-11ea-bc06-273bd7be5b42	119660
+247ff222-4785-11ea-bc06-273bd7be5b42	126986
+247ff222-4785-11ea-bc06-273bd7be5b42	126988
+247ff222-4785-11ea-bc06-273bd7be5b42	126993
+247ff222-4785-11ea-bc06-273bd7be5b42	126980
+247ff222-4785-11ea-bc06-273bd7be5b42	126985
+247ff222-4785-11ea-bc06-273bd7be5b42	126995
+247ff222-4785-11ea-bc06-273bd7be5b42	126983
+247ff222-4785-11ea-bc06-273bd7be5b42	126991
+247ff222-4785-11ea-bc06-273bd7be5b42	126996
+247ff222-4785-11ea-bc06-273bd7be5b42	119635
+247ff222-4785-11ea-bc06-273bd7be5b42	119651
+247ff222-4785-11ea-bc06-273bd7be5b42	119661
+247ff222-4785-11ea-bc06-273bd7be5b42	119636
+247ff222-4785-11ea-bc06-273bd7be5b42	119652
+247ff222-4785-11ea-bc06-273bd7be5b42	119662
+247ff222-4785-11ea-bc06-273bd7be5b42	119642
+247ff222-4785-11ea-bc06-273bd7be5b42	119643
+247ff222-4785-11ea-bc06-273bd7be5b42	119638
+247ff222-4785-11ea-bc06-273bd7be5b42	119639
+247ff222-4785-11ea-bc06-273bd7be5b42	119716
+247ff222-4785-11ea-bc06-273bd7be5b42	119724
+247ff222-4785-11ea-bc06-273bd7be5b42	119718
+247ff222-4785-11ea-bc06-273bd7be5b42	119723
+247ff222-4785-11ea-bc06-273bd7be5b42	119725
+247ff222-4785-11ea-bc06-273bd7be5b42	119717
+247ff222-4785-11ea-bc06-273bd7be5b42	262952
+247ff222-4785-11ea-bc06-273bd7be5b42	268352
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	173527
+2a63601e-b856-11e9-b8ef-27f7ec03ccac	127001
+2a63601e-b856-11e9-b8ef-27f7ec03ccac	127005
+2e11e39d-6abd-11e9-8dc5-f7410aee3f10	119635
+2e11e39d-6abd-11e9-8dc5-f7410aee3f10	119651
+2e11e39d-6abd-11e9-8dc5-f7410aee3f10	119661
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	173540
+3159074c-1de0-11eb-9a88-1e812b8dd455	173519
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130368
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130378
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130400
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130414
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130369
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130370
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130375
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130376
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130379
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130380
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130382
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130383
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130401
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130402
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130404
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130405
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130416
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130418
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130420
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130421
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130386
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130393
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	130408
+436dd75e-1b7b-11ea-8a1a-54900ccd666e	124408
+4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	124421
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	130384
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	130391
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	130406
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	130422
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	130423
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	130424
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	173535
+590d51cf-b05a-11ec-9421-5a740a103fd6	262953
+5a565718-3edc-11ea-8bf8-f059e0f9b984	124397
+5a565718-3edc-11ea-8bf8-f059e0f9b984	124406
+5a565718-3edc-11ea-8bf8-f059e0f9b984	124408
+5a565718-3edc-11ea-8bf8-f059e0f9b984	124411
+5a565718-3edc-11ea-8bf8-f059e0f9b984	124418
+5a565718-3edc-11ea-8bf8-f059e0f9b984	124421
+5a565718-3edc-11ea-8bf8-f059e0f9b984	124422
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	217488
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	217490
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	217491
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	217469
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	217470
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	217471
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	217472
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	173520
+60e1d710-1ddf-11eb-b628-125d5786ccee	173532
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	173530
+66a28488-80dc-11ea-899a-9e8b392bde36	130375
+66a28488-80dc-11ea-899a-9e8b392bde36	130376
+66a28488-80dc-11ea-899a-9e8b392bde36	130382
+66a28488-80dc-11ea-899a-9e8b392bde36	130383
+66a28488-80dc-11ea-899a-9e8b392bde36	130389
+66a28488-80dc-11ea-899a-9e8b392bde36	130390
+66a28488-80dc-11ea-899a-9e8b392bde36	130396
+66a28488-80dc-11ea-899a-9e8b392bde36	130397
+66a28488-80dc-11ea-899a-9e8b392bde36	130404
+66a28488-80dc-11ea-899a-9e8b392bde36	130405
+66a28488-80dc-11ea-899a-9e8b392bde36	130411
+66a28488-80dc-11ea-899a-9e8b392bde36	130412
+66a28488-80dc-11ea-899a-9e8b392bde36	130420
+66a28488-80dc-11ea-899a-9e8b392bde36	130421
+66a28488-80dc-11ea-899a-9e8b392bde36	262952
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217479
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217505
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217531
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217532
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217533
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217534
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217538
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217540
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217545
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217549
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217554
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217556
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217557
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217558
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217563
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217568
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217570
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217572
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217574
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217576
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217577
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217580
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217582
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217555
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217560
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217561
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217564
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217569
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	217565
+74cf5b85-b056-11ec-b67a-4e702bf88b98	262953
+750d6814-1dec-11eb-93fa-e4ace959c4d0	173536
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129995
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129999
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130005
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130017
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130020
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130025
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129983
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129980
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129981
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129998
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130002
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130003
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130019
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130023
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130027
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129987
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129982
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130008
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130009
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130011
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130010
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130014
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130015
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130029
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130030
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130032
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130033
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130035
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130036
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129989
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129990
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119731
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119735
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119764
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119768
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119773
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119730
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119734
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119763
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119767
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119772
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129984
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129986
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129996
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	129997
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130000
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130001
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130006
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130018
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130021
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130022
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	130026
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119775
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119729
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119733
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119762
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119766
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	119770
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	262952
+7b461697-1b7c-11ea-8a1a-54900ccd666e	124422
+8210708c-b059-11ec-9421-5a740a103fd6	262953
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	173390
+89b0b3e7-b055-11ec-960d-f6a5017568cc	262953
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	173528
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217473
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217474
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217475
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217476
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217478
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217480
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217481
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217482
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217483
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217484
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217485
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217486
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217489
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217504
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217506
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217507
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217508
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217536
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217542
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217546
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217548
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217550
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217551
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217493
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217496
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217497
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217499
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	217501
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	217490
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	217471
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	217550
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	217580
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	262952
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	173522
+97499a49-b057-11ec-960d-f6a5017568cc	262953
+9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	124418
+9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	124421
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	173526
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	173539
+ad96f259-b059-11ec-b67a-4e702bf88b98	262953
+b4ab70bb-b055-11ec-9421-5a740a103fd6	262953
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	173531
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	173396
+b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	124411
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	173533
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	124397
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	124411
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	124422
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	124418
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	124421
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	126986
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	126988
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	126993
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	152968
+bc758b50-1b7b-11ea-8a1a-54900ccd666e	152967
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130367
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130377
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130385
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130392
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130398
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130407
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130413
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130423
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130424
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130425
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130386
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130387
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130389
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130390
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130393
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130394
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130396
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130397
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130408
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130409
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130411
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130412
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130369
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130379
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130416
+be261562-7fe4-11ea-b471-6dc5734f4dbe	130401
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	130004
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	130016
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	130024
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	129979
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	262952
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	124397
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	124411
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	124418
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	124421
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	124422
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	152967
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	152968
+d8bf6c5b-0a37-11ea-906e-925cd985ab3d	127010
+da06f835-1ddb-11eb-95b8-b4165a586460	173394
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217477
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217487
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217492
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217494
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217495
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217466
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217498
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217467
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217500
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217502
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217503
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217468
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217473
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217474
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217475
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217476
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217478
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217479
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217480
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217481
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217482
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217483
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217484
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217485
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217486
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217504
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217505
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217506
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217507
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217508
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217531
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217532
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217533
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217534
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217536
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217538
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217540
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217542
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217545
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217546
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217554
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217555
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217556
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217557
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217558
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217560
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217561
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217563
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217564
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217565
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217568
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217569
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217570
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217572
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217574
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217493
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217496
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217497
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217499
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	217501
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	262952
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	124406
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	124408
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	126983
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	126991
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	126996
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	126986
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	126988
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	126993
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	262952
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	268353
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	173529
+e9a18630-1b7b-11ea-8a1a-54900ccd666e	152968
+ea9d77f9-a401-11e9-b054-57354076a64c	119636
+ea9d77f9-a401-11e9-b054-57354076a64c	119652
+ea9d77f9-a401-11e9-b054-57354076a64c	119662
+ea9d77f9-a401-11e9-b054-57354076a64c	119681
+ed1e0b41-1dde-11eb-95b8-b4165a586460	173395
+ef2515ab-eec5-11ea-997f-2cc0a4e691d2	152968
+f73d506d-b853-11e9-b8ef-27f7ec03ccac	126999
+f73d506d-b853-11e9-b8ef-27f7ec03ccac	127002
+f73d506d-b853-11e9-b8ef-27f7ec03ccac	127006
+f75b12db-0a27-11ea-906e-925cd985ab3d	127005
+f855e284-80dc-11ea-899a-9e8b392bde36	130370
+f855e284-80dc-11ea-899a-9e8b392bde36	130380
+f855e284-80dc-11ea-899a-9e8b392bde36	130387
+f855e284-80dc-11ea-899a-9e8b392bde36	130394
+f855e284-80dc-11ea-899a-9e8b392bde36	130402
+f855e284-80dc-11ea-899a-9e8b392bde36	130409
+f855e284-80dc-11ea-899a-9e8b392bde36	130418
+f855e284-80dc-11ea-899a-9e8b392bde36	130425
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	12345 add here
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	second segemnt
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	third segment
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	173534
+fe864333-b059-11ec-9421-5a740a103fd6	262953
+c8036ecc-1b72-4cf7-a374-f676311f7811	123
+c8036ecc-1b72-4cf7-a374-f676311f7811	456
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	123
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	456
+\.
+
+
+--
+-- Data for Name: offer_sub_types; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offer_sub_types (offer_id, sub_type) FROM stdin;
+029007c6-5762-11eb-9147-c71d2095ad3f	LARGE_PRINT
+033d3303-de4b-11ea-a319-6320d3f2fb09	GIFT
+0461584d-af6a-11ec-9421-5a740a103fd6	ATHLETIC
+0fd8cf46-d029-11ea-a072-340cee6a52b6	REFERRAL
+0fd8cf46-d029-11ea-a072-340cee6a52b6	UPSELL
+1281e5fc-d028-11ea-a072-340cee6a52b6	REFERRAL
+1281e5fc-d028-11ea-a072-340cee6a52b6	UPSELL
+14269461-d8c7-11ea-96df-09ccd10d7717	MAIL_SUBSCRIPTION
+24b7de5a-5762-11eb-8740-dfb6b15824e5	LARGE_PRINT
+2657293f-ebd2-11ea-933b-690094bd8ad3	REFERRAL
+2712ea42-dc00-11ea-9596-859e83a0873f	GIFT
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	PREMIUM
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	LARGE_PRINT
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	PREMIUM
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	GIFT
+2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	UPSELL
+328b82cd-0286-11eb-b789-fd537ec536af	PREMIUM
+34b69151-3966-11eb-9995-5fa4d68055de	GIFT
+38ac9cd3-d028-11ea-a072-340cee6a52b6	REFERRAL
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	MAIL_SUBSCRIPTION
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	PREMIUM
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	GIFT
+46b99aab-d8c4-11ea-96df-09ccd10d7717	PREMIUM
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	MAIL_SUBSCRIPTION
+4e479351-de4a-11ea-a319-6320d3f2fb09	GIFT
+5122dd81-dc02-11ea-9596-859e83a0873f	GIFT
+590d51cf-b05a-11ec-9421-5a740a103fd6	ATHLETIC
+5c0dcc5d-432f-11ec-acc7-73e898f2ac94	GIFT
+5c293251-dbff-11ea-9596-859e83a0873f	GIFT
+5c2fef60-e881-11ea-bee3-410e24c0cdb9	REFERRAL
+667dfeb9-dc00-11ea-9596-859e83a0873f	GIFT
+6755354e-dbf0-11ea-899e-ed02528c3365	GIFT
+6929d115-3962-11eb-8781-6119ce7d1b1e	GIFT
+6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	GIFT
+6d6821b7-d0d0-11ea-ad31-6380fc00472d	GIFT
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	GIFT
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	PREMIUM
+6f165148-dc01-11ea-9596-859e83a0873f	GIFT
+71e35717-5520-11eb-a9bd-2a1463bca0c4	BOOK_REVIEW
+74cf5b85-b056-11ec-b67a-4e702bf88b98	ATHLETIC
+767f9555-e0a4-11ea-8339-305368a984f6	UPSELL
+76bfc608-432e-11ec-bf86-3d750e8c1023	GIFT
+79878181-d908-11ea-94d3-9a1933fc44f2	PREMIUM
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	REFERRAL
+79f8db95-3964-11eb-bf58-da4ba1647a90	GIFT
+7f741ea3-dbff-11ea-9596-859e83a0873f	GIFT
+8210708c-b059-11ec-9421-5a740a103fd6	ATHLETIC
+866243b1-d8c3-11ea-96df-09ccd10d7717	PREMIUM
+866243b1-d8c3-11ea-96df-09ccd10d7717	GIFT
+869e33f2-dc00-11ea-9596-859e83a0873f	GIFT
+879f3c2f-d90b-11ea-94d3-9a1933fc44f2	BOOK_REVIEW
+89b0b3e7-b055-11ec-960d-f6a5017568cc	ATHLETIC
+91ad7778-dc01-11ea-9596-859e83a0873f	GIFT
+9267744b-dc02-11ea-9596-859e83a0873f	GIFT
+948e7ade-de4d-11ea-a319-6320d3f2fb09	GIFT
+97499a49-b057-11ec-960d-f6a5017568cc	ATHLETIC
+97cc2802-dbf1-11ea-899e-ed02528c3365	GIFT
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	PREMIUM
+9c03eeab-de4a-11ea-a319-6320d3f2fb09	GIFT
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	BOOK_REVIEW
+a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	UPSELL
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	MAIL_SUBSCRIPTION
+ad86d341-d8c4-11ea-96df-09ccd10d7717	PREMIUM
+ad96f259-b059-11ec-b67a-4e702bf88b98	ATHLETIC
+b188c2a2-de54-11ea-b5d0-ab6d8c68419e	GIFT
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	PREMIUM
+b4ab70bb-b055-11ec-9421-5a740a103fd6	ATHLETIC
+b7370271-dbff-11ea-9596-859e83a0873f	GIFT
+be9adb2f-027f-11eb-9124-925109a1a627	GIFT
+c23f4ec4-988e-11eb-8c98-100c795c8520	GIFT
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	REFERRAL
+c3e7bccf-de4a-11ea-a319-6320d3f2fb09	GIFT
+ca4c371c-db29-11ea-9d62-7a958c5d7319	GIFT
+d030caac-3965-11eb-bf58-da4ba1647a90	GIFT
+d22818b8-dc00-11ea-9596-859e83a0873f	GIFT
+d2615176-dc02-11ea-9596-859e83a0873f	GIFT
+d6880dc7-de49-11ea-a319-6320d3f2fb09	GIFT
+ddb07933-3964-11eb-bf58-da4ba1647a90	GIFT
+e0aa30ad-d027-11ea-a072-340cee6a52b6	REFERRAL
+e0aa30ad-d027-11ea-a072-340cee6a52b6	UPSELL
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	PREMIUM
+e3743132-e219-11ea-bd88-1c23e3dcaa84	UPSELL
+ea737858-d908-11ea-94d3-9a1933fc44f2	PREMIUM
+ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	UPSELL
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	LARGE_PRINT
+fe864333-b059-11ec-9421-5a740a103fd6	ATHLETIC
+ff0ad67c-432e-11ec-bf86-3d750e8c1023	GIFT
+c8036ecc-1b72-4cf7-a374-f676311f7811	PREMIUM
+c8036ecc-1b72-4cf7-a374-f676311f7811	BACK_COPY
+c8036ecc-1b72-4cf7-a374-f676311f7811	GIFT
+c8036ecc-1b72-4cf7-a374-f676311f7811	REFERRAL
+c8036ecc-1b72-4cf7-a374-f676311f7811	MESSAGE
+c8036ecc-1b72-4cf7-a374-f676311f7811	MAIL_SUBSCRIPTION
+c8036ecc-1b72-4cf7-a374-f676311f7811	IHT
+c8036ecc-1b72-4cf7-a374-f676311f7811	IHD
+c8036ecc-1b72-4cf7-a374-f676311f7811	BOOK_REVIEW
+c8036ecc-1b72-4cf7-a374-f676311f7811	LARGE_PRINT
+c8036ecc-1b72-4cf7-a374-f676311f7811	UPSELL
+c8036ecc-1b72-4cf7-a374-f676311f7811	BAU
+c8036ecc-1b72-4cf7-a374-f676311f7811	ATHLETIC
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	PREMIUM
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	BACK_COPY
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	GIFT
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	REFERRAL
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	MESSAGE
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	MAIL_SUBSCRIPTION
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	IHT
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	IHD
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	BOOK_REVIEW
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	LARGE_PRINT
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	UPSELL
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	BAU
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	ATHLETIC
+\.
+
+
+--
+-- Data for Name: offers; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offers (id, short_id, type, name, status, chain_id, promo_id, billing_frequency_in_weeks, expiring, start_date, end_date, version) FROM stdin;
+029007c6-5762-11eb-9147-c71d2095ad3f	OM-10708	HD	Large Print - 15% off 26 weeks	ACTIVE	\N	E15	26	t	2021-01-15 06:00:00	2022-12-31 06:00:00	0.0.4
+033d3303-de4b-11ea-a319-6320d3f2fb09	OM-10365	DIGITAL	Basic Digital Access Gift $25.00 USD For 3 Months	ACTIVE	20000194440	\N	\N	f	2020-08-14 05:00:00	\N	0.0.4
+034a69ad-d0d7-11ea-ad31-6380fc00472d	OM-10201	DIGITAL	Basic Digital Access 1 Week Free $1.00 USD Every 4 Weeks For 52 Weeks $2.00 Per Week Thereafter International Only WCM	ACTIVE	20000221680	\N	\N	f	2020-07-28 05:00:00	\N	0.0.4
+03552c9c-55d7-11eb-ae62-ee80a113c273	OM-10707	DIGITAL	Games $40.00 USD Per Year - Global	ACTIVE	20000227680	\N	\N	f	2021-01-13 06:00:00	\N	0.0.4
+0461584d-af6a-11ec-9421-5a740a103fd6	OM-10795	DIGITAL	Basic $1 USD week for 52 weeks, then $4.25 week with Athletic	ACTIVE	20000216880	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+048d3b39-f8f1-11ea-aca5-1c2b82b39a01	OM-10574	HD	HD Premium 50% off for 26 weeks RC2 2020 11	EXPIRED	\N	w36	26	t	2020-09-17 05:00:00	2020-11-18 06:00:00	0.0.4
+04d08681-cda9-11ea-b464-e4d44f10848e	OM-10126	DIGITAL	EDU Basic Digital Access $1.00 Per Week Non-Verify	EXPIRED	20000137220	\N	\N	t	2020-07-24 05:00:00	2021-11-19 16:33:40.955	0.0.4
+04d70792-b856-11e9-b8ef-27f7ec03ccac	OM-10007	DIGITAL	EDU Student Bundle X 12 Weeks Free then $1 USD Per Week Thereafter	ACTIVE	20000181620	\N	\N	t	2019-08-05 05:00:00	2022-01-25 15:24:42.066	0.0.4
+05174641-48fe-11ea-bb45-b6d1d9c3f1b9	OM-10008	DIGITAL	Basic Digital Access $2 week for 52 weeks then $4.25 week	WITHDRAWN	20000216860	\N	\N	t	2020-02-06 06:00:00	2020-02-29 14:17:38.51	0.0.4
+052f6daa-0a29-11ea-906e-925cd985ab3d	OM-10009	DIGITAL	Basic Digital Access $7.50 Every 4 Weeks For 52 Weeks; $3.00 Per Week Thereafter OLC	ACTIVE	20000094080	\N	\N	f	2019-11-18 05:00:00	\N	0.0.4
+059f1452-d0ed-11ea-ad31-6380fc00472d	OM-10225	DIGITAL	Basic Digital Access 4 Weeks Free $3.75 per week Thereafter WCM	EXPIRED	20000106840	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+05e63469-d036-11ea-a072-340cee6a52b6	OM-10158	DIGITAL	EDU Basic Digital Access $1 per week - Verify	EXPIRED	20000038860	\N	\N	t	2020-07-27 05:00:00	2021-11-19 15:05:04.713	0.0.4
+06d93d03-d039-11ea-aff7-6ff2a1213fc4	OM-10161	DIGITAL	EDU Basic Digital $30.00 Per Year WCM	EXPIRED	20000188420	\N	\N	t	2020-07-27 05:00:00	2020-11-08 15:46:27.76	0.0.4
+08016838-0a34-11ea-906e-925cd985ab3d	OM-10010	DIGITAL	EDU Basic Digital $1.00 Per Week-verify OLC	ACTIVE	20000139620	\N	\N	t	2019-11-18 06:00:00	2021-11-14 14:41:33.699	0.0.4
+0967ccde-f6b4-11ea-86ee-6b82e87912c1	OM-10563	DIGITAL	All Access 50% off for 52 Weeks; $6.25  week thereafter	EXPIRED	20000056020	\N	\N	t	2020-09-14 05:00:00	2020-11-08 15:58:17.487	0.0.4
+099edc98-0a35-11ea-906e-925cd985ab3d	OM-10011	DIGITAL	Basic Digital Access $104.00 For 52 Weeks; $3.75 Per Week Thereafter 	ACTIVE	20000213660	\N	\N	t	2019-11-18 06:00:00	2021-03-19 05:00:00	0.0.4
+0a3ff9f6-e940-11ea-873f-74f46cae88b8	OM-10463	DIGITAL	All Access  $16.99 Per Month For 12 Months; $26.99 Per Month After - Domestic Only	EXPIRED	20000150460	\N	\N	t	2020-08-28 05:00:00	2020-09-18 15:06:55.803	0.0.4
+0aa6b64a-b1c5-11ec-b67a-4e702bf88b98	OM-10804	DIGITAL	x-Test Offer for QA using UUID	EXPIRED	20000244860	\N	\N	t	2022-04-01 05:00:00	2022-04-18 18:46:08.225	0.0.4
+0d40a8da-ee27-11ea-8a86-0bd413f6e205	OM-10517	HD	HD Premium 50% off for 16 weeks RC2 2020 15	EXPIRED	\N	t40	26	t	2020-09-03 04:00:00	2020-11-18 05:00:00	0.0.4
+0da629fc-bfbc-11eb-8a2c-97ac9d3345e4	OM-10734	DIGITAL	Cooking $0.75 USD Per Week International Only	ACTIVE	20000234140	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+0fd0fb67-cdae-11ea-b464-e4d44f10848e	OM-10139	DIGITAL	INYT Max ADA Plus $17.50 Every 4 Weeks for 52 Weeks, then $8.75 Week Thereafter WCM	EXPIRED	20000158040	\N	\N	t	2020-07-24 05:00:00	2020-11-08 15:40:01.41	0.0.4
+0fd8cf46-d029-11ea-a072-340cee6a52b6	OM-10153	DIGITAL	Basic Digital Access $1 USD week for 52 weeks, then $4.25 week WCM	ACTIVE	20000216880	\N	\N	f	2020-07-27 05:00:00	\N	0.0.4
+107ef951-a403-11e9-b054-57354076a64c	OM-10013	DIGITAL	ADA/CW/CK $6.25 per week	WITHDRAWN	20000168820	\N	\N	t	2019-07-15 05:00:00	2020-02-14 21:33:40.943	0.0.4
+120ad7dc-cda8-11ea-b464-e4d44f10848e	OM-10121	DIGITAL	Games $19.97 USD per year - half price	ACTIVE	3901002789	\N	\N	f	2020-07-24 05:00:00	\N	0.0.4
+1215fdec-a405-11e9-9b37-8232a257eff4	OM-10014	DIGITAL	Basic $1 week for 52 weeks, then $3.75 week	WITHDRAWN	20000188820	\N	\N	t	2019-07-15 05:00:00	2020-02-28 20:19:37.053	0.0.4
+1281e5fc-d028-11ea-a072-340cee6a52b6	OM-10149	DIGITAL	INTL Basic $.50 USD week for 52 weeks then $2.00 per week After (except AU and CA)	ACTIVE	20000215740	\N	\N	f	2020-07-27 05:00:00	\N	0.0.4
+1397b922-bfb9-11eb-b23b-9ac57c61bc8b	OM-10727	DIGITAL	Games $0.38 USD Per Week Till Forbid	ACTIVE	20000234480	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+14269461-d8c7-11ea-96df-09ccd10d7717	OM-10254	HD	Mail Subscription - 50% off 16 wks	ACTIVE	\N	msc	26	t	2020-08-07 05:00:00	2022-12-31 06:00:00	0.0.4
+14d76c02-e641-11ea-88ad-572ccad7258d	OM-10401	DIGITAL	All Access Plus $8.00 Every 4 Weeks For 52 Weeks; $4.00 Per Week Thereafter International Only	ACTIVE	20000217280	\N	\N	f	2020-08-24 19:36:07.04	\N	0.0.4
+15e8baa0-cac0-11ea-8f53-5e33337a53ad	OM-10117	DIGITAL	All Access Plus $2 week For 52 Weeks; $4.00 Per Week Thereafter International Only	EXPIRED	20000170880	\N	\N	t	2020-07-20 05:00:00	2020-11-08 15:44:43.933	0.0.4
+16106c3e-ebd9-11ea-a5d4-0e3f852a5fd7	OM-10505	DIGITAL	Basic Digital Access $143.00 every 52 weeks	EXPIRED	20000050400	\N	\N	t	2020-08-31 05:00:00	2020-11-08 15:56:46.952	0.0.4
+170876ee-a9f3-11ec-b2de-ce44c8f6c5cb	OM-10787	DIGITAL	ADA_no_shares - $5.00 Every 4 Weeks For 28 Weeks; $6.25 Per Week Thereafter	ACTIVE	20000244600	\N	\N	t	2022-03-22 05:00:00	2022-12-31 06:00:00	0.0.4
+17d52cd7-3401-11eb-8ef0-0f1ed1f5f624	OM-10659	HD	HD 50% off for 24 weeks RC2 2020	ACTIVE	\N	H85	26	t	2020-12-01 06:00:00	2022-12-31 06:00:00	0.0.4
+1836d5c0-aa0b-11ec-8de1-96d53f801633	OM-10789	DIGITAL	ADA_no_shares - $6.00 Every 4 Weeks For 28 Weeks; $6.25 Per Week Thereafter	ACTIVE	20000244580	\N	\N	t	2022-03-22 05:00:00	2022-12-31 06:00:00	0.0.4
+18689d2d-ef0c-11eb-a542-97973f1f4bd8	OM-10747	DIGITAL	Cooking - $1.50 USD Every 4 Weeks For 52 Weeks; $1.25 Per Week Thereafter 	ACTIVE	20000236880	\N	\N	f	2021-07-27 05:00:00	\N	0.0.4
+1904c3a1-324d-11ea-a70d-8a8989bb29aa	OM-10015	DIGITAL	Games $14.95 for 1 Year; $19.97 per year thereafter	ACTIVE	20000192440	\N	\N	f	2020-01-08 06:00:00	\N	0.0.4
+1998e1a2-f94f-11eb-a9f2-1f89fd02e93c	OM-10749	DIGITAL	Cooking  $2.50 USD Every 4 Weeks For 52 Weeks; $5.00 Every 4 Weeks Thereafter 	ACTIVE	20000237660	\N	\N	f	2021-08-09 05:00:00	\N	0.0.4
+19d7ed68-eeb5-11ea-997f-2cc0a4e691d2	OM-10524	HD	HD Premium 50% off for 16 weeks RC2 2020 10	EXPIRED	\N	T35	26	t	2020-09-04 04:00:00	2020-11-18 05:00:00	0.0.4
+1a55c799-0a2a-11ea-906e-925cd985ab3d	OM-10016	DIGITAL	Basic Digital Access INYT $7.50 Every 4 Weeks For 52 Weeks; $3.00 Per Week Thereafter	WITHDRAWN	20000124420	\N	\N	t	2019-11-18 06:00:00	2020-04-20 18:29:11.067	0.0.4
+1a81898a-d0e2-11ea-ad31-6380fc00472d	OM-10209	DIGITAL	Basic Digital Access $2.00 USD Every 30 Days For 12 Cycles $8.00 Every 30 Days Thereafter International Only 	ACTIVE	20000224480	\N	\N	t	2020-07-28 05:00:00	2099-12-31 06:00:00	0.0.4
+1c3ce98c-1b7c-11ea-8a1a-54900ccd666e	OM-10018	DIGITAL	All Digital Access $19.50 USD Every 4 Weeks For 52 Weeks; $9.75 USD Per Week Thereafter	ACTIVE	20000218540	\N	\N	f	2020-01-28 06:00:00	\N	0.0.4
+1ccd6e06-f9f5-11eb-a8d7-c491e9cc8136	OM-10758	DIGITAL	Games $20.00 USD For 52 Weeks; $40 Every 52 Weeks Thereafter STS-EUI	ACTIVE	20000237280	\N	\N	f	2021-08-09 05:00:00	\N	0.0.4
+1e31efb3-1e1b-11eb-976d-a9b2b6c9dc03	OM-10633	HD	HDPI STS 50% Off 24 weeks Group H	ACTIVE	\N	H87	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+1fc731ee-2919-11eb-888e-7775a2a63ef9	OM-10641	DIGITAL	Games $39.95 USD Per Year Domestic Only	ACTIVE	20000222080	\N	\N	f	2020-11-17 06:00:00	\N	0.0.4
+1ff95d0a-f9e6-11eb-a9f2-1f89fd02e93c	OM-10753	DIGITAL	Cooking $2.50 USD Every 4 Wks For 52 Wks; $1.25 Per Wk after STS/EUI	ACTIVE	20000200860	\N	\N	f	2021-08-10 05:00:00	\N	0.0.4
+203cc375-a94e-11ec-b2de-ce44c8f6c5cb	OM-10784	DIGITAL	ADA_no_shares - $12.00 Every 4 Weeks For 28 Weeks; $6.25 Per Week Thereafter Domestic Only	ACTIVE	20000244500	\N	\N	t	2022-03-21 05:00:00	2022-12-31 06:00:00	0.0.4
+2051e481-d0ea-11ea-ad31-6380fc00472d	OM-10221	DIGITAL	EDU All Digital Access $1.50 USD Per Week - Verify	EXPIRED	20000103640	\N	\N	t	2020-07-28 05:00:00	2022-01-25 15:09:43.046	0.0.4
+209a4678-bf11-11eb-93f5-024cda8b295f	OM-10725	DIGITAL	Games $2.50 USD For 4 Weeks then $1.25 Per Week Thereafter STS 	ACTIVE	20000234460	\N	\N	f	2021-05-27 05:00:00	\N	0.0.4
+20cd6443-73cc-11ec-bda8-ded6ac6ccfbe	OM-10774	DIGITAL	Cooking $1.00 Every 4 Weeks For 52 Weeks; $2.00 Every 4 Weeks Thereafter International Only	ACTIVE	20000243320	\N	\N	f	2022-01-12 06:00:00	\N	0.0.4
+2240d7ed-7e7d-11ea-aba8-ebb789216ef1	OM-10019	DIGITAL	XPASS / $3.00 Every 4 Weeks For 52 Weeks; $2.00 Per Week Thereafter / OLC 	ACTIVE	20000215760	\N	\N	t	2020-04-16 05:00:00	2021-11-14 14:42:35.38	0.0.4
+22a4e2d9-f218-11ea-890e-e07cb89de251	OM-10548	DIGITAL	All Digital Access $12.50 USD Every 4 Weeks For 52 Weeks; $6.25 USD Per Week Thereafter INYT only - Australia GST Pricing	ACTIVE	20000148500	\N	\N	f	2020-09-08 05:00:00	\N	0.0.4
+22df322a-cda9-11ea-b464-e4d44f10848e	OM-10127	DIGITAL	EDU Basic Digital Access $1.88 Per Week Non-Verify	EXPIRED	20000137240	\N	\N	t	2020-07-24 05:00:00	2021-10-28 14:23:11.668	0.0.4
+2314003e-0775-11ec-8cc0-ec7300fce8a8	OM-10759	DIGITAL	Basic Digital Access $10.00 USD For 52 Weeks; $40.00 Every 52 Weeks Thereafter (ROW)	ACTIVE	20000238900	\N	\N	f	2021-08-26 05:00:00	\N	0.0.4
+2396092c-2b71-11eb-9088-e65d3b6c1fba	OM-10650	DIGITAL	All Digital Access $35.00 USD Every 4 Weeks For 52 Weeks; $9.75 USD Per Week Thereafter	ACTIVE	20000218560	\N	\N	f	2020-11-20 06:00:00	\N	0.0.4
+247ff222-4785-11ea-bc06-273bd7be5b42	OM-10020	DIGITAL	Basic $1 USD week for 52 weeks, then $4.25 week OLC	ACTIVE	20000216880	\N	\N	f	2020-02-03 06:00:00	\N	0.0.4
+248bb918-b854-11e9-b8ef-27f7ec03ccac	OM-10021	DIGITAL	EDU Student All Digital Access 12 Weeks Free, Then $1.50 USD Per Week Thereafter	ACTIVE	20000181640	\N	\N	t	2019-08-05 05:00:00	2022-01-25 15:25:12.28	0.0.4
+24b7de5a-5762-11eb-8740-dfb6b15824e5	OM-10709	HD	Large Print - 25% off 26 weeks	ACTIVE	\N	E25	26	t	2021-01-15 06:00:00	2022-12-31 06:00:00	0.0.4
+25a6ee78-d0ec-11ea-ad31-6380fc00472d	OM-10223	DIGITAL	Crosswords - Annual - 1st 30 Days Free WCM	EXPIRED	2123020509	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+2657293f-ebd2-11ea-933b-690094bd8ad3	OM-10498	DIGITAL	Basic Digital Access $4.00 USD Every 4 Weeks For 52 Weeks; $3.75 Per Week Thereafter	ACTIVE	20000188820	\N	\N	f	2020-08-31 05:00:00	\N	0.0.4
+267e1bd6-7e7f-11ea-aba8-ebb789216ef1	OM-10022	DIGITAL	XPASS / $4.00 Every 4 Weeks For 52 Weeks; $2.00 Per Week Thereafter / OLC 2	ACTIVE	20000217260	\N	\N	t	2020-04-15 05:00:00	2021-05-20 14:08:04.429	0.0.4
+2712ea42-dc00-11ea-9596-859e83a0873f	OM-10303	DIGITAL	All Digital Access Gift $30.00 USD For 3 Months International Only	ACTIVE	20000215000	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+27a90e97-bccf-11ec-abcb-b2200e125161	OM-10809	DIGITAL	INTL ADA_no_shares $40.00 USD For 52 Weeks; $1.73 Per Week Thereafter International Only	ACTIVE	20000245740	\N	\N	t	2022-04-15 05:00:00	2022-12-31 06:00:00	0.0.4
+283d8c1b-ccc5-11ec-831a-c27d9c4b082d	OM-10817	DIGITAL	ADA_no_shares $5.00 USD Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter - Domestic only	ACTIVE	20000246100	\N	\N	f	2022-05-05 05:00:00	\N	0.0.4
+289fa8e1-04c0-11eb-84d6-c926cd9b312e	OM-10601	HD	HD Premium 50% off for 26 weeks RC2 2020 15	EXPIRED	\N	W40	26	t	2020-10-02 05:00:00	2020-11-18 06:00:00	0.0.4
+28da0792-2b7b-11eb-a8a3-0715bbac1279	OM-10658	HD	HD 50% off for 24 weeks RC1 2021	ACTIVE	\N	H65	26	t	2020-11-20 06:00:00	2022-12-31 06:00:00	0.0.4
+2942bfe8-1e1c-11eb-8f9b-5fb07105a60c	OM-10635	HD	HDPI STS 50% Off 24 weeks Group J	ACTIVE	\N	H89	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+29470968-cd23-11ea-a987-5cfa3cfcb595	OM-10120	DIGITAL	Cooking $1.25 USD per week - Full Rate	ACTIVE	20000124820	\N	\N	f	2020-07-23 05:00:00	\N	0.0.4
+2a63601e-b856-11e9-b8ef-27f7ec03ccac	OM-10023	DIGITAL	EDU Faculty Bundle X 12 Weeks Free then $1.88 USD Per Week EUI	ACTIVE	20000181660	\N	\N	t	2019-08-05 05:00:00	2022-02-03 20:11:07.392	0.0.4
+2ac880fe-d036-11ea-a072-340cee6a52b6	OM-10159	DIGITAL	All Digital Access $1 USD week For 52 Weeks; $3.00 USD Per Week Thereafter	ACTIVE	20000170860	\N	\N	f	2020-07-27 05:00:00	\N	0.0.4
+2ae71452-50ff-11eb-9f46-5048fd92b8b2	OM-10700	HD	Large Print - Full Rate	ACTIVE	\N	R11	26	t	2021-01-07 06:00:00	2022-12-31 06:00:00	0.0.4
+2bc9a674-1cb1-11ec-bcc7-1ebae4c5ca90	OM-10763	DIGITAL	ADA_no_shares 1 week Free then $4.00 USD Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter 	ACTIVE	20000240460	\N	\N	f	2021-09-23 05:00:00	\N	0.0.4
+2e11e39d-6abd-11e9-8dc5-f7410aee3f10	OM-10024	DIGITAL	Basic $2 per week for 52 weeks, then $3.75 week	WITHDRAWN	20000189620	\N	\N	t	2019-04-29 05:00:00	2020-02-29 20:20:50.519	0.0.4
+2e6f7a10-d907-11ea-94d3-9a1933fc44f2	OM-10270	HD	Gift 50% off 52 wks premium HD 	EXPIRED	\N	401	26	t	2020-08-07 05:00:00	2020-12-09 15:53:17.482	0.0.4
+2f04be5c-e0a4-11ea-a4b9-31505bb83e9d	OM-10378	HD	Upgrade at no cost from Bundle A to SO-WCM	EXPIRED	\N	186	26	t	2020-08-17 05:00:00	2021-12-31 06:00:00	0.0.4
+2f240ecc-d0cb-11ea-ad31-6380fc00472d	OM-10174	DIGITAL	All Access 4 Weeks Free; $6.25 Per Week Thereafter WCM	EXPIRED	20000198060	\N	\N	t	2020-07-28 04:00:00	2020-08-20 04:00:00	0.0.4
+2f61cfb5-cdaa-11ea-b464-e4d44f10848e	OM-10132	DIGITAL	EDU Basic Digital $1.00 Per Week-verify	EXPIRED	20000139620	\N	\N	t	2020-07-24 05:00:00	2021-11-19 17:27:53.664	0.0.4
+2f9948a2-1ded-11eb-93fa-e4ace959c4d0	OM-10632	HD	HDPI STS 50% Off 24 weeks Group U	ACTIVE	\N	Y02	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+308e98dd-cc18-11ea-8798-a88ae0f89479	OM-10118	DIGITAL	All Digital Access Plus $6.25 USD per week	ACTIVE	20000218120	\N	\N	f	2020-07-22 05:00:00	\N	0.0.4
+3159074c-1de0-11eb-9a88-1e812b8dd455	OM-10626	HD	HDPI STS 50% Off 24 weeks Group E	ACTIVE	\N	H84	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+32315eaf-f8f1-11ea-aca5-1c2b82b39a01	OM-10575	HD	HD Premium 50% off for 26 weeks RC2 2020 12	EXPIRED	\N	w37	26	t	2020-09-17 05:00:00	2020-11-18 06:00:00	0.0.4
+328b82cd-0286-11eb-b789-fd537ec536af	OM-10596	HD	$1 wk for 12 weeks HD WCM	ACTIVE	\N	H34	26	t	2020-09-29 05:00:00	2022-12-31 06:00:00	0.0.4
+339ad763-d590-11ea-9001-bc80ca56468d	OM-10238	HD	Acquisition ONLY HD 75%  off for 12/wk, regular rate thereafter	ACTIVE	\N	H56	26	t	2020-08-03 05:00:00	2022-12-31 06:00:00	0.0.4
+34b69151-3966-11eb-9995-5fa4d68055de	OM-10689	HD	Gift 50% off 52 wks Standard HD WCM	ACTIVE	\N	426	26	t	2020-12-08 06:00:00	2022-12-31 06:00:00	0.0.4
+35502ba4-d1a6-11ea-adee-46f743f2255f	OM-10227	DIGITAL	Complimentary All Access 8 weeks - IHD	ACTIVE	485668917	\N	\N	f	2020-07-29 05:00:00	\N	0.0.4
+35a42b17-d0d1-11ea-ad31-6380fc00472d	OM-10192	DIGITAL	Basic Digital Access 4 Weeks Free $2.00 Every 4 Weeks For 52 Weeks $2.00 Per Week Thereafter International Only WCM	EXPIRED	20000215680	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+35f28e96-f8ef-11ea-aca5-1c2b82b39a01	OM-10568	HD	$18 4wks for 12wks SO_HD WCM	ACTIVE	\N	H20	26	t	2020-09-17 05:00:00	2022-12-31 06:00:00	0.0.4
+368c20e0-ebd0-11ea-933b-690094bd8ad3	OM-10497	DIGITAL	EDU All Access $50.00 Per Year Verify	EXPIRED	20000188440	\N	\N	t	2020-08-31 05:00:00	2020-11-08 15:47:48.861	0.0.4
+36fbdf7a-f8f0-11ea-aca5-1c2b82b39a01	OM-10572	HD	HD Premium 50% off for 26 weeks RC2 2020 9	EXPIRED	\N	w34	26	t	2020-09-17 05:00:00	2020-11-18 06:00:00	0.0.4
+37127982-0328-11eb-a043-4ecfbb3db7bb	OM-10598	HD	75%_12wk_HD_2020 WCM	ACTIVE	\N	H56	26	t	2020-09-30 05:00:00	2022-12-31 06:00:00	0.0.4
+3778bf6c-c058-11ea-9fdc-62535fa6b94d	OM-10109	DIGITAL	Complimentary Global Access for Partners	ACTIVE	3957271485	\N	\N	f	2020-07-08 05:00:00	\N	0.0.4
+38ac9cd3-d028-11ea-a072-340cee6a52b6	OM-10150	DIGITAL	Basic Digital Access $3.00 USD Every 4 Weeks For 52 Weeks $2.00 Per Week Thereafter International Only WCM	ACTIVE	20000215760	\N	\N	f	2020-07-27 05:00:00	\N	0.0.4
+38fe6f6b-d1e0-11ea-8e1a-26ceed7cecea	OM-10233	HD	Mail Subscription - 50% off 8 wks	ACTIVE	\N	msa	26	t	2020-07-29 05:00:00	2022-12-31 06:00:00	0.0.4
+3a6ebc75-324c-11ea-b065-caa26301f1d5	OM-10025	DIGITAL	Games $16.95 USD year	ACTIVE	20000091240	\N	\N	f	2020-01-08 06:00:00	\N	0.0.4
+3ac3b21f-dc15-11ea-8b0a-f184c07b53e9	OM-10323	HD	Premium HD for Veterans - 50% off till forbid	EXPIRED	\N	566	26	t	2020-08-11 05:00:00	2021-01-27 06:00:00	0.0.4
+3b385b10-7fe5-11ea-b471-6dc5734f4dbe	OM-10026	DIGITAL	INTL Price Test XPASS $0.75 USD Per Week for 52 Weeks; $2 Per Week Thereafter EUI	ACTIVE	20000215760	\N	\N	f	2020-04-17 05:00:00	\N	0.0.4
+3bca9b12-e975-11eb-b8d5-738bc22ed287	OM-10746	DIGITAL	ADA_no_shares - $1.00 USD Per Week For 52 Weeks; $6.25 Per Week Thereafter	ACTIVE	20000236460	\N	\N	f	2021-07-20 05:00:00	\N	0.0.4
+3c196b87-bf12-11eb-8a2c-97ac9d3345e4	OM-10726	DIGITAL	Cooking $20.00 USD For 52 Weeks; $40.00 Every 52 Weeks Thereafter DOMESTIC ONLY	ACTIVE	20000234060	\N	\N	f	2021-05-26 05:00:00	\N	0.0.4
+3cb5f742-3964-11eb-8781-6119ce7d1b1e	OM-10685	HD	Gift 50% off 13 wks Standard HD WCM	ACTIVE	\N	423	26	t	2020-12-08 06:00:00	2022-12-31 06:00:00	0.0.4
+3dafbc9f-324d-11ea-a70d-8a8989bb29aa	OM-10027	DIGITAL	Games $19.95 for one year; $39.95 per year thereafter	ACTIVE	20000192460	\N	\N	t	2020-01-08 06:00:00	2021-08-10 13:56:18.957	0.0.4
+3e53d189-e0d6-11eb-a95f-d82c366b6d5b	OM-10743	DIGITAL	All Digital Access  $195.00 USD For 1 Year; $225.00 USD Per Year Thereafter	ACTIVE	20000218480	\N	\N	f	2021-07-09 05:00:00	\N	0.0.4
+3e5b7e25-988f-11eb-8c98-100c795c8520	OM-10717	HD	NYT Employee HD 2021	ACTIVE	\N	H76	26	t	2021-04-08 05:00:00	2022-12-31 06:00:00	0.0.4
+3ff386eb-eb98-11ea-8511-474d7bc12993	OM-10487	DIGITAL	All Digital Access $5.00 for 12 Weeks; $6.25 / week thereafter	EXPIRED	20000056100	\N	\N	t	2020-08-31 05:00:00	2020-10-18 13:52:24.978	0.0.4
+42120255-e93b-11ea-873f-74f46cae88b8	OM-10458	DIGITAL	EDU Basic Digital Access $1.50 per week Verify	EXPIRED	20000138440	\N	\N	t	2020-08-28 05:00:00	2021-11-19 16:41:26.111	0.0.4
+42459d57-bfbc-11eb-93f5-024cda8b295f	OM-10735	DIGITAL	All Access $1.00 USD Per Week For 52 Weeks; $3.00 Per Week Thereafter International Only	ACTIVE	20000234580	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+429c0cfd-6d96-11ec-b727-98a0485555b6	OM-10771	DIGITAL	ADA_no_shares / 1 Week Free - PURCHASE	ACTIVE	20000242880	\N	\N	f	2022-01-04 06:00:00	\N	0.0.4
+436dd75e-1b7b-11ea-8a1a-54900ccd666e	OM-10028	DIGITAL	BNDL XPASS / $15.00 USD Every 4 Weeks For 52 Weeks; $4.25 Per Week Thereafter DPI	WITHDRAWN	20000218460	\N	\N	f	2020-01-26 06:00:00	\N	0.0.4
+45200554-2b72-11eb-9e03-1d27ccbcdf62	OM-10655	DIGITAL	EDU Basic Digital Access $1.88 USD week	EXPIRED	20000076820	\N	\N	t	2020-11-20 06:00:00	2022-01-25 15:09:10.443	0.0.4
+45a4681d-b853-11e9-b8ef-27f7ec03ccac	OM-10030	DIGITAL	INYT Basic 4 Weeks Free Then $4 Every 4 Weeks for 12 Months, $8 Every 4 Weeks Thereafter	ACTIVE	20000184420	\N	\N	t	2019-08-06 04:00:00	2020-08-26 14:29:49.968	0.0.4
+46b99aab-d8c4-11ea-96df-09ccd10d7717	OM-10250	HD	HD Premium 50% off for 16 weeks RC1 2020	EXPIRED	\N	410	26	t	2020-08-07 05:00:00	2020-11-20 06:00:00	0.0.4
+47bb3f72-d0eb-11ea-ad31-6380fc00472d	OM-10222	DIGITAL	EDU Facilty All Digital Access 50% Off (Pay $3.13 USD Per Week - Verify Domestic Only)	EXPIRED	20000104020	\N	\N	t	2020-07-28 05:00:00	2022-01-25 15:10:53.352	0.0.4
+4a4ecf27-d90b-11ea-94d3-9a1933fc44f2	OM-10277	HD	Mail Subscription - Full Rate	ACTIVE	\N	R11	26	t	2020-08-07 05:00:00	2022-12-31 06:00:00	0.0.4
+4b4de2d8-1b7c-11ea-8a1a-54900ccd666e	OM-10033	DIGITAL	BNDL MAX_ADA_PLUS_RET / $35.00 USD Every 4 Weeks For 52 Weeks; $9.75 Per Week Thereafter DPI	ACTIVE	20000218560	\N	\N	f	2020-01-27 06:00:00	\N	0.0.4
+4c6cd9dd-d1d9-11ea-b100-0199b90aa60b	OM-10229	DIGITAL	Complimentary Global Access for Employees	ACTIVE	3990783944	\N	\N	f	2020-07-29 05:00:00	\N	0.0.4
+4d3f9dd5-f1dc-11ea-942b-2b10751285b6	OM-10545	HD	HD Premium 50% off for 26 weeks RC2 2020 3	EXPIRED	\N	W28	26	t	2020-09-08 05:00:00	2020-11-18 06:00:00	0.0.4
+4dd2029f-b856-11e9-b8ef-27f7ec03ccac	OM-10034	DIGITAL	EDU Faculty Bundle X 60% Off Till Forbid 	ACTIVE	20000077640	\N	\N	t	2019-08-06 05:00:00	2020-08-04 11:36:03.366	0.0.4
+4e22b692-d0ec-11ea-ad31-6380fc00472d	OM-10224	DIGITAL	All Digital Access full annual rate, $195 per year	EXPIRED	20000104820	\N	\N	t	2020-07-28 05:00:00	2020-11-09 16:09:19.495	0.0.4
+4e479351-de4a-11ea-a319-6320d3f2fb09	OM-10362	DIGITAL	Basic Digital Access free for 1 month-partner WCM	EXPIRED	20000182860	\N	\N	t	2020-08-14 05:00:00	2020-08-21 16:32:49.798	0.0.4
+4f38029a-cda9-11ea-b464-e4d44f10848e	OM-10128	DIGITAL	EDU All Digital Access $3.13 USD per week Non-verify	EXPIRED	20000137620	\N	\N	t	2020-07-24 05:00:00	2021-11-19 16:37:58.574	0.0.4
+500a771c-eeb5-11ea-997f-2cc0a4e691d2	OM-10525	HD	HD Premium 50% off for 16 weeks RC2 2020 11	EXPIRED	\N	T36	26	t	2020-09-04 04:00:00	2020-11-18 05:00:00	0.0.4
+502d8cdb-7fe4-11ea-b471-6dc5734f4dbe	OM-10036	DIGITAL	INTL Price Test XPASS $0.25 USD Per Week For 52 Weeks; $0.50 Per Week Thereafter EUI 	ACTIVE	20000215720	\N	\N	f	2020-04-17 05:00:00	\N	0.0.4
+50ca652f-ef0c-11eb-9f4f-540712121ab7	OM-10748	DIGITAL	Games - $1.50 USD Every 4 Weeks For 52 Weeks; $1.25 Per Week Thereafter	ACTIVE	20000236860	\N	\N	f	2021-07-27 05:00:00	\N	0.0.4
+51108742-1dec-11eb-a6f2-0b1d65fcee1f	OM-10629	HD	HDPI STS 50% Off 24 weeks Group R	ACTIVE	\N	H97	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+5122dd81-dc02-11ea-9596-859e83a0873f	OM-10309	DIGITAL	All Digital Access Gift $40.00 USD For 6 Months International Only Oct 2019	ACTIVE	20000215240	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+515a960e-b854-11e9-b8ef-27f7ec03ccac	OM-10037	DIGITAL	EDU Faculty All Digital Access 12 Weeks Free, Then $3.13 USD Per Week Thereafter	ACTIVE	20000181680	\N	\N	t	2019-08-05 05:00:00	2022-01-25 15:26:09.988	0.0.4
+516bff0a-2919-11eb-a40a-b3af9c52a8f2	OM-10642	DIGITAL	Games $3.47 Every 30 Days Global 	EXPIRED	20000222460	\N	\N	t	2020-11-17 06:00:00	2021-09-20 20:50:06.488	0.0.4
+534a79b9-d0d1-11ea-ad31-6380fc00472d	OM-10193	DIGITAL	Basic Digital Access 4 Weeks Free $3.00 Every 4 Weeks For 52 Weeks $2.00 Per Week Thereafter International Only WCM	EXPIRED	20000215700	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+5387f6fc-d8c5-11ea-96df-09ccd10d7717	OM-10252	HD	Acquisition ONLY HD $1 wk for 12 weeks	ACTIVE	\N	H34	26	t	2020-08-07 05:00:00	2022-12-31 06:00:00	0.0.4
+544c7675-0a37-11ea-906e-925cd985ab3d	OM-10038	DIGITAL	Basic Digital Access $7.99 every 30 days For 12 cycles; $15.99 every 30 days Thereafter	ACTIVE	20000178020	\N	\N	t	2019-11-18 06:00:00	2021-03-19 13:35:47.782	0.0.4
+5552207f-eed8-11ea-8f09-c856356c0be4	OM-10533	DIGITAL	All Access $0.99 for 4 Weeks; $6.25 / week thereafter	EXPIRED	20000056060	\N	\N	t	2020-09-04 05:00:00	2020-10-18 05:00:00	0.0.4
+55a35de4-0a35-11ea-906e-925cd985ab3d	OM-10039	DIGITAL	EDU Basic Digital INYT $0.50 Per Week	ACTIVE	20000207260	\N	\N	t	2019-11-18 06:00:00	2021-11-14 14:42:06.968	0.0.4
+565fb28e-d0e7-11ea-ad31-6380fc00472d	OM-10219	DIGITAL	Crosswords $29.95 Per Year WCM	EXPIRED	20000092020	\N	\N	t	2020-07-28 05:00:00	2020-11-08 06:00:00	0.0.4
+58056667-d0e6-11ea-ad31-6380fc00472d	OM-10217	DIGITAL	EDU All Access 4 Weeks Free $1.50 Per Week Thereafter Verify WCM	EXPIRED	20000077620	\N	\N	t	2020-07-28 04:00:00	2020-08-20 04:00:00	0.0.4
+582565ce-2b71-11eb-a8a3-0715bbac1279	OM-10651	DIGITAL	INTL Price Test AUD, CAD, EUR, GBP $0.50 & INR ₹49 Every Week for 4 Weeks; AUD, CAD $20, EUR, GBP €8, INR ₹260 Every 4 Weeks Thereafter 	ACTIVE	20000217260	\N	\N	f	2020-11-20 20:45:20.911	\N	0.0.4
+58539053-e7c2-11ea-baa4-0cfa41e0bffc	OM-10431	DIGITAL	All Access $10.00 Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter - International Only)	EXPIRED	20000117260	\N	\N	t	2020-08-26 05:00:00	2020-11-08 16:13:26.624	0.0.4
+58838288-eba5-11ea-ad18-35b6d1b87db1	OM-10492	HD	HD Premium 50% off for 16 weeks RC2 2020 1	EXPIRED	\N	t26	26	t	2020-08-31 04:00:00	2020-11-18 05:00:00	0.0.4
+58c3646b-e298-11ec-8877-e2cdefee7572	OM-10819	DIGITAL	ADA_no_shares $65.00 USD For 52 Weeks; $250.00 Every 52 Weeks Thereafter; Domestic Only	ACTIVE	20000246880	\N	\N	f	2022-06-02 05:00:00	\N	0.0.4
+590d51cf-b05a-11ec-9421-5a740a103fd6	OM-10803	DIGITAL	Games $14.95 USD for 1 Year; $19.97 per year thereafter with Athletic	ACTIVE	20000192440	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+5a4a811c-ec81-11ea-a052-cb28611c7be8	OM-10512	HD	HD Premium 50% off for 16 weeks RC2 2020 3	EXPIRED	\N	T28	26	t	2020-09-01 04:00:00	2020-11-18 05:00:00	0.0.4
+5a565718-3edc-11ea-8bf8-f059e0f9b984	OM-10040	DIGITAL	sts_dialogue	ACTIVE	100001	\N	\N	f	2020-01-24 06:00:00	\N	0.0.4
+5b153ea8-f9f4-11eb-9030-5be3d2bfdb94	OM-10757	DIGITAL	Games $2.50 USD For 4 Weeks then $1.25 Per Week Thereafter STS-EUI	ACTIVE	20000234460	\N	\N	f	2021-08-10 05:00:00	\N	0.0.4
+5ba9f5cf-b858-11e9-b8ef-27f7ec03ccac	OM-10041	DIGITAL	EDU Basic  $0.50 USD Per Week; International Only Non-Verify	ACTIVE	20000202060	\N	\N	t	2019-08-06 05:00:00	2022-01-25 15:26:38.933	0.0.4
+5bd51d4c-2b71-11eb-a8a3-0715bbac1279	OM-10652	DIGITAL	EDU Basic Digital 8 Weeks Free, $1 USD Per Week Thereafter	EXPIRED	20000052400	\N	\N	t	2020-11-20 06:00:00	2022-01-25 15:08:31.891	0.0.4
+5c0dcc5d-432f-11ec-acc7-73e898f2ac94	OM-10768	DIGITAL	Basic Digital Access Gift Purchase $25.00 For 52 Weeks International Only	ACTIVE	20000241760	\N	\N	f	2021-11-11 05:00:00	\N	0.0.4
+5c1ab0f6-d909-11ea-94d3-9a1933fc44f2	OM-10274	HD	Acquisition ONLY HD 50% off for 26/wk, regular rate thereafter	ACTIVE	\N	H52	26	t	2020-08-07 05:00:00	2022-12-31 06:00:00	0.0.4
+5c293251-dbff-11ea-9596-859e83a0873f	OM-10300	DIGITAL	Basic Digital Access Gift $40.00 USD For 6 Months Domestic Only, Oct 2019 	ACTIVE	20000214880	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+5c2fef60-e881-11ea-bee3-410e24c0cdb9	OM-10445	DIGITAL	Basic Digital Access  $6.00 USD Every 4 Weeks For 52 Weeks; $3.75 Per Week After	ACTIVE	20000130420	\N	\N	f	2020-08-27 05:00:00	\N	0.0.4
+5c6a9743-aa12-11ec-a49b-769203a1d08a	OM-10790	DIGITAL	ADA_no_shares - Free For 28 Weeks	ACTIVE	20000244520	\N	\N	t	2022-03-22 05:00:00	2022-12-31 06:00:00	0.0.4
+5c6b8d5a-a94e-11ec-84c9-227543ace765	OM-10785	DIGITAL	ADA_no_shares - $8.00 Every 4 Weeks For 28 Weeks; $6.25 Per Week Thereafter Domestic Only	ACTIVE	20000244540	\N	\N	t	2022-03-21 05:00:00	2022-12-31 06:00:00	0.0.4
+5c850a25-e87f-11ea-a5df-5346faa6bcb7	OM-10441	DIGITAL	Basic Digital $7.50 Every 4 Weeks For 52 Weeks then $3.75 Per Week	EXPIRED	20000124420	\N	\N	t	2020-08-27 05:00:00	2020-11-08 15:15:01.021	0.0.4
+5e393ebf-1de0-11eb-8333-f1ad7e205cff	OM-10627	HD	HDPI STS 50% Off 24 weeks Group F	ACTIVE	\N	H85	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+5e9a4d79-324d-11ea-a70d-8a8989bb29aa	OM-10042	DIGITAL	Cooking $2.50 USD Every 4 Wks For 52 Wks; $1.25 Per Wk after	ACTIVE	20000200860	\N	\N	f	2020-01-08 06:00:00	\N	0.0.4
+5f50cdc7-194d-11eb-b57b-b9c0d214283d	OM-10618	DIGITAL	Basic Digital Access full rate $17 USD every 30 days	ACTIVE	20000203280	\N	\N	f	2020-10-28 05:00:00	\N	0.0.4
+604d1be4-ac79-11ec-9421-5a740a103fd6	OM-10793	DIGITAL	INTL ADA_no_shares - $40.00 For 52 Weeks; $75 Every 52 Weeks thereafter International Only	ACTIVE	20000244880	\N	\N	f	2022-03-25 04:00:00	\N	0.0.4
+60e1d710-1ddf-11eb-b628-125d5786ccee	OM-10622	HD	HDPI STS 50% Off 24 weeks Group O	ACTIVE	\N	H94	26	t	2020-11-05 06:00:00	2022-12-30 06:00:00	0.0.4
+62c54692-cdaa-11ea-b464-e4d44f10848e	OM-10133	DIGITAL	Cooking $40 USD per year	ACTIVE	20000140020	\N	\N	f	2020-07-24 05:00:00	\N	0.0.4
+64962017-e7c0-11ea-be14-d34dfa7bd272	OM-10423	DIGITAL	All Access+Spotify $20.00 Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter. For Acquisition Only; Domestic. Existing subs must call Care. Family Share does not include Spotify access.	EXPIRED	20000082020	\N	\N	t	2020-08-26 05:00:00	2020-08-26 05:00:00	0.0.4
+64a6e699-aba6-11ec-bcb5-4233b15e0448	OM-10791	DIGITAL	ADA_no_shares - $30.00 For 52 Weeks; $75.00 every 52 weeks Thereafter International Only	ACTIVE	20000244660	\N	\N	f	2022-03-24 05:00:00	\N	0.0.4
+64bc1a58-d0ed-11ea-ad31-6380fc00472d	OM-10226	DIGITAL	edu_student_4wks_free_then_$1.88wk_ADA-CR_verify WCM	EXPIRED	20000117640	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+65092d9a-1e1d-11eb-abd4-5b3945c01ebf	OM-10638	HD	HDPI STS 50% Off 24 weeks Group M	ACTIVE	\N	H92	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+6521393d-e0b2-11eb-90b6-d4808be41804	OM-10741	HD	HD 50% off for 12 weeks RC2 2020	ACTIVE	\N	Y52	26	t	2021-07-09 05:00:00	2022-12-31 06:00:00	0.0.4
+65828107-5519-11eb-b599-1505d28e525c	OM-10701	DIGITAL	MAX_ADA_CR $2.00 week 52 Weeks; $5.00 Per Week Thereafter - Domestic Only	ACTIVE	20000226960	\N	\N	f	2021-01-12 06:00:00	\N	0.0.4
+6594c1de-d029-11ea-a072-340cee6a52b6	OM-10154	DIGITAL	Games half monthly price, $3.47 every 30 days	EXPIRED	3489152980	\N	\N	t	2020-07-27 05:00:00	2021-09-20 20:53:22.409	0.0.4
+66651496-bfbc-11eb-b23b-9ac57c61bc8b	OM-10736	DIGITAL	All Access $1.25 USD Per Week For 52 Weeks; $3.00 Per Week Thereafter International Only	ACTIVE	20000234560	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+667dfeb9-dc00-11ea-9596-859e83a0873f	OM-10304	DIGITAL	All Digital Access Gift $50.00 USD For 6 Months International Only	ACTIVE	20000215040	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+66a28488-80dc-11ea-899a-9e8b392bde36	OM-10044	DIGITAL	INTL Price Test XPASS $0.50 USD Per Week for 52 Weeks; $2 Per Week Thereafter; INR is ₹260 First 52 wk; ₹520 Thereafter EUI	ACTIVE	20000170820	\N	\N	f	2020-04-19 05:00:00	\N	0.0.4
+66c962e2-de8a-11eb-b49a-35894272850a	OM-10740	DIGITAL	All Access - no_shares / $6.25 USD Per Week	ACTIVE	20000235660	\N	\N	f	2021-07-06 05:00:00	\N	0.0.4
+6755354e-dbf0-11ea-899e-ed02528c3365	OM-10292	DIGITAL	EDU Basic Digital Access Gift $25.00 For 3 Months Global Non-Verify WCM	EXPIRED	20000207120	\N	\N	t	2020-08-11 05:00:00	2020-11-08 16:00:53.588	0.0.4
+69075f1f-619c-11eb-a623-5fbb489147f9	OM-10710	HD	HD Veterans/Active Military 50% off for 52 weeks HD 	ACTIVE	\N	H55	26	t	2021-01-28 06:00:00	2022-12-31 06:00:00	0.0.4
+69278d6c-cdad-11ea-b464-e4d44f10848e	OM-10135	DIGITAL	All Access Plus INYT $17.50 USD Every 4 Weeks For 52 Weeks; $8.75 Per Week Thereafter	ACTIVE	20000149220	\N	\N	f	2020-07-24 05:00:00	\N	0.0.4
+6929d115-3962-11eb-8781-6119ce7d1b1e	OM-10684	HD	HD Gift Non-Premium 50% Off for 13 weeks	ACTIVE	\N	423	26	t	2020-12-08 06:00:00	2022-12-31 06:00:00	0.0.4
+69b57424-9891-11eb-8a0c-b14e9a417941	OM-10719	HD	NYT Retiree HD 2021	ACTIVE	\N	H75	26	t	2021-04-08 05:00:00	2022-12-31 06:00:00	0.0.4
+6b4d3cec-f9e7-11eb-b916-0fe798fea297	OM-10754	DIGITAL	ADA_no_shares $12.00 USD Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter STS/EUI	ACTIVE	20000232060	\N	\N	f	2021-08-10 05:00:00	\N	0.0.4
+6b975ebb-d759-11ea-ace6-6d523f5c0b1c	OM-10247	HD	HD 50% off for 52 weeks	ACTIVE	\N	H55	26	t	2020-08-05 05:00:00	2022-12-31 06:00:00	0.0.4
+6c5e7fb4-cd22-11ea-a987-5cfa3cfcb595	OM-10119	DIGITAL	Games Gift $39.95 USD for 1 year - full rate	ACTIVE	100001	\N	\N	f	2020-07-23 05:00:00	\N	0.0.4
+6c78f773-1b0f-11ec-8a3b-392104367073	OM-10762	HD	test HD - promo change updated	EXPIRED	\N	405	26	t	2021-09-21 05:00:00	2021-10-10 16:04:27.594	0.0.4
+6d6821b7-d0d0-11ea-ad31-6380fc00472d	OM-10189	DIGITAL	EDU Gift Basic Digital Access $143.00 for 52 Weeks	EXPIRED	20000059220	\N	\N	t	2020-07-28 05:00:00	2021-11-19 15:38:04.124	0.0.4
+6dc1a4a1-a1e7-11eb-8d55-f451cc5b8839	OM-10723	DIGITAL	Basic - CA/AUS only - $.50 USD per week For 52 Weeks; $5.00 Per Week Thereafter	ACTIVE	20000232860	\N	\N	f	2021-04-20 05:00:00	\N	0.0.4
+6ea4c546-e337-11eb-ae55-07d21b98ddbc	OM-10744	DIGITAL	Wirecutter $5.00 USD Every 28 Days Till Forbid	ACTIVE	20000236080	\N	\N	f	2021-07-11 05:00:00	\N	0.0.4
+6ef05669-73cc-11ec-bda8-ded6ac6ccfbe	OM-10775	DIGITAL	Cooking $10.00 For 52 Weeks; $20.00 Every 52 Weeks Thereafter 	ACTIVE	20000243300	\N	\N	f	2022-01-12 06:00:00	\N	0.0.4
+6ef2dc42-fe99-11ea-ab6c-3301e5e23406	OM-10584	HD	Gift 50% off 52 wks premium HD WCM	EXPIRED	\N	401	26	t	2020-09-23 05:00:00	2020-12-09 15:54:22.802	0.0.4
+6f165148-dc01-11ea-9596-859e83a0873f	OM-10307	DIGITAL	Basic Digital Access Gift $50.00 USD For 1 Year International Only Oct 2019	ACTIVE	20000215160	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+6f616968-eeb3-11ea-997f-2cc0a4e691d2	OM-10522	HD	HD Premium 50% off for 16 weeks RC2 2020 8	EXPIRED	\N	T33	26	t	2020-09-04 04:00:00	2020-11-18 05:00:00	0.0.4
+7048b896-a94d-11ec-94dd-2e703e69da05	OM-10782	DIGITAL	ADA_no_shares - $20.00 Every 4 Weeks For 28 Weeks; $6.25 Per Week Thereafter Domestic Only	ACTIVE	20000244460	\N	\N	t	2022-03-21 05:00:00	2022-12-31 06:00:00	0.0.4
+7062d9c8-bfb9-11eb-b23b-9ac57c61bc8b	OM-10728	DIGITAL	Games $0.48 USD Per Week International Only	ACTIVE	20000234500	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+70ec00db-e629-11ea-b70c-97aab6e4ac95	OM-10390	DIGITAL	All Access  $195.00 every 52 weeks: Times Insider Discounted PrePaid Annual Rate ($195.00) - Yearly Billing (For AB Testing use only)	EXPIRED	20000056980	\N	\N	t	2020-08-24 05:00:00	2020-11-08 16:00:26.524	0.0.4
+71042ec9-1b7d-11ea-8a1a-54900ccd666e	OM-10045	DIGITAL	Basic $1 USD week for 52 weeks, then $4.25 week	WITHDRAWN	20000216880	\N	\N	t	2020-01-28 06:00:00	2099-12-31 06:00:00	0.0.4
+71449056-8dc0-11ec-965b-cde51f46b2d6	OM-10780	DIGITAL	Basic Digital Access $20.00 For 52 Weeks; $60.00 Every 52 Weeks Thereafter	ACTIVE	20000244060	\N	\N	f	2022-02-14 06:00:00	\N	0.0.4
+71596e90-cda9-11ea-b464-e4d44f10848e	OM-10129	DIGITAL	EDU Faculty All Access $2.50 Per Week Non-Verify WCM	EXPIRED	20000138020	\N	\N	t	2020-07-24 05:00:00	2020-11-08 15:26:36.905	0.0.4
+71e35717-5520-11eb-a9bd-2a1463bca0c4	OM-10705	HD	Book Review - Full Rate	ACTIVE	\N	R11	26	t	2021-01-12 06:00:00	2022-12-31 06:00:00	0.0.4
+72e0de71-2919-11eb-85d7-4740316b64e2	OM-10643	DIGITAL	Games $19.97 USD Per Year Global	ACTIVE	20000222480	\N	\N	f	2020-11-17 06:00:00	\N	0.0.4
+730b6989-d0c9-11ea-ad31-6380fc00472d	OM-10170	DIGITAL	Basic Digital Access free for 4wk then $8per week for   52mo WCM	EXPIRED	20000194020	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+73ebb309-8506-11ec-b4a3-a06520f34676	OM-10778	DIGITAL	Wirecutter $2.50 Every 4 Weeks For 52 Weeks; $1.25 Per Week Thereafter STS	ACTIVE	20000243660	\N	\N	f	2022-02-03 06:00:00	\N	0.0.4
+74378c55-29d7-11eb-ad8b-d81e98ea3135	OM-10647	DIGITAL	All Digital Access $8.00 USD Every 4 Weeks For 52 Weeks; $6.25 USD Per Week Thereafter	ACTIVE	20000212860	\N	\N	f	2020-11-18 06:00:00	\N	0.0.4
+74c1a2da-0775-11ec-b463-73f0d48bb750	OM-10760	DIGITAL	Basic Digital Access $20.00 USD For 52 Weeks; $60.00 Every 52 Weeks Thereafter (EU, UK)	ACTIVE	20000238880	\N	\N	f	2021-08-26 05:00:00	\N	0.0.4
+74cf5b85-b056-11ec-b67a-4e702bf88b98	OM-10798	DIGITAL	Basic Digital Access $2.00 USD per week For 52 Weeks; $4.25 Per Week Thereafter with Athletic	ACTIVE	20000216860	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+74eb355f-e66c-11ec-9b4c-0e61161d4688	OM-10820	DIGITAL	XPASS $40.00 USD For 52 Weeks; $204 Every 52 Weeks Thereafter Domestic Only	ACTIVE	20000247280	\N	\N	t	2022-06-07 04:00:00	2022-12-31 05:00:00	0.0.4
+750d6814-1dec-11eb-93fa-e4ace959c4d0	OM-10630	HD	HDPI STS 50% Off 24 weeks Group S	ACTIVE	\N	H99	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+754b88f0-d0e0-11ea-ad31-6380fc00472d	OM-10208	DIGITAL	Basic Digital Access $1.00 USD Every 30 Days For 12 Cycles $8.00 Every 30 Days Thereafter International Only 	ACTIVE	20000224460	\N	\N	f	2020-07-28 05:00:00	\N	0.0.4
+767f9555-e0a4-11ea-8339-305368a984f6	OM-10379	HD	Upgrade at no cost from Bundle B to SO-WCM	EXPIRED	\N	187	26	t	2020-08-17 05:00:00	2021-12-31 06:00:00	0.0.4
+76994efc-9d30-11eb-9576-41852d2a4367	OM-10721	HD	EDU HD RC2 $X per week 2020 - PC	EXPIRED	\N	253	26	t	2021-04-14 05:00:00	2022-01-25 15:27:32.437	0.0.4
+76bfc608-432e-11ec-bf86-3d750e8c1023	OM-10766	DIGITAL	Basic Digital Access Gift Purchase $10.00 For 13 Weeks International Only	ACTIVE	20000241680	\N	\N	f	2021-11-11 05:00:00	\N	0.0.4
+76dc82d6-324c-11ea-bb74-b9723fd1deda	OM-10047	DIGITAL	Games $29.95 USD year	ACTIVE	20000092020	\N	\N	f	2020-01-08 06:00:00	\N	0.0.4
+76e85568-d0d4-11ea-ad31-6380fc00472d	OM-10199	DIGITAL	Basic Digital Access 1 Week Free $4.00 USD Every 4 Weeks For 52 Weeks $4.25 Per Week Thereafter Global	ACTIVE	20000218860	\N	\N	f	2020-07-28 05:00:00	\N	0.0.4
+78665232-988f-11eb-8ca8-db53b31f008c	OM-10718	HD	Hardship HD 2021	ACTIVE	\N	Y89	26	t	2021-04-08 05:00:00	2022-12-31 06:00:00	0.0.4
+79878181-d908-11ea-94d3-9a1933fc44f2	OM-10272	HD	HD Premium 50% off for 26 weeks RC1 2020	EXPIRED	\N	411	26	t	2020-08-07 05:00:00	2020-11-20 06:00:00	0.0.4
+7994c6e2-7e7c-11ea-aba8-ebb789216ef1	OM-10048	DIGITAL	XPASS / $2.00 Every 4 Weeks For 52 Weeks; $2.00 Per Week Thereafter / OLC 	ACTIVE	20000215740	\N	\N	f	2020-04-15 05:00:00	\N	0.0.4
+79f8db95-3964-11eb-bf58-da4ba1647a90	OM-10686	HD	HD Gift Non-Premium 50% Off for 26 weeks	ACTIVE	\N	424	26	t	2020-12-08 06:00:00	2022-12-31 06:00:00	0.0.4
+7b461697-1b7c-11ea-8a1a-54900ccd666e	OM-10049	DIGITAL	All Digital Access  $25.00 USD Every 4 Weeks For 52 Weeks; $7.00 USD Per Week Thereafter DPI	ACTIVE	20000218580	\N	\N	f	2020-01-28 06:00:00	\N	0.0.4
+7bc27083-c290-11e9-ae0f-61baa9da25b1	OM-10050	DIGITAL	Games $29.95 USD for One Year; $39.95 Thereafter	ACTIVE	20000213260	\N	\N	f	2019-08-20 05:00:00	\N	0.0.4
+7bce461b-48fb-11ea-bb45-b6d1d9c3f1b9	OM-10051	DIGITAL	All Digital Access Plus Full Rate $9.75 USD Per Week	ACTIVE	20000203340	\N	\N	f	2020-02-06 06:00:00	\N	0.0.4
+7c29a852-d0ce-11ea-ad31-6380fc00472d	OM-10182	DIGITAL	All Access Family Plan 4 Weeks Free $8.00 Every 4 Weeks For 52 Weeks $4.00 Per Week Thereafter International Only WCM	EXPIRED	20000208860	\N	\N	t	2020-07-28 04:00:00	2020-08-20 04:00:00	0.0.4
+7c4c9c3e-d0d1-11ea-ad31-6380fc00472d	OM-10194	DIGITAL	Basic Digital Access 4 Weeks Free $4.00 Every 4 Weeks For 52 Weeks $2.00 Per Week Thereafter International Only - Oct 2019	EXPIRED	20000216060	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+7c9f75d3-2a76-11eb-8401-a637f878566f	OM-10649	HD	HD Premium 50% off for 24 weeks RC2 2021 old	EXPIRED	\N	I11	26	t	2020-11-19 06:00:00	2020-12-06 22:33:04.55	0.0.4
+7cf756f0-d026-11ea-aff7-6ff2a1213fc4	OM-10144	DIGITAL	EDU Basic $1.00 Per Week International Only	EXPIRED	20000196420	\N	\N	t	2020-07-27 05:00:00	2021-11-19 17:55:21.142	0.0.4
+7e8ff8ad-f1fe-11ea-a839-e0c18c58a2a3	OM-10547	HD	HD Premium 50% off for 26 weeks RC2 2020 5	EXPIRED	\N	w30	26	t	2020-09-08 05:00:00	2020-11-18 06:00:00	0.0.4
+7f141a97-e93d-11ea-873f-74f46cae88b8	OM-10461	DIGITAL	All Access $6.25 Per Week - INYT only	EXPIRED	20000142420	\N	\N	t	2020-08-28 05:00:00	2020-11-08 15:32:27.536	0.0.4
+7f741ea3-dbff-11ea-9596-859e83a0873f	OM-10301	DIGITAL	Basic Digital Access Gift $75.00 USD For 1 Year Domestic Only, Oct 2019	ACTIVE	20000214920	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+808d9699-bfbb-11eb-b23b-9ac57c61bc8b	OM-10733	DIGITAL	Cooking $0.50 USD Per Week International Only	ACTIVE	20000234080	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+812218b9-fe9a-11ea-ab6c-3301e5e23406	OM-10586	HD	50%off_26wks_HD  WCM	ACTIVE	\N	H52	26	t	2020-09-24 05:00:00	2022-12-31 06:00:00	0.0.4
+814970c7-8d7d-11eb-9847-7ad3a1d1918b	OM-10714	DIGITAL	ADA_no_shares $12.00 USD Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter 	ACTIVE	20000232060	\N	\N	f	2021-03-25 05:00:00	\N	0.0.4
+8210708c-b059-11ec-9421-5a740a103fd6	OM-10800	DIGITAL	INTL Basic Access $4.00 USD Every 4 Weeks For 52 Weeks; $2.00 Per Week Thereafter with Athletic	ACTIVE	20000170820	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+83501585-caaf-11ea-885c-7597bf29c330	OM-10116	DIGITAL	INTL Price Test XPASS $0.50 USD Per Week for 52 Weeks; $2 Per Week Thereafter; INR is ₹260 First 52 wk; ₹520 Thereafter	ACTIVE	20000170820	\N	\N	f	2020-07-20 05:00:00	\N	0.0.4
+83be17d2-1ddb-11eb-bfed-0e3067a415d6	OM-10619	HD	HDPI STS 50% Off 24 weeks Group A	ACTIVE	\N	H80	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+840e8a3a-e943-11ea-873f-74f46cae88b8	OM-10472	DIGITAL	All Access4 Weeks Free; $12.50 Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter - International Only	EXPIRED	20000157640	\N	\N	t	2020-08-28 05:00:00	2022-01-27 06:00:00	0.0.4
+855cf0f3-ac03-11ea-91a0-452f2f0c455e	OM-10094	HD	HD 50% off for 52 weeks WCM	ACTIVE	\N	H55	26	t	2020-06-09 05:00:00	2022-12-31 06:00:00	0.0.4
+862eac9b-512d-11ec-a1a4-d2106f159c00	OM-10769	DIGITAL	Basic Digital Access $10.00 USD For 52 Weeks $40.00 Every Year Thereafter International Only	ACTIVE	20000242060	\N	\N	f	2021-11-29 05:00:00	\N	0.0.4
+866243b1-d8c3-11ea-96df-09ccd10d7717	OM-10249	HD	Gift 50% off 13 wks premium HD 	EXPIRED	\N	403	26	t	2020-08-06 05:00:00	2020-12-09 15:53:50.637	0.0.4
+8680619d-ac4d-11ec-a49b-769203a1d08a	OM-10792	DIGITAL	ADA_no_shares - $3.00 Every 4 Weeks For 52 Weeks; $3.00 Per Week Thereafter International Only	ACTIVE	20000244640	\N	\N	f	2022-03-25 05:00:00	\N	0.0.4
+869e33f2-dc00-11ea-9596-859e83a0873f	OM-10305	DIGITAL	All Digital Access Gift $100.00 USD For 1 Year International Only	ACTIVE	20000215080	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+8777f4a9-cdad-11ea-b464-e4d44f10848e	OM-10136	DIGITAL	INTL All Digital Access $2.50 USD week for 52 Weeks; $25.00 Every 4 Weeks Thereafter - Australia	ACTIVE	20000149620	\N	\N	f	2020-07-24 05:00:00	\N	0.0.4
+877a6042-2b72-11eb-9088-e65d3b6c1fba	OM-10656	DIGITAL	Basic Digital Access $7.50 USD Every 4 Weeks For 52 Weeks; $3.00 Per Week Thereafter	ACTIVE	20000094080	\N	\N	f	2020-11-20 06:00:00	\N	0.0.4
+87916632-d831-11eb-a5e5-2e4b1ed90277	OM-10739	DIGITAL	Basic Digital Access $4.25 USD Per Week 	ACTIVE	20000203420	\N	\N	t	2021-07-06 05:00:00	2025-12-31 06:00:00	0.0.4
+879f3c2f-d90b-11ea-94d3-9a1933fc44f2	OM-10278	HD	Book Review  25% off	EXPIRED	\N	004	26	t	2020-08-07 05:00:00	2021-01-13 16:10:41.767	0.0.4
+890c814c-e940-11ea-873f-74f46cae88b8	OM-10464	DIGITAL	All Digital Access, $15.00 every 4 weeks til forbid, (Does Not Include Family Share)	EXPIRED	20000032000	\N	\N	t	2020-08-28 05:00:00	2020-11-08 15:36:56.517	0.0.4
+89b0b3e7-b055-11ec-960d-f6a5017568cc	OM-10796	DIGITAL	INTL Basic $.25 week USD for 52 weeks then $2.00 per week After (except AU and CA) with Athletic	ACTIVE	20000215720	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+8a807b8a-d590-11ea-9001-bc80ca56468d	OM-10239	HD	Acquisition ONLY HD SO $2/wk or DS $4/wk 8/wks, reg rate after	ACTIVE	\N	H58	26	t	2020-08-03 05:00:00	2022-12-31 06:00:00	0.0.4
+8b68abc2-1e1c-11eb-976d-a9b2b6c9dc03	OM-10636	HD	HDPI STS 50% Off 24 weeks Group K	ACTIVE	\N	H90	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+8bcd5a9f-01aa-11eb-a9ee-78c25e0be2b7	OM-10593	HD	SO $2/wk or DS $4/wk 8/wks_HD_WCM	ACTIVE	\N	H58	26	t	2020-09-28 05:00:00	2022-12-31 06:00:00	0.0.4
+8c1e5a63-f9e8-11eb-b916-0fe798fea297	OM-10755	DIGITAL	ADA_no_shares $6.00 USD Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter STS/EUI	ACTIVE	20000232080	\N	\N	f	2021-08-10 05:00:00	\N	0.0.4
+8c8a8e99-0a34-11ea-906e-925cd985ab3d	OM-10053	DIGITAL	INTL Basic Acces $4.00 Every 4 Weeks For 52 Weeks; $2.00 Per Week Thereafter / OLC 1	ACTIVE	20000170820	\N	\N	t	2019-11-17 06:00:00	2021-05-20 14:20:09.999	0.0.4
+8de5e3e4-f9e5-11eb-a8d7-c491e9cc8136	OM-10752	DIGITAL	Games $14.95 USD for 1 Year; $19.97 per year thereafter STS/EUI	ACTIVE	20000192440	\N	\N	f	2021-08-10 05:00:00	\N	0.0.4
+8f1ca3c5-d8c6-11ea-96df-09ccd10d7717	OM-10253	HD	HD 50% off for 26 weeks	ACTIVE	\N	H52	26	t	2020-08-07 05:00:00	2022-12-31 06:00:00	0.0.4
+8f88bdb5-b853-11e9-b8ef-27f7ec03ccac	OM-10054	DIGITAL	INTL All Digital Access $10 USD Every 4 Weeks for 52 Weeks, $6.25 USD Per Week Thereafter	ACTIVE	20000158420	\N	\N	f	2019-08-06 05:00:00	\N	0.0.4
+911ff0b0-1de0-11eb-8333-f1ad7e205cff	OM-10628	HD	HDPI STS 50% Off 24 weeks Group G	ACTIVE	\N	H86	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+91ad7778-dc01-11ea-9596-859e83a0873f	OM-10308	DIGITAL	All Digital Access Gift $25.00 USD For 3 Months International Only Oct 2019	ACTIVE	20000215200	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+9267744b-dc02-11ea-9596-859e83a0873f	OM-10310	DIGITAL	All Digital Access Gift $150.00 USD For 1 Year Domestic Only, Oct 2019	ACTIVE	20000215280	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+92b79d34-a1e7-11eb-9219-4b84622d27a3	OM-10724	DIGITAL	Basic - CA/AUS only - 1 Week Free; $.50 USD per week For 52 Weeks; $5.00 Per Week Thereafter	ACTIVE	20000232880	\N	\N	f	2021-04-20 05:00:00	\N	0.0.4
+92e4cd4e-5519-11eb-92da-76a777a98c72	OM-10702	DIGITAL	MAX_ADA_CR $3.00 week 52 Weeks; $5.00 Per Week Thereafter - Domestic Only	ACTIVE	20000227260	\N	\N	f	2021-01-12 06:00:00	\N	0.0.4
+939ebc2b-eeb4-11ea-997f-2cc0a4e691d2	OM-10523	HD	HD Premium 50% off for 16 weeks RC2 2020 9	EXPIRED	\N	T34	26	t	2020-09-04 04:00:00	2020-11-18 05:00:00	0.0.4
+93b6b147-bcc9-11ec-a0df-26852448f13d	OM-10807	DIGITAL	INTL ADA_no_shares $20.00 USD For 52 Weeks; $1.73 Per Week Thereafter International Only	ACTIVE	20000245700	\N	\N	t	2022-04-15 05:00:00	2022-12-31 06:00:00	0.0.4
+9469d2b4-ee0d-11ea-98b8-353dca3d5c52	OM-10514	HD	HD Premium 50% off for 16 weeks RC2 2020 5	EXPIRED	\N	T30	26	t	2020-09-03 04:00:00	2020-11-18 05:00:00	0.0.4
+94780c98-cda8-11ea-b464-e4d44f10848e	OM-10124	DIGITAL	EDU All Digital Access $1.50 USD Per Week - Non-Verify	EXPIRED	20000136820	\N	\N	t	2020-07-24 05:00:00	2022-01-25 15:11:39.94	0.0.4
+948e7ade-de4d-11ea-a319-6320d3f2fb09	OM-10367	DIGITAL	$25.00 For 3 Mo X INYT gift WCM	EXPIRED	20000194520	\N	\N	t	2020-08-14 05:00:00	2020-11-08 15:56:23.007	0.0.4
+95544d50-bfbc-11eb-93f5-024cda8b295f	OM-10737	DIGITAL	All Access $.50 USD Per Week For 52 Weeks; $3.00 Per Week Thereafter International Only	ACTIVE	20000234160	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+97499a49-b057-11ec-960d-f6a5017568cc	OM-10799	DIGITAL	Cooking - $1.50 USD Every 4 Weeks For 52 Weeks; $1.25 Per Week Thereafter with Athletic	ACTIVE	20000236880	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+9787a5e8-0a37-11ea-906e-925cd985ab3d	OM-10055	DIGITAL	Basic Digital INYT 4 Weeks Free Then $4 Every 4 Weeks for 12 Months, $8 Every 4 Weeks Thereafter	WITHDRAWN	20000184420	\N	\N	t	2019-11-18 06:00:00	2020-04-20 05:00:00	0.0.4
+97cc2802-dbf1-11ea-899e-ed02528c3365	OM-10295	DIGITAL	EDU Basic Digital Access Gift $15.00 For 3 Months International Only Non-Verify WCM	EXPIRED	20000208140	\N	\N	t	2020-08-11 05:00:00	2020-11-08 16:01:57.715	0.0.4
+985c6ca4-04bf-11eb-a3a7-2e234bdbb3fd	OM-10599	HD	HD Premium 50% off for 26 weeks RC2 2020 13	EXPIRED	\N	W38	26	t	2020-10-02 05:00:00	2020-11-18 06:00:00	0.0.4
+98cf7b4f-324d-11ea-a70d-8a8989bb29aa	OM-10056	DIGITAL	Cooking(US) $35.00 For 52 Weeks; $0.77 Per Week Thereafter	ACTIVE	20000200880	\N	\N	t	2020-01-08 06:00:00	2021-07-28 20:49:43.209	0.0.4
+99e3a764-ebd6-11ea-ba6a-bd981f8d0c12	OM-10502	DIGITAL	Basic Digital Access- 50% off 26 Weeks; Full Price Thereafter 	EXPIRED	20000041600	\N	\N	t	2020-08-31 05:00:00	2020-11-05 18:21:08.596	0.0.4
+9a208028-0a2a-11ea-906e-925cd985ab3d	OM-10058	DIGITAL	EDU Basic Digital $3.99 every 30 days	ACTIVE	20000138480	\N	\N	t	2019-11-18 06:00:00	2021-11-14 06:00:00	0.0.4
+9a842058-0285-11eb-b789-fd537ec536af	OM-10595	HD	$25 4wks for 8wks SO-$22 4wks for 12wks FS_HD WCM	ACTIVE	\N	H19	26	t	2020-09-29 05:00:00	2022-12-31 06:00:00	0.0.4
+9ab7e9b5-f8ef-11ea-aca5-1c2b82b39a01	OM-10569	HD	HD Premium 50% off for 26 weeks RC2 2020 6	EXPIRED	\N	w31	26	t	2020-09-17 05:00:00	2020-11-18 06:00:00	0.0.4
+9b416f77-8d7e-11eb-b6fa-0ab1abbc2d08	OM-10715	DIGITAL	ADA_no_shares $1.50 USD per week For 52 Weeks; $6.25 Per Week Thereafter	ACTIVE	20000232080	\N	\N	f	2021-03-25 05:00:00	\N	0.0.4
+9bf1b2eb-e0ab-11ea-ab6e-5f48a9fc87af	OM-10382	DIGITAL	Max All Digital Access $19.50 USD Every 4 Weeks For 52 Weeks; $9.75 Per Week Thereafter Digi PI	ACTIVE	20000218540	\N	\N	t	2020-08-17 05:00:00	2099-12-31 06:00:00	0.0.4
+9c03eeab-de4a-11ea-a319-6320d3f2fb09	OM-10363	DIGITAL	Basic Ditigal Access Free for 2 months-partner-Domestic Only WCM	EXPIRED	20000184860	\N	\N	t	2020-08-14 05:00:00	2020-08-20 21:41:06.298	0.0.4
+9ccd528d-e87e-11ea-a5df-5346faa6bcb7	OM-10439	DIGITAL	All Access 50% off for 26 weeks then $6.25 per week	EXPIRED	20000122820	\N	\N	t	2020-08-27 05:00:00	2020-10-28 14:31:20.419	0.0.4
+9d33088f-b852-11e9-b8ef-27f7ec03ccac	OM-10059	DIGITAL	ADA Plus $8.75 per week 	WITHDRAWN	20000093220	\N	\N	t	2019-08-06 05:00:00	2020-02-14 21:30:14.164	0.0.4
+9d9c6742-e93c-11ea-873f-74f46cae88b8	OM-10459	DIGITAL	Basic Digital Access  $9.99 Per Month For 12 Months; $15.99 Per Month Thereafter Billed every 30 days	EXPIRED	20000138860	\N	\N	t	2020-08-28 05:00:00	2020-11-08 15:28:10.457	0.0.4
+9e67a638-a94f-11ec-b2de-ce44c8f6c5cb	OM-10786	DIGITAL	ADA_no_shares - $18.00 Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter Domestic Only	ACTIVE	20000244560	\N	\N	f	2022-03-21 05:00:00	\N	0.0.4
+9f2c043a-1e1b-11eb-a38f-553d9e81e5e2	OM-10634	HD	HDPI STS 50% Off 24 weeks Group I	ACTIVE	\N	H88	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+9f5ddd13-d906-11ea-94d3-9a1933fc44f2	OM-10269	HD	Retiree Premium HD	EXPIRED	\N	811	26	t	2020-08-07 05:00:00	2021-04-08 17:42:14.124	0.0.4
+9ffb29d7-f1dc-11ea-942b-2b10751285b6	OM-10546	HD	HD Premium 50% off for 26 weeks RC2 2020 4	EXPIRED	\N	W29	26	t	2020-09-08 05:00:00	2020-11-18 06:00:00	0.0.4
+a072b6cb-d8c7-11ea-96df-09ccd10d7717	OM-10255	HD	Book Review 40% off	EXPIRED	\N	003	26	t	2020-08-07 05:00:00	2021-02-10 20:37:37.661	0.0.4
+a0cfc772-e0a4-11ea-a4b9-31505bb83e9d	OM-10380	HD	Upgrade from Bundle A to SO for $1 week for 4 weeks	EXPIRED	\N	188	26	t	2020-08-17 05:00:00	2021-12-31 06:00:00	0.0.4
+a0f08632-88b7-11eb-9411-340419648ff7	OM-10713	DIGITAL	Basic Digital Access $7.99 per month for 12 months, then $16.99 per month thereafter OLC	EXPIRED	20000231260	\N	\N	t	2021-03-19 05:00:00	2021-11-14 14:40:32.369	0.0.4
+a1be5b8f-c290-11e9-ae0f-61baa9da25b1	OM-10060	DIGITAL	Games $4.95 every 30 days for 12 cycles; $6.95 every 30 days Thereafter	ACTIVE	20000213300	\N	\N	t	2019-08-20 05:00:00	2021-09-20 05:00:00	0.0.4
+a25b5dbf-d90a-11ea-94d3-9a1933fc44f2	OM-10276	HD	Mail Subscription - 50% off 12 wks	ACTIVE	\N	MSB	26	t	2020-08-07 05:00:00	2022-12-31 06:00:00	0.0.4
+a26fe6e3-e881-11ea-bee3-410e24c0cdb9	OM-10446	DIGITAL	All Access $3.75 Per Week	EXPIRED	20000130820	\N	\N	t	2020-08-27 05:00:00	2020-11-08 15:18:12.055	0.0.4
+a4312602-d035-11ea-a072-340cee6a52b6	OM-10156	DIGITAL	EDU Basic Digital Access 4 weeks free, then $1 per week	EXPIRED	20000038820	\N	\N	t	2020-07-27 04:00:00	2020-08-21 04:00:00	0.0.4
+a4cd8d65-f8ee-11ea-aca5-1c2b82b39a01	OM-10566	HD	$16 4wks for 12wks SO-$27 4wks for 8wks FS_HD WCM	ACTIVE	\N	H17	26	t	2020-09-17 05:00:00	2022-12-31 06:00:00	0.0.4
+a597e111-cdad-11ea-b464-e4d44f10848e	OM-10137	DIGITAL	INTL: All Digital Access Plus $3.50 USD wk For 52 Weeks; $8.75 Per Week Thereafter Australia GST	ACTIVE	20000150020	\N	\N	f	2020-07-24 05:00:00	\N	0.0.4
+a5a8674b-e880-11ea-a5df-5346faa6bcb7	OM-10443	DIGITAL	All Access $13.00 Every 1 Month For 12 Months; $27.00 Per Month	EXPIRED	20000129220	\N	\N	t	2020-08-27 05:00:00	2020-11-08 15:16:30.783	0.0.4
+a9d0599a-e0b2-11eb-9a88-ffe993e184b9	OM-10742	HD	HD 50% off for 16 weeks RC2 2020	ACTIVE	\N	Y61	26	t	2021-07-09 05:00:00	2022-12-31 06:00:00	0.0.4
+aa05adbb-ebd2-11ea-933b-690094bd8ad3	OM-10499	DIGITAL	Basic Digital Access $8.00 USD Every 4 Weeks For 52 Weeks; $3.75 Per Week Thereafter Domestic Only	ACTIVE	20000189620	\N	\N	f	2020-08-31 05:00:00	\N	0.0.4
+aa5a5efd-b856-11e9-b8ef-27f7ec03ccac	OM-10061	DIGITAL	EDU Basic Digital $1 Per Week Till Forbid OLC	ACTIVE	20000038840	\N	\N	t	2019-08-05 05:00:00	2021-11-18 15:02:03.593	0.0.4
+aae877fb-d0d0-11ea-ad31-6380fc00472d	OM-10190	DIGITAL	Basic Digital Access 4 Weeks Free $1.00 Every 4 Weeks For 52 Weeks $2.00 Per Week Thereafter International Only WCM	EXPIRED	20000215660	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+ac194786-1dec-11eb-a5b3-de0ce1b769d4	OM-10631	HD	HDPI STS 50% Off 24 weeks Group T	ACTIVE	\N	Y01	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+ac495996-9d30-11eb-889c-da2dfe0352a8	OM-10722	HD	EDU HD RC2 $X per week - PC	EXPIRED	\N	H36	26	t	2021-04-14 05:00:00	2022-01-25 06:00:00	0.0.4
+ac708b5b-ee26-11ea-8a86-0bd413f6e205	OM-10516	HD	HD Premium 50% off for 16 weeks RC2 2020 14	EXPIRED	\N	T39	26	t	2020-09-03 04:00:00	2020-11-18 05:00:00	0.0.4
+acb2fa48-ebd3-11ea-933b-690094bd8ad3	OM-10500	DIGITAL	EDU Basic Digitial Access $30.00 Per Year Domestic Verify	EXPIRED	20000190020	\N	\N	t	2020-08-31 05:00:00	2020-11-08 15:49:33.029	0.0.4
+acb88d80-e949-11ea-8832-81de4b8e7104	OM-10484	DIGITAL	All Access $6.00 Every 4 Weeks For 52 Weeks; $3.00 Per Week Thereafter - International Only	EXPIRED	20000170840	\N	\N	t	2020-08-28 05:00:00	2020-11-08 15:42:28.956	0.0.4
+acbf354c-cda9-11ea-b464-e4d44f10848e	OM-10130	DIGITAL	EDU Basic $1.88 Per Week - Verify	EXPIRED	20000138420	\N	\N	t	2020-07-24 05:00:00	2021-11-19 16:38:59.222	0.0.4
+ad86d341-d8c4-11ea-96df-09ccd10d7717	OM-10251	HD	HD Premium 40% off for 104 weeks,regular rate thereafter 2020	EXPIRED	\N	412	26	t	2020-08-07 05:00:00	2020-11-18 06:00:00	0.0.4
+ad96f259-b059-11ec-b67a-4e702bf88b98	OM-10801	DIGITAL	Cooking $20.00 USD For 52 Weeks; $40.00 Every 52 Weeks Thereafter DOMESTIC ONLY  with Athletic	ACTIVE	20000234060	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+ae4a399a-0a35-11ea-906e-925cd985ab3d	OM-10062	DIGITAL	EDU Basic Digital 4 Weeks Free; $0.50 Per Week Thereafter OLC	ACTIVE	20000202080	\N	\N	t	2019-11-18 06:00:00	2021-11-14 14:43:09.707	0.0.4
+ae666bd5-aa06-11ec-84c9-227543ace765	OM-10788	DIGITAL	ADA_no_shares - $4.00 Every 4 Weeks For 28 Weeks; $6.25 Per Week Thereafter	ACTIVE	20000244620	\N	\N	t	2022-03-22 05:00:00	2022-12-31 06:00:00	0.0.4
+af11d210-eeb5-11ea-997f-2cc0a4e691d2	OM-10526	HD	HD Premium 50% off for 16 weeks RC2 2020 12	EXPIRED	\N	T37	26	t	2020-09-04 04:00:00	2020-11-18 05:00:00	0.0.4
+af2ecb4a-d905-11ea-94d3-9a1933fc44f2	OM-10268	HD	Acquisition ONLY HD 50% off for 52wks, regular rate after	ACTIVE	\N	H55	26	t	2020-08-06 05:00:00	2022-12-31 06:00:00	0.0.4
+b14f8307-d026-11ea-aff7-6ff2a1213fc4	OM-10145	DIGITAL	EDU Basic $1.00 Per Week Non-Verify - 2018 Revised INTL Sale Currencies	EXPIRED	20000196440	\N	\N	t	2020-07-27 05:00:00	2021-11-19 17:59:14.577	0.0.4
+b188c2a2-de54-11ea-b5d0-ab6d8c68419e	OM-10377	DIGITAL	All Digital Access Gift $80 USD for 6 months	ACTIVE	20000195240	\N	\N	f	2020-08-13 05:00:00	\N	0.0.4
+b1db223e-48fb-11ea-bb45-b6d1d9c3f1b9	OM-10063	DIGITAL	Max ADA + CW $14 every 4 weeks for 52 weeks, $7 thereafter	WITHDRAWN	20000216460	\N	\N	t	2020-02-06 06:00:00	2020-06-09 18:03:58	0.0.4
+b237e3ac-d8ba-11ea-96df-09ccd10d7717	OM-10248	HD	Premium HD for Employee	EXPIRED	\N	814	26	t	2020-08-07 05:00:00	2021-04-08 17:21:44.915	0.0.4
+b2640f83-e337-11eb-ae55-07d21b98ddbc	OM-10745	DIGITAL	Wirecutter $40.00 USD Per Year Till Forbid	ACTIVE	20000236060	\N	\N	f	2021-07-11 05:00:00	\N	0.0.4
+b2dc229a-73cb-11ec-8218-3e2991ada43e	OM-10772	DIGITAL	Games $10.00 For 52 Weeks; $20.00 Every 52 Weeks Thereafter	ACTIVE	20000243260	\N	\N	f	2022-01-12 06:00:00	\N	0.0.4
+b41c09a1-f789-11ea-86c3-636811e7072d	OM-10564	HD	EDU HD 50% off til forbid- WCM	EXPIRED	\N	H07	26	t	2020-09-15 05:00:00	2021-10-28 14:49:49.17	0.0.4
+b498ce2c-e7c1-11ea-bd65-b233ccf61790	OM-10429	DIGITAL	All Access 40% Off For 52 Weeks; $6.25 Per Week Thereafter 	EXPIRED	20000114820	\N	\N	t	2020-08-26 05:00:00	2020-11-08 16:13:06.226	0.0.4
+b4ab70bb-b055-11ec-9421-5a740a103fd6	OM-10797	DIGITAL	INTL Basic $.50 USD week for 52 weeks then $2.00 per week After (except AU and CA) with Athletic	ACTIVE	20000215740	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+b4e376f5-d027-11ea-a072-340cee6a52b6	OM-10147	DIGITAL	INTL All Digital Access $6.00 USD Every 4 Weeks For 52 Weeks $3.00 USD Per Week Thereafter 	ACTIVE	20000209340	\N	\N	f	2020-07-27 05:00:00	\N	0.0.4
+b56fb527-1e1d-11eb-a5f6-763e2dbb6aab	OM-10639	HD	HDPI STS 50% Off 24 weeks Group N	ACTIVE	\N	H93	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+b7370271-dbff-11ea-9596-859e83a0873f	OM-10302	DIGITAL	All Digital Access Gift $75.00 USD For 1 Year - International Only, Oct 2019 	ACTIVE	20000214960	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+b7a3fb7c-1ddf-11eb-aab2-81e3bf2d29e9	OM-10623	HD	HDPI STS 50% Off 24 weeks Group D	ACTIVE	\N	H83	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+b8201ff3-d0ca-11ea-ad31-6380fc00472d	OM-10172	DIGITAL	EDU All Digital Access $1.50 USD Per Week Non-Verify - 2018 Revised INTL Currencies	EXPIRED	20000196460	\N	\N	t	2020-07-28 05:00:00	2021-11-19 18:00:08.435	0.0.4
+b873b3f3-0291-11eb-b789-fd537ec536af	OM-10597	HD	50% off for 12 weeks HD WCM	ACTIVE	\N	H54	26	t	2020-09-29 05:00:00	2022-12-31 06:00:00	0.0.4
+b8870d52-3efc-11eb-919b-4b09b3d24981	OM-10690	HD	HD 50% off for 24 weeks RC2 2020 PC	ACTIVE	\N	H85	26	t	2020-12-15 06:00:00	2022-12-31 06:00:00	0.0.4
+b9075636-ee25-11ea-8a86-0bd413f6e205	OM-10515	HD	HD Premium 50% off for 16 weeks RC2 2020 13	EXPIRED	\N	T38	26	t	2020-09-03 04:00:00	2020-11-18 05:00:00	0.0.4
+b93ced0f-d028-11ea-a072-340cee6a52b6	OM-10151	DIGITAL	All Digital Access $14.00 USD Every 4 Weeks For 52 Weeks $7.00 USD Per Week Thereafter Domestic Only	ACTIVE	20000216460	\N	\N	f	2020-07-27 05:00:00	\N	0.0.4
+b99ac7f5-1b7a-11ea-8a1a-54900ccd666e	OM-10064	DIGITAL	All Digital Access  $20.00 USD Every 4 Weeks For 52 Weeks; $7.00 USD Per Week Thereafter DPI	ACTIVE	20000218520	\N	\N	f	2020-01-28 06:00:00	\N	0.0.4
+b9f4edc0-1ddf-11eb-95ca-9043cf367bb0	OM-10624	HD	HDPI STS 50% Off 24 weeks Group P	ACTIVE	\N	H95	26	t	2020-11-05 06:00:00	2022-12-30 06:00:00	0.0.4
+ba5b0454-1b7c-11ea-8a1a-54900ccd666e	OM-10065	DIGITAL	BNDL MAX_ADA_CR / $14.00 USD Every 4 Weeks For 52 Weeks; $7.00 Per Week Thereafter DPI/EUI	ACTIVE	20000216460	\N	\N	f	2020-01-27 06:00:00	\N	0.0.4
+bbeeb31b-4903-11ea-bb45-b6d1d9c3f1b9	OM-10067	DIGITAL	ADA Plus $19.50 every 4 weeks for 52 weeks then $9.75 week	WITHDRAWN	20000218540	\N	\N	t	2020-02-06 06:00:00	2020-03-20 05:00:00.733	0.0.4
+bbf6a09e-eeb2-11ea-997f-2cc0a4e691d2	OM-10520	HD	HD Premium 50% off for 16 weeks RC2 2020 6	EXPIRED	\N	T31	26	t	2020-09-04 04:00:00	2020-11-18 05:00:00	0.0.4
+bc331e82-d0d3-11ea-ad31-6380fc00472d	OM-10198	DIGITAL	All Digital Access $4.50 USD Per Week Domestic Only	ACTIVE	20000218160	\N	\N	f	2020-07-28 05:00:00	\N	0.0.4
+bc758b50-1b7b-11ea-8a1a-54900ccd666e	OM-10068	DIGITAL	BNDL XPASS / $143.00 USD For 1 Year; $165.00 Per Year Thereafter DPI / OLC	ACTIVE	20000218500	\N	\N	f	2020-01-28 05:00:00	\N	0.0.4
+bc81c3f5-bfbc-11eb-93f5-024cda8b295f	OM-10738	DIGITAL	All Access $.75 USD Per Week For 52 Weeks; $3.00 Per Week Thereafter International Only	ACTIVE	20000234180	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+be261562-7fe4-11ea-b471-6dc5734f4dbe	OM-10069	DIGITAL	INTL Price Test XPASS $0.50 USD Per Week for 52 Weeks; $2.00 Per Week Thereafter EUI 	ACTIVE	20000215740	\N	\N	f	2020-04-16 05:00:00	\N	0.0.4
+be9adb2f-027f-11eb-9124-925109a1a627	OM-10594	HD	Gift 50% off 13 wks premium HD WCM	EXPIRED	\N	403	26	t	2020-09-29 05:00:00	2020-12-09 15:56:04.676	0.0.4
+c1004dd7-ac7f-11ec-b67a-4e702bf88b98	OM-10794	DIGITAL	INTL ADA_no_shares - $4.00 Every 4 Weeks For 52 Weeks; $3.00 Per Week Thereafter International Only	ACTIVE	20000244860	\N	\N	f	2022-03-25 05:00:00	\N	0.0.4
+c1c8d412-cdaa-11ea-b464-e4d44f10848e	OM-10134	DIGITAL	edu Basic Digital Access $1.88 Per Week (50% off)	EXPIRED	20000031620	\N	\N	t	2020-07-24 05:00:00	2020-11-08 15:31:58.347	0.0.4
+c23f4ec4-988e-11eb-8c98-100c795c8520	OM-10716	HD	NYT Employee Gift Premium HD 2021	EXPIRED	\N	755	26	t	2021-04-08 05:00:00	2021-10-05 17:58:47.73	0.0.4
+c26531b8-5519-11eb-a9bd-2a1463bca0c4	OM-10703	DIGITAL	MAX_ADA_CR $1.50 week 52 Weeks; $6.25 Per Week Thereafter - Acq - International Only	ACTIVE	20000164020	\N	\N	f	2021-01-12 21:03:59.908	\N	0.0.4
+c2782227-29d7-11eb-bf59-f6803518039b	OM-10648	DIGITAL	All Access $12.00 Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter Domestic Only	ACTIVE	20000210480	\N	\N	f	2020-11-18 20:01:23.587	\N	0.0.4
+c2843aa0-7e75-11ea-aba8-ebb789216ef1	OM-10071	DIGITAL	XPASS / $1.00 Every 4 Weeks For 52 Weeks; $2.00 Per Week Thereafter / OLC	ACTIVE	20000215720	\N	\N	f	2020-04-15 05:00:00	\N	0.0.4
+c2960d43-fdad-11ea-8b15-1f99be60a2b7	OM-10582	DIGITAL	Test-active-inactive-status 	EXPIRED	20000137220	\N	\N	t	2020-09-23 04:00:00	2020-10-14 04:00:00	0.0.4
+c2b5ad2a-2b71-11eb-9e03-1d27ccbcdf62	OM-10653	DIGITAL	EDU Faculty Bundle X 12 Weeks Free then $1.88 USD Per Week	EXPIRED	20000181660	\N	\N	t	2020-11-20 06:00:00	2022-01-25 15:25:41.307	0.0.4
+c3e7bccf-de4a-11ea-a319-6320d3f2fb09	OM-10364	DIGITAL	Cooking Free for 1 Year Free  Liimited - Domestic Only	EXPIRED	20000185240	\N	\N	t	2020-08-14 05:00:00	2021-12-31 06:00:00	0.0.4
+c3f5d7a8-bfb9-11eb-93f5-024cda8b295f	OM-10729	DIGITAL	Games $0.50 USD Per Week International Only	ACTIVE	20000234100	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+c5b5a709-bcd1-11ec-a0df-26852448f13d	OM-10810	DIGITAL	INTL ADA_no_shares $2.00 USD Every 4 Weeks For 52 Weeks; $3.00 Per Week Thereafter International Only	ACTIVE	20000245760	\N	\N	t	2022-04-15 05:00:00	2022-12-31 06:00:00	0.0.4
+c650dbeb-d1de-11ea-8e1a-26ceed7cecea	OM-10231	DIGITAL	approval_required_Complementary ADA	ACTIVE	1000001	\N	\N	f	2020-07-29 05:00:00	\N	0.0.4
+c67e3b35-bccd-11ec-abcb-b2200e125161	OM-10808	DIGITAL	INTL ADA_no_shares $30.00 USD For 52 Weeks; $1.73 Per Week Thereafter International Only	ACTIVE	20000245720	\N	\N	t	2022-04-15 05:00:00	2022-12-31 06:00:00	0.0.4
+c8452658-e62a-11ea-bbd2-cd4f6999a1a1	OM-10398	DIGITAL	EDU Basic $0.75 Per Week  Domestic Only Verify	EXPIRED	20000211260	\N	\N	t	2020-08-24 05:00:00	2021-10-28 14:49:04.259	0.0.4
+c88a9327-e943-11ea-873f-74f46cae88b8	OM-10473	DIGITAL	All Access $12.50 Every 4 Weeks For 52 Weeks; $6.25 Per Week Thereafter - International Only	EXPIRED	20000158020	\N	\N	t	2020-08-28 05:00:00	2020-11-08 15:39:36.811	0.0.4
+c88ce2ae-b853-11e9-b8ef-27f7ec03ccac	OM-10072	DIGITAL	INTL All Digital Access $17.50 USD Every 4 Weeks for 52 Weeks, then $8.75 USD Week Thereafter	ACTIVE	20000158040	\N	\N	f	2019-08-06 05:00:00	\N	0.0.4
+c896742d-b852-11e9-b8ef-27f7ec03ccac	OM-10073	DIGITAL	INTL XPass $2 USD Per Week	ACTIVE	20000187620	\N	\N	f	2019-08-05 05:00:00	\N	0.0.4
+c8dcd817-eec4-11ea-997f-2cc0a4e691d2	OM-10527	DIGITAL	Basic Digital Access $2.00 USD per week For 52 Weeks; $4.25 Per Week Thereafter - DPI	ACTIVE	20000216860	\N	\N	f	2020-09-04 05:00:00	\N	0.0.4
+c96e9db5-f8f0-11ea-aca5-1c2b82b39a01	OM-10573	HD	HD Premium 50% off for 26 weeks RC2 2020 10	EXPIRED	\N	w35	26	t	2020-09-17 05:00:00	2020-11-18 06:00:00	0.0.4
+c9c5e161-c290-11e9-ae0f-61baa9da25b1	OM-10074	DIGITAL	Games $2.99 USD every 30 days for 12 cycles; $3.47 every 30 days Thereafter	ACTIVE	20000213280	\N	\N	f	2019-08-20 05:00:00	\N	0.0.4
+c9de1579-324c-11ea-92fa-eb8955b7c3dd	OM-10075	DIGITAL	Cooking $30 for 1 year then $40 - full price	ACTIVE	20000186020	\N	\N	t	2020-01-08 05:00:00	2021-08-06 15:26:51.114	0.0.4
+ca4c371c-db29-11ea-9d62-7a958c5d7319	OM-10284	DIGITAL	Cooking Gift $40.00 USD For 1 Year	ACTIVE	20000160420	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+cba20597-afe3-11ea-9f79-0838ef53fe29	OM-10097	DIGITAL	Games full rate, $39.95 USD per year	ACTIVE	100201	\N	\N	f	2020-06-15 05:00:00	\N	0.0.4
+cd6b1b9d-f8ef-11ea-aca5-1c2b82b39a01	OM-10570	HD	HD Premium 50% off for 26 weeks RC2 2020 7	EXPIRED	\N	w32	26	t	2020-09-17 05:00:00	2020-11-18 06:00:00	0.0.4
+cdb50e3b-d73e-11ea-ace6-6d523f5c0b1c	OM-10242	DIGITAL	INYT Basic 4 Weeks Free Then $4 Every 4 Weeks for 12 Months, $8 Every 4 Weeks Thereafter	EXPIRED	20000184420	\N	\N	t	2020-08-05 04:00:00	2020-08-21 04:00:00	0.0.4
+d030caac-3965-11eb-bf58-da4ba1647a90	OM-10688	HD	HD Gift Non-Premium 50% Off for 52 weeks	ACTIVE	\N	426	26	t	2020-12-08 06:00:00	2022-12-31 06:00:00	0.0.4
+d0760d16-bfba-11eb-93f5-024cda8b295f	OM-10731	DIGITAL	Cooking $0.38 USD Per Week International Only	ACTIVE	20000234520	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+d0fa42c5-ec81-11ea-a052-cb28611c7be8	OM-10513	HD	HD Premium 50% off for 16 weeks RC2 2020 4	EXPIRED	\N	T29	26	t	2020-09-01 04:00:00	2020-11-18 05:00:00	0.0.4
+d159fbe2-e93d-11ea-873f-74f46cae88b8	OM-10462	DIGITAL	Spotify $16.99 Per Month For 12 Months; $26.99 Per Month After - Domestic Only	EXPIRED	20000147220	\N	\N	t	2020-08-28 05:00:00	2020-09-02 20:09:51.135	0.0.4
+d1a95c49-8506-11ec-8037-4f3e27e4d492	OM-10779	DIGITAL	Wirecutter $20.00 For 1 Year; $40.00 Per Year Thereafter STS	ACTIVE	20000243680	\N	\N	f	2022-02-03 06:00:00	\N	0.0.4
+d22818b8-dc00-11ea-9596-859e83a0873f	OM-10306	DIGITAL	Basic Digital Access Gift $30.00 USD For 6 Months International Only Oct 2019	ACTIVE	20000215120	\N	\N	f	2020-08-10 05:00:00	\N	0.0.4
+d2615176-dc02-11ea-9596-859e83a0873f	OM-10311	DIGITAL	Basic Digital Access Gift $15.00 USD For 3 Months International Only, Oct 2019 WCM	ACTIVE	20000215320	\N	\N	f	2020-08-11 05:00:00	\N	0.0.4
+d45078b9-d035-11ea-a072-340cee6a52b6	OM-10157	DIGITAL	EDU Basic Digital $1 USD Per Week Till Forbid	EXPIRED	20000038840	\N	\N	t	2020-07-27 05:00:00	2022-01-25 06:00:00	0.0.4
+d544f9bc-f1db-11ea-942b-2b10751285b6	OM-10544	HD	HD Premium 50% off for 26 weeks RC2 2020 2	EXPIRED	\N	w27	26	t	2020-09-08 05:00:00	2020-11-18 06:00:00	0.0.4
+d5c0e892-f94f-11eb-a8d7-c491e9cc8136	OM-10750	DIGITAL	Cooking  $30.00 USD For 52 Weeks; $40.00 Every 52 Weeks Thereafter	ACTIVE	20000237680	\N	\N	f	2021-08-09 05:00:00	\N	0.0.4
+d5fb6c43-cda8-11ea-b464-e4d44f10848e	OM-10125	DIGITAL	EDU All Digital Access, 4 weeks free then $1.50 per week	EXPIRED	20000136840	\N	\N	t	2020-07-24 05:00:00	2020-08-21 17:09:41.978	0.0.4
+d6880dc7-de49-11ea-a319-6320d3f2fb09	OM-10359	DIGITAL	All Access Gift $50 for 3 months	ACTIVE	20000182080	\N	\N	f	2020-08-14 16:18:36.067	\N	0.0.4
+d7f26490-d0ca-11ea-ad31-6380fc00472d	OM-10173	DIGITAL	EDU All Digital Access $1.20 USD Per Week Non-Verify - 2018 Revised INTL Sale Currencies	EXPIRED	20000196480	\N	\N	t	2020-07-28 05:00:00	2021-11-19 18:00:52.66	0.0.4
+d8bf6c5b-0a37-11ea-906e-925cd985ab3d	OM-10076	DIGITAL	EDU Basic Digital $30.00 USD Per Year EUI	ACTIVE	20000188420	\N	\N	t	2019-11-18 06:00:00	2022-02-03 20:12:45.914	0.0.4
+d8c761fe-48fc-11ea-bb45-b6d1d9c3f1b9	OM-10077	DIGITAL	All Digital Access Full Rate $7 USD Per Week	ACTIVE	20000203000	\N	\N	f	2020-02-06 06:00:00	\N	0.0.4
+d9080372-d026-11ea-aff7-6ff2a1213fc4	OM-10146	DIGITAL	Games full rate, $6.95 every 30 days	EXPIRED	100202	\N	\N	t	2020-07-27 05:00:00	2021-09-20 20:53:45.144	0.0.4
+da06f835-1ddb-11eb-95b8-b4165a586460	OM-10620	HD	HDPI STS 50% Off 24 weeks Group B	ACTIVE	\N	H81	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+da971b00-e7bf-11ea-af4f-2e30bb3b6d1a	OM-10419	DIGITAL	Basic $3.75 Per Week - LIMITED USE	EXPIRED	20000077720	\N	\N	t	2020-08-26 05:00:00	2020-11-08 16:05:00.321	0.0.4
+dbd6f98d-d741-11ea-ace6-6d523f5c0b1c	OM-10246	HD	EDU HD 50% off til forbid	EXPIRED	\N	H07	26	t	2020-08-04 05:00:00	2022-01-25 06:00:00	0.0.4
+dcec40ac-f9f3-11eb-a8d7-c491e9cc8136	OM-10756	DIGITAL	Cooking $20.00 USD For 52 Weeks then $0.77 Per Week Thereafter DOMESTIC ONLY STS-EUI	ACTIVE	20000234060	\N	\N	f	2021-08-10 05:00:00	\N	0.0.4
+ddb07933-3964-11eb-bf58-da4ba1647a90	OM-10687	HD	Gift 50% off 26 wks Standard HD WCM	ACTIVE	\N	424	26	t	2020-12-08 06:00:00	2022-12-31 06:00:00	0.0.4
+de7fee0b-d590-11ea-9001-bc80ca56468d	OM-10240	HD	HD Full Rate	ACTIVE	\N	H63	26	t	2020-08-03 05:00:00	2022-12-31 06:00:00	0.0.4
+df0b18dc-ebb0-11ea-8fc4-eb4addcbb03b	OM-10493	HD	HD Premium 50% off for 16 weeks RC2 2020 2	EXPIRED	\N	T27	26	t	2020-08-31 04:00:00	2020-11-18 05:00:00	0.0.4
+e00f5bbd-d0d0-11ea-ad31-6380fc00472d	OM-10191	DIGITAL	EDU Basic Digital Access $399.00 for 4 Years	EXPIRED	20000059280	\N	\N	t	2020-07-28 05:00:00	2021-11-19 16:05:47.72	0.0.4
+e0aa30ad-d027-11ea-a072-340cee6a52b6	OM-10148	DIGITAL	INTL Basic $.25 week USD for 52 weeks then $2.00 per week After (except AU and CA)	ACTIVE	20000215720	\N	\N	f	2020-07-27 05:00:00	\N	0.0.4
+e0c6a064-0775-11ec-b463-73f0d48bb750	OM-10761	DIGITAL	Basic Digital Access $40.00 USD For 52 Weeks; $100.00 Every 52 Weeks Thereafter (CA, AU)	ACTIVE	20000238860	\N	\N	f	2021-08-26 05:00:00	\N	0.0.4
+e16c4700-04bf-11eb-a3a7-2e234bdbb3fd	OM-10600	HD	HD Premium 50% off for 26 weeks RC2 2020 14	EXPIRED	\N	W39	26	t	2020-10-02 05:00:00	2020-11-18 06:00:00	0.0.4
+e1ffccec-55d6-11eb-b9e0-b7a5c17f0c56	OM-10706	DIGITAL	Games $1.25 USD Per Week - Global	ACTIVE	20000227660	\N	\N	f	2021-01-13 06:00:00	\N	0.0.4
+e217a4c1-f1d8-11ea-942b-2b10751285b6	OM-10543	HD	HD Premium 50% off for 26 weeks RC2 2020 1	EXPIRED	\N	W26	26	t	2020-09-08 05:00:00	2020-11-18 06:00:00	0.0.4
+e232c385-73cb-11ec-8aab-240fce94ef66	OM-10773	DIGITAL	Games $1.00 Every 4 Weeks For 52 Weeks; $2.00 Every 4 Weeks Thereafter	ACTIVE	20000243280	\N	\N	f	2022-01-12 06:00:00	\N	0.0.4
+e2a24b17-cda9-11ea-b464-e4d44f10848e	OM-10131	DIGITAL	EDU All Digital Access $2.50 USD per week Verify	EXPIRED	20000138840	\N	\N	t	2020-07-24 05:00:00	2021-11-19 17:03:46.624	0.0.4
+e3743132-e219-11ea-bd88-1c23e3dcaa84	OM-10384	HD	$4.00wk_Digi_Upsell_to_SS_wcm_hd-premium	EXPIRED	\N	416	26	t	2020-08-19 05:00:00	2021-10-10 17:06:53.668	0.0.4
+e4b4a8cb-d028-11ea-a072-340cee6a52b6	OM-10152	DIGITAL	Basic Digital Access $2.00 USD per week For 52 Weeks; $4.25 Per Week Thereafter	ACTIVE	20000216860	\N	\N	f	2020-07-27 05:00:00	\N	0.0.4
+e563a0de-e7ba-11ea-82f3-296e0f812249	OM-10412	DIGITAL	All Digital Access, $0.99 USD for 4 Weeks, $15.00 Every 4 Weeks Thereafter (Does not include family share)	ACTIVE	20000561421	\N	\N	f	2020-08-26 05:00:00	\N	0.0.4
+e6cc3048-1b7c-11ea-8a1a-54900ccd666e	OM-10080	DIGITAL	BNDL XPASS / $8.00 USD Every 4 Weeks For 52 Weeks; $4.25 Per Week Thereafter	ACTIVE	20000216860	\N	\N	f	2020-01-26 06:00:00	\N	0.0.4
+e71bb09d-2b71-11eb-a8a3-0715bbac1279	OM-10654	DIGITAL	INTL Basic Access $4.00 Every 4 Weeks For 52 Weeks; $2.00 Per Week Thereafter 	EXPIRED	20000170820	\N	\N	t	2020-11-20 06:00:00	2021-03-07 15:06:29.78	0.0.4
+e7287228-cdad-11ea-b464-e4d44f10848e	OM-10138	DIGITAL	EDU Digital Access Free 4weeks then $1.00 requires verification	EXPIRED	20000038800	\N	\N	t	2020-07-24 04:00:00	2020-08-21 04:00:00	0.0.4
+e784582a-1e1c-11eb-bba0-ba60d8ae7b87	OM-10637	HD	HDPI STS 50% Off 24 weeks Group L	ACTIVE	\N	H91	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+e7b2759c-d0cc-11ea-ad31-6380fc00472d	OM-10178	DIGITAL	EDU Basic Digital 4 Weeks Free; $0.50 Per Week Thereafter WCM	EXPIRED	20000202080	\N	\N	t	2020-07-28 04:00:00	2020-08-21 04:00:00	0.0.4
+e7f66cc7-bfb9-11eb-8a2c-97ac9d3345e4	OM-10730	DIGITAL	Games $0.75 USD Per Week International Only	ACTIVE	20000234120	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+e8eb9f76-d0d6-11ea-ad31-6380fc00472d	OM-10200	DIGITAL	Basic Digital Access 1 Week Free $2.00 USD Every 4 Weeks For 52 Weeks $2.00 Per Week Thereafter International Only WCM	ACTIVE	20000221660	\N	\N	f	2020-07-28 05:00:00	\N	0.0.4
+e9a18630-1b7b-11ea-8a1a-54900ccd666e	OM-10081	DIGITAL	All Digital Access $195.00 USD For 1 Year; $225.00 USD Per Year Thereafter DPI	ACTIVE	20000218480	\N	\N	f	2020-01-28 06:00:00	\N	0.0.4
+ea737858-d908-11ea-94d3-9a1933fc44f2	OM-10273	HD	HD Premium 40% off for 52 weeks, regular rate thereafter 2020	EXPIRED	\N	413	26	t	2020-08-07 05:00:00	2020-11-18 06:00:00	0.0.4
+ea9d77f9-a401-11e9-b054-57354076a64c	OM-10082	DIGITAL	Basic Digital Access Full Rate $15 Every 4 Weeks	WITHDRAWN	20000032000	\N	\N	t	2019-07-15 05:00:00	2020-03-27 18:15:16.772	0.0.4
+ebc6a2b5-e0a4-11ea-a4b9-31505bb83e9d	OM-10381	HD	Upgrade from Bundle B to SO for $1 week for 4 weeks	EXPIRED	\N	189	26	t	2020-08-17 05:00:00	2021-12-31 06:00:00	0.0.4
+ecbdc1d1-d909-11ea-94d3-9a1933fc44f2	OM-10275	HD	HD 50% off for 12 weeks	ACTIVE	\N	H54	26	t	2020-08-07 05:00:00	2022-12-31 06:00:00	0.0.4
+ed1e0b41-1dde-11eb-95b8-b4165a586460	OM-10621	HD	HDPI STS 50% Off 24 weeks Group C	ACTIVE	\N	H82	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+ee582df8-a94d-11ec-94dd-2e703e69da05	OM-10783	DIGITAL	ADA_no_shares - $17.00 Every 4 Weeks For 28 Weeks; $6.25 Per Week Thereafter Domestic Only	ACTIVE	20000244480	\N	\N	t	2022-03-21 05:00:00	2022-12-31 06:00:00	0.0.4
+eebd99d5-cc8f-11ec-831a-c27d9c4b082d	OM-10816	DIGITAL	XPASS $40.00 USD 1 Year; $4.25 Per Week Thereafter Domestic Only	ACTIVE	20000224860	\N	\N	f	2022-05-05 05:00:00	\N	0.0.4
+ef2515ab-eec5-11ea-997f-2cc0a4e691d2	OM-10528	DIGITAL	Basic Digital  Access $143.00 USD For 1 Year; $165.00 Per Year Thereafter DPI / OLC	ACTIVE	20000218500	\N	\N	f	2020-09-04 04:00:00	\N	0.0.4
+effcb663-c35d-11e9-acaf-889c68f5a76b	OM-10083	DIGITAL	Max ADA + CW $8 Every 4 Weeks for 52 Weeks; $6.25 per Week Thereafter	WITHDRAWN	20000212860	\N	\N	t	2019-08-20 05:00:00	2019-08-29 12:35:14.299	0.0.4
+f00fa37d-50fe-11eb-84ff-9d1fd1eef2ab	OM-10699	HD	Large Print - 15%.OFF - AGENCY	ACTIVE	\N	444	26	t	2021-01-07 06:00:00	2022-12-31 06:00:00	0.0.4
+f03c648a-e880-11ea-b93e-180f500cdc79	OM-10444	DIGITAL	Basic Digital Access $2.00 per week For 12 Months; $16.00 Per Month	EXPIRED	20000129620	\N	\N	t	2020-08-27 05:00:00	2020-11-08 15:17:26.99	0.0.4
+f05944cb-e93c-11ea-873f-74f46cae88b8	OM-10460	DIGITAL	Basic Digital Acess $16.99 Per Month For 12 Months; $26.99 Per Month After. Billed every 30 days	EXPIRED	20000138880	\N	\N	t	2020-08-28 05:00:00	2020-11-08 15:28:37.348	0.0.4
+f099b17d-5519-11eb-b599-1505d28e525c	OM-10704	DIGITAL	MAX_ADA_CR $2.50 week 52 Weeks; $6.25 Per Week Thereafter - Save The Stop; Global	ACTIVE	20000206080	\N	\N	f	2021-01-12 21:05:16.877	\N	0.0.4
+f0b817dc-e7c0-11ea-be14-d34dfa7bd272	OM-10425	DIGITAL	Basic $7.50 Every 4 Weeks For 52 Weeks; $3.00 Per Week Thereafter - International only. Fixed currency segments for India promo pricing.	EXPIRED	20000094080	\N	\N	t	2020-08-26 05:00:00	2020-11-08 16:07:14.387	0.0.4
+f0f1043c-a402-11e9-b054-57354076a64c	OM-10084	DIGITAL	Max ADA + CW $12.50 every 4 weeks, $6.26 thereafter	WITHDRAWN	20000148500	\N	\N	t	2019-07-15 05:00:00	2020-02-14 21:32:06.778	0.0.4
+f18d8314-ebd3-11ea-ba6a-bd981f8d0c12	OM-10501	DIGITAL	EDU All Digital Access $50.00 Per Year Domestic Verify	EXPIRED	20000190040	\N	\N	t	2020-08-31 05:00:00	2020-11-08 15:49:53.224	0.0.4
+f1a099ca-fe99-11ea-ab6c-3301e5e23406	OM-10585	HD	$15 4wks for 12wks SO_HD WCM	ACTIVE	\N	H21	26	t	2020-09-24 05:00:00	2022-12-31 06:00:00	0.0.4
+f2b953ab-e881-11ea-bee3-410e24c0cdb9	OM-10447	DIGITAL	EDU Basic Digital Access $1.50 per week Non Verify	EXPIRED	20000137260	\N	\N	t	2020-08-27 05:00:00	2020-11-08 15:25:15.506	0.0.4
+f3cf5e17-2b7a-11eb-a173-b430a1e0319b	OM-10657	HD	HD 50% off for 16 weeks RC1 2021	ACTIVE	\N	H66	26	t	2020-11-20 06:00:00	2022-12-31 06:00:00	0.0.4
+f4b31d01-324c-11ea-92fa-eb8955b7c3dd	OM-10085	DIGITAL	Games $3.47 USD Every 30 Days for 12 Cycles; $6.95 Every 30 Days thereafter	ACTIVE	20000192420	\N	\N	f	2020-01-07 06:00:00	\N	0.0.4
+f4bdeab0-eba1-11ea-8511-474d7bc12993	OM-10491	HD	Best HD Premium 2019 Rate After 2020 Opt-Out is Declined	EXPIRED	\N	kcc	26	t	2020-08-31 04:00:00	2020-11-18 05:00:00	0.0.4
+f5be9e45-fe98-11ea-ab6c-3301e5e23406	OM-10583	HD	HD Full Rate WCM	ACTIVE	\N	H63	26	t	2020-09-23 05:00:00	2022-12-30 06:00:00	0.0.4
+f6493ba3-d1de-11ea-8e1a-26ceed7cecea	OM-10232	DIGITAL	Games, Complimentary Access for Newsroom	ACTIVE	19000251	\N	\N	f	2020-07-29 05:00:00	\N	0.0.4
+f73d506d-b853-11e9-b8ef-27f7ec03ccac	OM-10086	DIGITAL	EDU Basic Digital 8 Weeks Free, $1 USD Per Week Thereafter EUI	ACTIVE	20000052400	\N	\N	t	2019-08-05 05:00:00	2022-02-03 20:10:14.939	0.0.4
+f75b12db-0a27-11ea-906e-925cd985ab3d	OM-10087	DIGITAL	EDU Basic Digital Access $1.88 USD week EUI	ACTIVE	20000076820	\N	\N	t	2019-11-17 06:00:00	2022-02-03 20:11:46.438	0.0.4
+f7f963e2-bc2e-11ec-a0df-26852448f13d	OM-10806	DIGITAL	INTL XPASS  $10.00 USD For 52 Weeks; $1.15 Per Week Thereafter International Only	ACTIVE	20000245680	\N	\N	t	2022-04-14 05:00:00	2022-12-31 06:00:00	0.0.4
+f8528587-eeb2-11ea-997f-2cc0a4e691d2	OM-10521	HD	HD Premium 50% off for 16 weeks RC2 2020 7	EXPIRED	\N	T32	26	t	2020-09-04 04:00:00	2020-11-18 05:00:00	0.0.4
+f855e284-80dc-11ea-899a-9e8b392bde36	OM-10088	DIGITAL	INTL Price Test AUD, CAD, EUR, GBP $0.50 & INR ₹49 Every Week for 4 Weeks; AUD, CAD $20, EUR, GBP €8, INR ₹260 Every 4 Weeks Thereafter EUI	ACTIVE	20000217260	\N	\N	f	2020-04-21 05:00:00	\N	0.0.4
+f883ba67-f8ef-11ea-aca5-1c2b82b39a01	OM-10571	HD	HD Premium 50% off for 26 weeks RC2 2020 8	EXPIRED	\N	w33	26	t	2020-09-17 05:00:00	2020-11-18 06:00:00	0.0.4
+f8bd6ce0-d907-11ea-94d3-9a1933fc44f2	OM-10271	HD	STS EDU HD 50% off till forbid 	EXPIRED	\N	H07	26	t	2020-08-07 05:00:00	2022-01-25 06:00:00	0.0.4
+f8c51f59-28e7-11ea-be1e-9caa769da9c7	OM-10089	DIGITAL	test offer for edit (new name) add here another	ACTIVE	7	\N	\N	t	2019-12-28 05:00:00	2020-02-22 05:00:00	0.0.4
+f958c4a1-f8ee-11ea-aca5-1c2b82b39a01	OM-10567	HD	$20 4wks for 12wks SO-$25 4wks for 8wks FS_HD WCM	ACTIVE	\N	H18	26	t	2020-09-17 05:00:00	2022-12-31 06:00:00	0.0.4
+f9bc8bc9-e62a-11ea-aeb8-762344d797b1	OM-10399	DIGITAL	EDU All Digital Access $6.00 USD every 30 days  Domestic Only Verify	EXPIRED	20000212480	\N	\N	t	2020-08-23 05:00:00	2021-11-19 18:06:52.605	0.0.4
+fa814cce-2918-11eb-9045-ad3b27c47ff3	OM-10640	DIGITAL	Games $6.95 Every 30 Days Domestic Only	EXPIRED	20000222060	\N	\N	t	2020-11-17 06:00:00	2021-09-20 05:00:00	0.0.4
+fb92a7ad-88b6-11eb-bb87-85374f6d40e3	OM-10712	DIGITAL	Basic Digital Access $104 for 365 days, $165 every 365 days thereafter OLC	EXPIRED	20000231280	\N	\N	t	2021-03-19 05:00:00	2021-11-14 14:39:46.08	0.0.4
+fbc1d51a-bfba-11eb-93f5-024cda8b295f	OM-10732	DIGITAL	Cooking $0.48 USD Per Week International Only	ACTIVE	20000234540	\N	\N	t	2021-05-28 05:00:00	2022-12-31 06:00:00	0.0.4
+fc543c6b-1ddf-11eb-aab2-81e3bf2d29e9	OM-10625	HD	HDPI STS 50% Off 24 weeks Group Q	ACTIVE	\N	H96	26	t	2020-11-05 06:00:00	2022-12-31 06:00:00	0.0.4
+fdc68ddc-f94f-11eb-a943-ad23dd917b98	OM-10751	DIGITAL	Games $20.00 USD For 52 Weeks; $40 Every 52 Weeks Thereafter - STS	ACTIVE	20000237280	\N	\N	f	2021-08-16 05:00:00	\N	0.0.4
+fe600d4f-d0e5-11ea-ad31-6380fc00472d	OM-10215	DIGITAL	All Access $6.25 Per Week WCM	EXPIRED	20000068020	\N	\N	t	2020-07-28 05:00:00	2020-10-18 17:10:27.19	0.0.4
+fe864333-b059-11ec-9421-5a740a103fd6	OM-10802	DIGITAL	Cooking $2.50 USD Every 4 Wks For 52 Wks; $1.25 Per Wk after with Athletic	ACTIVE	20000200860	\N	\N	t	2022-04-13 05:00:00	2022-12-31 06:00:00	0.0.4
+fecb388a-0a35-11ea-906e-925cd985ab3d	OM-10090	DIGITAL	Basic Digital Access  $12.00 Per Month For 12 Months; $16.00 Per Month Thereafter	WITHDRAWN	20000201260	\N	\N	t	2019-11-18 05:00:00	2020-04-14 16:10:31.011	0.0.4
+ff0ad67c-432e-11ec-bf86-3d750e8c1023	OM-10767	DIGITAL	Basic Digital Access Gift Purchase $15.00 For 26 Weeks International Only	ACTIVE	20000241720	\N	\N	f	2021-11-11 05:00:00	\N	0.0.4
+fff7805b-6d95-11ec-9acc-7243aa5b9be8	OM-10770	DIGITAL	ADA_no_shares / 1 Week Free 	EXPIRED	20000242460	\N	\N	t	2022-01-04 05:00:00	2022-05-23 04:00:00	0.0.4
+c8036ecc-1b72-4cf7-a374-f676311f7811	OM-11000	HD	Test Offer 456	ACTIVE	\N	123	26	f	2022-07-14 06:00:00	\N	0.0.5
+2c1caa3f-a8af-40ef-b794-b84b72bb9396	OM-11001	HD	SQLC TEST	ACTIVE	\N	123	26	f	2022-07-28 06:00:00	\N	0.0.5
+\.
+
+
+--
+-- Data for Name: offers_schema_migrations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.offers_schema_migrations (version, dirty) FROM stdin;
+5	f
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (id, email) FROM stdin;
+11	localuser@localhost.com
+6	brian.peterson@nytimes.com
+7	mohiyudeen.bajal@nytimes.com
+8	vinod.ramakrishna@nytimes.com
+5	nancy.mcgoff@nytimes.com
+3	casey.bland@nytimes.com
+9	patrick.hawley@nytimes.com
+10	MR.SMITH@nytimes.example.com
+4	parthasarathy.ramaraj@nytimes.com
+1	barbara.melton@nytimes.com
+2	ryan.restivo@nytimes.com
+\.
+
+
+--
+-- Name: offer_history_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.offer_history_id_seq', 3278, true);
+
+
+--
+-- Name: short_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.short_id_seq', 11001, true);
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.users_id_seq', 11, true);
+
+
+--
+-- Name: action_iqs action_iqs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.action_iqs
+    ADD CONSTRAINT action_iqs_pkey PRIMARY KEY (action_iq);
+
+
+--
+-- Name: bundles bundles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bundles
+    ADD CONSTRAINT bundles_pkey PRIMARY KEY (code);
+
+
+--
+-- Name: offer_history offer_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_history
+    ADD CONSTRAINT offer_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: offers offers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offers
+    ADD CONSTRAINT offers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: offers_schema_migrations offers_schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offers_schema_migrations
+    ADD CONSTRAINT offers_schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: offer_bundles_offer_id_bundle_code; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX offer_bundles_offer_id_bundle_code ON public.offer_bundles USING btree (offer_id, bundle_code);
+
+
+--
+-- Name: offer_categories_offer_id_category; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX offer_categories_offer_id_category ON public.offer_categories USING btree (offer_id, category);
+
+
+--
+-- Name: offer_channels_offer_id_channel; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX offer_channels_offer_id_channel ON public.offer_channels USING btree (offer_id, channel);
+
+
+--
+-- Name: offer_hd_products_offer_id_hd_product_code; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX offer_hd_products_offer_id_hd_product_code ON public.offer_hd_products USING btree (offer_id, hd_product_code, region);
+
+
+--
+-- Name: offer_segments_offer_id_aiqid_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX offer_segments_offer_id_aiqid_idx ON public.offer_segments USING btree (offer_id, action_iq_id);
+
+
+--
+-- Name: offer_sub_types_offer_id_subtype; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX offer_sub_types_offer_id_subtype ON public.offer_sub_types USING btree (offer_id, sub_type);
+
+
+--
+-- Name: offer_bundles offer_bundles_bundle_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_bundles
+    ADD CONSTRAINT offer_bundles_bundle_code_fkey FOREIGN KEY (bundle_code) REFERENCES public.bundles(code);
+
+
+--
+-- Name: offer_bundles offer_bundles_offer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_bundles
+    ADD CONSTRAINT offer_bundles_offer_id_fkey FOREIGN KEY (offer_id) REFERENCES public.offers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: offer_categories offer_categories_offer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_categories
+    ADD CONSTRAINT offer_categories_offer_id_fkey FOREIGN KEY (offer_id) REFERENCES public.offers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: offer_channels offer_channels_offer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_channels
+    ADD CONSTRAINT offer_channels_offer_id_fkey FOREIGN KEY (offer_id) REFERENCES public.offers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: offer_hd_products offer_hd_products_offer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_hd_products
+    ADD CONSTRAINT offer_hd_products_offer_id_fkey FOREIGN KEY (offer_id) REFERENCES public.offers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: offer_history offer_history_offer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_history
+    ADD CONSTRAINT offer_history_offer_id_fkey FOREIGN KEY (offer_id) REFERENCES public.offers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: offer_history offer_history_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_history
+    ADD CONSTRAINT offer_history_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: offer_segments offer_segments_action_iq_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_segments
+    ADD CONSTRAINT offer_segments_action_iq_id_fkey FOREIGN KEY (action_iq_id) REFERENCES public.action_iqs(action_iq);
+
+
+--
+-- Name: offer_segments offer_segments_offer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_segments
+    ADD CONSTRAINT offer_segments_offer_id_fkey FOREIGN KEY (offer_id) REFERENCES public.offers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: offer_sub_types offer_sub_types_offer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.offer_sub_types
+    ADD CONSTRAINT offer_sub_types_offer_id_fkey FOREIGN KEY (offer_id) REFERENCES public.offers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
