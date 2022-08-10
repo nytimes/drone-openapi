@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -22,6 +23,8 @@ import (
 type API struct {
 	// Spec is the path to the Open API spec file we wish to publish.
 	Spec string `json:"spec"`
+	// Directory is the path to the directory where Open API spec file will be picked up.
+	Directory string `json:"specs_dir"`
 	// Team is the team name to publish the spec under.
 	Team string `json:"team"`
 	// GoogleCredentials can be used to authorize spec uploads. This can optionally be
@@ -74,11 +77,33 @@ func wrapMain() error {
 		return err
 	}
 
+	if len(vargs.Directory) > 0 { // Process multiple yaml files in a given directory
+		files, err := ioutil.ReadDir(vargs.workspace + vargs.Directory)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, file := range files {
+			err = publishSingleSpec(vargs, file.Name())
+			if err != nil {
+				return err
+			}
+		}
+
+	} else {
+		err = publishSingleSpec(vargs, vargs.Spec)
+	}
+
+	return err
+}
+
+func publishSingleSpec(vargs API, fileName string) error {
+	var err error
 	// Trim whitespace, to forgive the vagaries of YAML parsing.
 	vargs.Key = strings.TrimSpace(vargs.Key)
 
 	// point to file in workspace
-	vargs.Spec = filepath.Join(vargs.workspace, vargs.Spec)
+	vargs.Spec = filepath.Join(vargs.workspace, fileName)
 
 	// check spec ext to see if we need to convert YAML => JSON
 	if ext := filepath.Ext(vargs.Spec); ext == ".yaml" || ext == ".yml" {
