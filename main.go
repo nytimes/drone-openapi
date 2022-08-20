@@ -99,6 +99,7 @@ func publishMultipleSpecs(vargs API) error {
 		if err != nil {
 			fmt.Printf("not all files were uploaded, encountered an error for %s: %s\n", file.Name(), err)
 		}
+		time.Sleep(time.Second)
 	}
 	return err
 }

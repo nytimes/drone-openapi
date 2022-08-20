@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func T1estValidateArgs(t *testing.T) {
+func TestValidateArgs(t *testing.T) {
 	testCases := []struct {
 		desc        string
 		vargs       API

@@ -26,7 +26,7 @@ func TestPublishSingleSpec(t *testing.T) {
 	}
 }
 
-func T1estPublishMultipleSpecs(t *testing.T) {
+func TestPublishMultipleSpecs(t *testing.T) {
 	rev = "0.0.1"
 
 	vargs := API{
