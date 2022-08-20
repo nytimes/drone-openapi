@@ -188,7 +188,7 @@ func publishSpec(vargs API) error {
 	return errors.New("unable to publish specs after 3 attempts")
 }
 
-func makeRequest(url, key, creds, contentType string, payload []byte) (int, []byte, error) {
+var makeRequest = func(url, key, creds, contentType string, payload []byte) (int, []byte, error) {
 	if key != "" {
 		url += "?key=" + key
 	}

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -61,5 +62,49 @@ func TestValidateArgs(t *testing.T) {
 				t.Fatalf("Error not in the expected format: expected: `%v`, got: `%v`", tC.expectedErr, err.Error())
 			}
 		})
+	}
+}
+
+func TestPublishSingleSpec(t *testing.T) {
+	rev = "0.0.1"
+
+	makeRequest = func(url, key, creds, contentType string, payload []byte) (int, []byte, error) {
+		return 200, []byte(""), nil
+	}
+
+	vargs := API{
+		workspace:         "./",
+		Key:               "expected_in_env",
+		GoogleCredentials: "expected_in_env",
+		Spec:              "testdata/specs/hello_world_spec.yml",
+		Team:              "drone-openapi",
+		UploaderURL:       "https://apis.nyt.net/update",
+	}
+
+	err := publishSpec(vargs)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func TestPublishMultipleSpecs(t *testing.T) {
+	rev = "0.0.1"
+
+	vargs := API{
+		workspace:         "./",
+		Key:               "expected_in_env",
+		GoogleCredentials: "expected_in_env",
+		Directory:         "testdata/specs",
+		Team:              "drone-openapi",
+		UploaderURL:       "https://apis.nyt.net/update",
+	}
+
+	makeRequest = func(url, key, creds, contentType string, payload []byte) (int, []byte, error) {
+		return 200, []byte(""), nil
+	}
+
+	err := publishMultipleSpecs(vargs)
+	if err != nil {
+		fmt.Println(err)
 	}
 }
