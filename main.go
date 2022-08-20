@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -77,20 +76,23 @@ func wrapMain() error {
 		return err
 	}
 
-	if len(vargs.Directory) > 0 { // Process multiple yaml files in a given directory
+	if len(vargs.Directory) > 0 {
+		fmt.Printf("processing multiple specs in directory: %s\n", vargs.Directory)
 		files, err := ioutil.ReadDir(vargs.workspace + vargs.Directory)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		for _, file := range files {
-			err = publishSingleSpec(vargs, file.Name())
+			fmt.Printf("processing spec file: %s\n", vargs.Spec)
+			err = publishSingleSpec(vargs, vargs.Spec)
 			if err != nil {
-				return err
+				fmt.Printf("not all files were uploaded, encountered an error for %s: %s\n", file.Name(), err)
 			}
 		}
 
 	} else {
+		fmt.Printf("processing spec file: %s\n", vargs.Spec)
 		err = publishSingleSpec(vargs, vargs.Spec)
 	}
 
@@ -252,6 +254,7 @@ func configFromEnv(vargs *API) error {
 	// drone plugin input format du jour:
 	// http://readme.drone.io/plugins/plugin-parameters/
 	vargs.Spec = os.Getenv("PLUGIN_SPEC")
+	vargs.Directory = os.Getenv("PLUGIN_SPECS_DIR")
 	vargs.Team = os.Getenv("PLUGIN_TEAM")
 	vargs.Key = os.Getenv("OPENAPI_API_KEY")
 	vargs.GoogleCredentials = os.Getenv("GOOGLE_CREDENTIALS")
@@ -264,8 +267,8 @@ func validateVargs(vargs API) error {
 	if vargs.Key == "" && vargs.GoogleCredentials == "" {
 		return fmt.Errorf("missing required params: key or google_credentials")
 	}
-	if vargs.Spec == "" {
-		return fmt.Errorf("missing required param: spec")
+	if vargs.Directory == "" || vargs.Spec == "" {
+		return fmt.Errorf("either spec or specs_dir is required")
 	}
 	if vargs.Team == "" {
 		return fmt.Errorf("missing required param: team")
