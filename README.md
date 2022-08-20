@@ -11,7 +11,9 @@ This plugin supports Drone 0.4 and 0.6+ (0.5 is deprecated).
 The example below is for secrets in the Drone 1.0+ format, where the GCP Service Account json must be passed to the `GOOGLE_CREDENTIALS` parameter in .drone.yml as an environment variable.
 
 
-### Basic example config to publish the swagger.yaml spec file:
+=======
+### Basic example config to publish the swagger.yaml spec file under the kids team:
+
 ```yaml
   - name: publish-openapi
     image: nytimes/drone-openapi
@@ -47,3 +49,4 @@ To publish all yamls in a given directory, specify a `specs_dir` with your yamls
       branch:
       - main
 ```
+=======
