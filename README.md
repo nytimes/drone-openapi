@@ -29,7 +29,7 @@ The example below is for secrets in the Drone 1.0+ format, where the GCP Service
       - main
 ```
 
-To publish all yamls in a given directory:
+To publish all yamls in a given directory, specify a `specs_dir` with your yamls within it:
 
 ```yaml
   - name: publish-openapi

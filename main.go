@@ -77,25 +77,29 @@ func wrapMain() error {
 	}
 
 	if len(vargs.Directory) > 0 {
-		fmt.Printf("processing multiple specs in directory: %s\n", vargs.Directory)
-		files, err := ioutil.ReadDir(vargs.workspace + vargs.Directory)
-		if err != nil {
-			return err
-		}
-
-		for _, file := range files {
-			fmt.Printf("processing spec file: %s\n", vargs.Spec)
-			err = publishSingleSpec(vargs, vargs.Spec)
-			if err != nil {
-				fmt.Printf("not all files were uploaded, encountered an error for %s: %s\n", file.Name(), err)
-			}
-		}
-
+		err = publishMultipleSpecs(vargs)
 	} else {
 		fmt.Printf("processing spec file: %s\n", vargs.Spec)
 		err = publishSingleSpec(vargs, vargs.Spec)
 	}
 
+	return err
+}
+
+func publishMultipleSpecs(vargs API) error {
+	fmt.Printf("processing multiple specs in directory: %s\n", vargs.Directory)
+	files, err := ioutil.ReadDir(vargs.workspace + vargs.Directory)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		fmt.Printf("processing spec file: %s\n", file.Name())
+		err = publishSingleSpec(vargs, file.Name())
+		if err != nil {
+			fmt.Printf("not all files were uploaded, encountered an error for %s: %s\n", file.Name(), err)
+		}
+	}
 	return err
 }
 
@@ -105,7 +109,7 @@ func publishSingleSpec(vargs API, fileName string) error {
 	vargs.Key = strings.TrimSpace(vargs.Key)
 
 	// point to file in workspace
-	vargs.Spec = filepath.Join(vargs.workspace, fileName)
+	vargs.Spec = filepath.Join(vargs.workspace, vargs.Directory, fileName)
 
 	// check spec ext to see if we need to convert YAML => JSON
 	if ext := filepath.Ext(vargs.Spec); ext == ".yaml" || ext == ".yml" {
@@ -267,8 +271,11 @@ func validateVargs(vargs API) error {
 	if vargs.Key == "" && vargs.GoogleCredentials == "" {
 		return fmt.Errorf("missing required params: key or google_credentials")
 	}
-	if vargs.Directory == "" || vargs.Spec == "" {
+	if vargs.Directory == "" && vargs.Spec == "" {
 		return fmt.Errorf("either spec or specs_dir is required")
+	}
+	if vargs.Directory != "" && vargs.Spec != "" {
+		return fmt.Errorf("only one of spec or specs_dir was expected")
 	}
 	if vargs.Team == "" {
 		return fmt.Errorf("missing required param: team")
