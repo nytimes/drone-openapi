@@ -38,6 +38,9 @@ type API struct {
 }
 
 var (
+	// Version is set at compile time.
+	version string
+	// Build revision is set at compile time.
 	rev string
 )
 
@@ -50,11 +53,15 @@ func main() {
 }
 
 func wrapMain() error {
+	if version == "" {
+		version = "x.x.x"
+	}
+
 	if rev == "" {
 		rev = "[unknown]"
 	}
 
-	fmt.Printf("Drone Open API Plugin built from %s\n", rev)
+	fmt.Printf("Drone Open API Plugin %s built from %s\n", version, rev)
 
 	vargs := API{}
 
