@@ -1,13 +1,7 @@
-FROM alpine:latest as alpine
+FROM gcr.io/distroless/static
 
-RUN apk add -U --no-cache ca-certificates
-
-FROM golang:alpine as golang
-
-FROM scratch
-
-COPY --from=alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=golang /usr/local/go/lib/time/ /usr/local/go/lib/time/
+USER 1001:1001
 
 ADD drone-openapi /bin/
+
 ENTRYPOINT ["/bin/drone-openapi"]
