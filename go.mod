@@ -1,6 +1,6 @@
-module github.com/NYTimes/drone-openapi
+module github.com/nytimes/drone-openapi
 
-go 1.12
+go 1.19
 
 require (
 	github.com/drone/drone-plugin-go v0.0.0-20160112175251-d6109f644c59
