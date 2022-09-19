@@ -59,7 +59,7 @@ func wrapMain() error {
 		rev = "[unknown]"
 	}
 
-	fmt.Printf("Drone Open API Plugin %s built from %s\n", rev)
+	fmt.Printf("Drone Open API Plugin %s built from %s\n", version, rev)
 
 	vargs := API{}
 
