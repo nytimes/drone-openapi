@@ -22,6 +22,8 @@ import (
 type API struct {
 	// Spec is the path to the Open API spec file we wish to publish.
 	Spec string `json:"spec"`
+	// Directory is the path to the directory where Open API spec file will be picked up.
+	Directory string `json:"specs_dir"`
 	// Team is the team name to publish the spec under.
 	Team string `json:"team"`
 	// GoogleCredentials can be used to authorize spec uploads. This can optionally be
@@ -81,11 +83,41 @@ func wrapMain() error {
 		return err
 	}
 
+	if len(vargs.Directory) > 0 {
+		err = publishMultipleSpecs(vargs)
+	} else {
+		fmt.Printf("processing spec file: %s\n", vargs.Spec)
+		err = publishSingleSpec(vargs, vargs.Spec)
+	}
+
+	return err
+}
+
+func publishMultipleSpecs(vargs API) error {
+	fmt.Printf("processing multiple specs in directory: %s\n", vargs.Directory)
+	files, err := ioutil.ReadDir(vargs.workspace + vargs.Directory)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		fmt.Printf("processing spec file: %s\n", file.Name())
+		err = publishSingleSpec(vargs, file.Name())
+		if err != nil {
+			fmt.Printf("not all files were uploaded, encountered an error for %s: %s\n", file.Name(), err)
+		}
+		time.Sleep(time.Second)
+	}
+	return err
+}
+
+func publishSingleSpec(vargs API, fileName string) error {
+	var err error
 	// Trim whitespace, to forgive the vagaries of YAML parsing.
 	vargs.Key = strings.TrimSpace(vargs.Key)
 
 	// point to file in workspace
-	vargs.Spec = filepath.Join(vargs.workspace, vargs.Spec)
+	vargs.Spec = filepath.Join(vargs.workspace, vargs.Directory, fileName)
 
 	// check spec ext to see if we need to convert YAML => JSON
 	if ext := filepath.Ext(vargs.Spec); ext == ".yaml" || ext == ".yml" {
@@ -163,7 +195,7 @@ func publishSpec(vargs API) error {
 	return errors.New("unable to publish specs after 3 attempts")
 }
 
-func makeRequest(url, key, creds, contentType string, payload []byte) (int, []byte, error) {
+var makeRequest = func(url, key, creds, contentType string, payload []byte) (int, []byte, error) {
 	if key != "" {
 		url += "?key=" + key
 	}
@@ -234,6 +266,7 @@ func configFromEnv(vargs *API) error {
 	// drone plugin input format du jour:
 	// http://readme.drone.io/plugins/plugin-parameters/
 	vargs.Spec = os.Getenv("PLUGIN_SPEC")
+	vargs.Directory = os.Getenv("PLUGIN_SPECS_DIR")
 	vargs.Team = os.Getenv("PLUGIN_TEAM")
 	vargs.Key = os.Getenv("OPENAPI_API_KEY")
 	vargs.GoogleCredentials = os.Getenv("GOOGLE_CREDENTIALS")
@@ -246,8 +279,11 @@ func validateVargs(vargs API) error {
 	if vargs.Key == "" && vargs.GoogleCredentials == "" {
 		return fmt.Errorf("missing required params: key or google_credentials")
 	}
-	if vargs.Spec == "" {
-		return fmt.Errorf("missing required param: spec")
+	if vargs.Directory == "" && vargs.Spec == "" {
+		return fmt.Errorf("either spec or specs_dir is required")
+	}
+	if vargs.Directory != "" && vargs.Spec != "" {
+		return fmt.Errorf("only one of spec or specs_dir was expected")
 	}
 	if vargs.Team == "" {
 		return fmt.Errorf("missing required param: team")

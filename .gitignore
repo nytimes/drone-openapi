@@ -1,1 +1,4 @@
 drone-openapi
+coverprofile.out
+testdata/specs/hello_world_spec.json
+testdata/specs/users_spec.json
