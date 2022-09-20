@@ -1,6 +1,6 @@
 FROM gcr.io/distroless/static
 
-USER 1001:1001
+# USER 1001:1001
 
 ADD drone-openapi /bin/
 
