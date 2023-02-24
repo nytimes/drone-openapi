@@ -1,9 +1,4 @@
 # These owners will be the default owners for everything in the repo.
 # Unless a later match takes precedence, these owners
 # will be requested for review when someone opens a pull request.
-*       @nytimes/go-developers
-
-# As Security-hardening-for-github-actions best practices, make sure any changes to "./github/workflows" are approved
-# by project owners.
-
-./github/workflows @nytimes/go-developers
+* @nytimes/go-developers
