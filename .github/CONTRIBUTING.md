@@ -1,6 +1,6 @@
 # Contributing to drone-openapi
 
-drone-openapi is an open source project started by handful of developers at The New York Times and open to the entire open source community.
+`drone-openapi` is an open source project started by handful of developers at The New York Times and open to the entire open source community.
 
 We really appreciate your help!
 
@@ -30,4 +30,4 @@ Before submitting changes, please follow these guidelines:
 
 ## License
 
-Unless otherwise noted, the Drone-GAE source files are distributed under the Apache 2.0-style license found in the LICENSE file.
+Unless otherwise noted, `drone-openapi` is distributed under the Apache 2.0-style license found in the LICENSE file.
