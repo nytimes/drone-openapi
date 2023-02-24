@@ -71,9 +71,7 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         
-    - name: Slack Notification
-      if: ${{ github.event_name != 'pull_request' }}
-      id: slack
+    - name: Slack notification
       uses: slackapi/slack-github-action@v1.23.0
       if: ${{ github.event_name != 'pull_request' }}
       with:
