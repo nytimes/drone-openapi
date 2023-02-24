@@ -8,6 +8,7 @@ Publish Open API spec files from a Drone pipeline.
 
 - Docker Hub [release tags](https://hub.docker.com/r/nytimes/drone-openapi/tags)
 - Drone.io [builds](https://cloud.drone.io/nytimes/drone-openapi)
+- GitHub Actions workflow [runs](https://github.com/nytimes/drone-openapi/actions)
 - Contributing [documentation](.github/CONTRIBUTING.md)
 
 ## Overview
