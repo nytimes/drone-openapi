@@ -2,3 +2,6 @@
 # Unless a later match takes precedence, these owners
 # will be requested for review when someone opens a pull request.
 * @nytimes/go-developers
+
+# Make sure any changes to GitHub Actions are approved by project owners.
+.github/workflows/ @nytimes/delivery-engineering
