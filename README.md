@@ -1,13 +1,13 @@
 # drone-openapi
 
-[![Build Status](https://cloud.drone.io/api/badges/nytimes/drone-openapi/status.svg)](https://cloud.drone.io/nytimes/drone-openapi)
+[![Build Status](https://github.com/nytimes/drone-openapi/actions/workflows/build.yml/badge.svg)](https://github.com/nytimes/drone-openapi/actions/workflows/build.yaml)
 
 Publish Open API spec files from a Drone pipeline.
 
 ## Links
 
 - Docker Hub [release tags](https://hub.docker.com/r/nytimes/drone-openapi/tags)
-- Drone.io [builds](https://cloud.drone.io/nytimes/drone-openapi)
+- GitHub Actions workflow [runs](https://github.com/nytimes/drone-openapi/actions)
 - Contributing [documentation](.github/CONTRIBUTING.md)
 
 ## Overview
