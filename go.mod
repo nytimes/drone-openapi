@@ -6,7 +6,7 @@ require (
 	github.com/drone/drone-plugin-go v0.0.0-20160112175251-d6109f644c59
 	github.com/ghodss/yaml v1.0.0
 	github.com/pkg/errors v0.9.1
-	golang.org/x/oauth2 v0.12.0
+	golang.org/x/oauth2 v0.13.0
 )
 
 require (
